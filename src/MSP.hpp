@@ -18,10 +18,11 @@ public:
 
     std::tuple<ByteVector, uint8_t> readData();
 
-    template<typename T>
-    void unpack(const ByteVector &data, T &msp_type) {
-        assert(data.size()==sizeof(T));
-        std::memcpy(&msp_type, data.data(), sizeof(T));
+    //template<typename T>
+    void unpack(const ByteVector &data, msp::Response &msg) {
+        //assert(data.size()==sizeof(T));
+        //std::memcpy(&msp_type, data.data(), sizeof(T));
+        msg.decode(data);
     }
 
     template<typename T>

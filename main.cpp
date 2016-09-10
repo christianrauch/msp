@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
             std::tie(ret, id) = msp.readData();
 
             if(id==MSP_IDENT) {
-                msp::data::Ident ident;
+                msp::Ident ident;
                 msp.unpack(ret, ident);
                 std::cout<<"version: "<<(int)ident.version<<std::endl;
             }
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
                 std::cout<<"wrong message:"<<(int)id<<std::endl;
             }
         }
-        catch(std::exception& e) {
+        catch(boost::system::system_error &e) {
             std::cerr<<"Cannot reach MSP yet. "<<e.what()<<std::endl;
         }
     } while(id!=MSP_IDENT);
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
             std::tie(ret, id) = msp.readData();
 
             if(id==MSP_STATUS) {
-                msp::data::Status status;
+                msp::Status status;
                 msp.unpack(ret, status);
                 std::cout<<"time: "<<status.time<<std::endl;
             }
@@ -52,8 +52,8 @@ int main(int argc, char *argv[]) {
                 std::cout<<"wrong message:"<<(int)id<<std::endl;
             }
         }
-        catch(std::exception& e) {
-//            std::cerr << e.what() << std::endl;
+        catch(boost::system::system_error &e) {
+            std::cerr << e.what() << std::endl;
         }
     }
 
