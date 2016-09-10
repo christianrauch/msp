@@ -2,7 +2,7 @@
 #define MSP_HPP
 
 #include "SerialPort.hpp"
-#include "msp_msg.h"
+#include "msp_msg.hpp"
 
 #include <iostream>
 
@@ -12,26 +12,21 @@ public:
 
     MSP(const std::string &device);
 
-    ByteVector compileRequest(const uint8_t request_id);
+    // request (get) data from FC
+    msp::Request &request();
 
-    bool sendRequest(const uint8_t request_id);
+    // respond (set) with data FC
+    bool response(msp::Response &response);
 
-    std::tuple<ByteVector, uint8_t> readData();
+    bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
 
-    //template<typename T>
-    void unpack(const ByteVector &data, msp::Response &msg) {
-        //assert(data.size()==sizeof(T));
-        //std::memcpy(&msp_type, data.data(), sizeof(T));
-        msg.decode(data);
-    }
+    ByteVector receiveData(const uint8_t id);
 
-    template<typename T>
-    void pack(const T &msp_type, ByteVector &data) {
-        // allocate memory
-        data.resize(sizeof(T));
-        // copy to byte vector
-        std::memcpy(data.data(), &msp_type, data.size());
-    }
+    //ByteVector compileRequest(const uint8_t request_id);
+
+    //bool sendRequest(const uint8_t request_id);
+
+    uint8_t crc(const uint8_t id, const ByteVector &data);
 
 private:
     SerialPort sp;

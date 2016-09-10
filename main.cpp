@@ -8,51 +8,44 @@ int main(int argc, char *argv[]) {
 
     MSP msp("/dev/ttyUSB0");
 
-    std::vector<uint8_t> ret;
-    uint8_t id;
+    std::vector<uint8_t> ret(0);
+    //uint8_t id;
+
+    sleep(10);
+
+    std::cout<<"ready"<<std::endl;
 
     // try connecting until first package is received
+    msp::Ident ident;
     do {
         try {
-            msp.sendRequest(MSP_IDENT);
+            msp.sendData(ident.id);
 
             usleep(100);
 
-            std::tie(ret, id) = msp.readData();
-
-            if(id==MSP_IDENT) {
-                msp::Ident ident;
-                msp.unpack(ret, ident);
-                std::cout<<"version: "<<(int)ident.version<<std::endl;
-            }
-            else {
-                std::cout<<"wrong message:"<<(int)id<<std::endl;
-            }
+            ret = msp.receiveData(ident.id);
+            ident.decode(ret);
         }
-        catch(boost::system::system_error &e) {
+        catch(std::exception &e) {
             std::cerr<<"Cannot reach MSP yet. "<<e.what()<<std::endl;
         }
-    } while(id!=MSP_IDENT);
+    } while(ret.size()==0);
+
+    std::cout<<"version: "<<(int)ident.version<<std::endl;
 
 
     while(true) {
-        msp.sendRequest(MSP_STATUS);
+        msp::Status status;
+        msp.sendData(status.id);
 
         usleep(100);
 
         try {
-            std::tie(ret, id) = msp.readData();
-
-            if(id==MSP_STATUS) {
-                msp::Status status;
-                msp.unpack(ret, status);
-                std::cout<<"time: "<<status.time<<std::endl;
-            }
-            else {
-                std::cout<<"wrong message:"<<(int)id<<std::endl;
-            }
+            ret = msp.receiveData(status.id);
+            status.decode(ret);
+            std::cout<<"time: "<<status.time<<std::endl;
         }
-        catch(boost::system::system_error &e) {
+        catch(std::exception &e) {
             std::cerr << e.what() << std::endl;
         }
     }
