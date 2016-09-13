@@ -65,24 +65,24 @@ MSP::ByteVector MSP::receiveData(const uint8_t id) {
 
     // get ID of msg
     const uint8_t id_rcv = sp.read();
-    std::cout<<"id: "<<(int)id_rcv<<std::endl;
+    //std::cout<<"id: "<<(int)id_rcv<<std::endl;
 
     // return if ID does not fit
     if(id!=id_rcv) {
-        std::cout<<"id: "<<(int)id_rcv<<" (expected: "<<(int)id<<")"<<std::endl;
+        //std::cout<<"id: "<<(int)id_rcv<<" (expected: "<<(int)id<<")"<<std::endl;
         throw WrongMessageType();
     }
 
     if(data_size==0)
         throw NoData();
 
-    std::cout<<"going to read "<<(int)data_size<<" data bytes"<<std::endl;
+    //std::cout<<"going to read "<<(int)data_size<<" data bytes"<<std::endl;
 
     const ByteVector data = sp.read(data_size);
 
     const uint8_t rcv_crc = sp.read();
     if(rcv_crc!=crc(id, data)) {
-        std::cerr<<"ignoring package with wrong check sum"<<std::endl;
+        //std::cerr<<"ignoring package with wrong check sum"<<std::endl;
         throw WrongCRC();
     }
 
