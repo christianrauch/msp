@@ -22,11 +22,11 @@ struct Request : public Message {
 // received from FC
 struct Response : public Message {
     using Message::Message;
-    virtual std::vector<uint8_t> encode(const std::vector<uint8_t> &data) = 0;
+    virtual std::vector<uint8_t> &encode() = 0;
 };
 
+// MSP_IDENT: 100
 struct Ident : public Request {
-//    static const uint8_t id = 100;
     uint8_t     version;
     uint8_t     type;
     uint8_t     msp_version;
@@ -43,9 +43,8 @@ struct Ident : public Request {
     }
 };
 
+// MSP_STATUS: 101
 struct Status : public Request {
-//    static const uint8_t id = 101;
-
     uint16_t    time;   // in us
     uint16_t    i2c_errors_count;
     uint16_t    sensor;
