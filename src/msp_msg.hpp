@@ -63,6 +63,37 @@ struct Status : public Request {
     }
 };
 
+// MSP_RAW_IMU: 102
+struct RawImu : public Request {
+    int16_t accx;
+    int16_t accy;
+    int16_t accz;
+
+    int16_t gyrx;
+    int16_t gyry;
+    int16_t gyrz;
+
+    int16_t magx;
+    int16_t magy;
+    int16_t magz;
+
+    RawImu() : Request(102) {}
+
+    void decode(const std::vector<uint8_t> &data) {
+        accx = (data[0]<<0) | (data[1]<<8);
+        accy = (data[2]<<0) | (data[3]<<8);
+        accz = (data[4]<<0) | (data[5]<<8);
+
+        gyrx = (data[6]<<0) | (data[7]<<8);
+        gyry = (data[8]<<0) | (data[9]<<8);
+        gyrz = (data[10]<<0) | (data[11]<<8);
+
+        magx = (data[12]<<0) | (data[13]<<8);
+        magy = (data[14]<<0) | (data[15]<<8);
+        magz = (data[16]<<0) | (data[17]<<8);
+    }
+};
+
 } // namespace msp
 
 #endif // MSP_MSG_HPP
