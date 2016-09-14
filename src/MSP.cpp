@@ -1,44 +1,65 @@
 #include "MSP.hpp"
 
+#include <iostream>
+
 namespace msp {
+
+void printData(const ByteVector &data) {
+    std::cout<<"data("<<data.size()<<") START>>>"<<std::endl;
+    for(auto d : data)
+        std::cout<<(int)d<<std::endl;
+    std::cout<<"<<<data("<<data.size()<<") END"<<std::endl;
+}
 
 MSP::MSP(const std::string &device) : sp(device), wait(10) { }
 
 bool MSP::request(msp::Request &request) {
-    if(!sendData(request.id))
+    if(!sendData(request.id()))
         return false;
+
+    std::cout<<"Requested "<<(int)request.id()<<std::endl;
 
     usleep(wait);
 
     try {
-        const ByteVector data = receiveData(request.id);
-        request.decode(data);
+        const DataID pkg = receiveData();
+        if(pkg.id==request.id()) {
+            std::cout<<"accept id: "<<(int)pkg.id<<std::endl;
+            request.decode(pkg.data);
+        }
+        else {
+            std::cout<<"wrong id: "<<(int)pkg.id<<" (expected:"<<(int)request.id()<<")"<<std::endl;
+        }
+        return pkg.id==request.id();
     }
-    catch(NoData) { return false; }
-    catch(MalformedHeader) { return false; }
-    catch(WrongMessageType) { return false; }
-
-    return true;
+    catch(MalformedHeader) {
+        std::cerr<<"Malformed header"<<std::endl;
+        return false;
+    }
+    catch(boost::system::system_error) { return false; }
 }
 
 bool MSP::respond(msp::Response &response) {
-    if(!sendData(response.id, response.encode()))
+    if(!sendData(response.id(), response.encode()))
         return false;
+
+    std::cout<<"Responded "<<(int)response.id()<<std::endl;
+    //printData(response.encode());
 
     usleep(wait);
 
     try {
-        receiveData(response.id);
+        const DataID pkg = receiveData();
+        return (pkg.id==response.id() && pkg.data.size()==0);
     }
-    catch(NoData) { return true; }  // ACK, expect no data
     catch(MalformedHeader) { return false; }
-    catch(WrongMessageType) { return false; }
+    catch(boost::system::system_error) { return false; }
 }
 
 bool MSP::sendData(const uint8_t id, const ByteVector &data) {
-    //std::cout<<"sending data size: "<<data.size()<<std::endl;
-
     ByteVector msg;
+    msg.reserve(6+data.size());
+
     msg.push_back('$');
     msg.push_back('M');
     msg.push_back('<');
@@ -50,7 +71,7 @@ bool MSP::sendData(const uint8_t id, const ByteVector &data) {
     return sp.write(msg);
 }
 
-MSP::ByteVector MSP::receiveData(const uint8_t id) {
+DataID MSP::receiveData() {
     // wait for correct preamble start
     while( (char)sp.read() != '$');
 
@@ -64,21 +85,14 @@ MSP::ByteVector MSP::receiveData(const uint8_t id) {
     const uint8_t data_size = sp.read();
 
     // get ID of msg
-    const uint8_t id_rcv = sp.read();
-    //std::cout<<"id: "<<(int)id_rcv<<std::endl;
-
-    // return if ID does not fit
-    if(id!=id_rcv) {
-        //std::cout<<"id: "<<(int)id_rcv<<" (expected: "<<(int)id<<")"<<std::endl;
-        throw WrongMessageType();
-    }
-
-    if(data_size==0)
-        throw NoData();
+    const uint8_t id = sp.read();
+    std::cout<<"received id: "<<(int)id<<std::endl;
 
     //std::cout<<"going to read "<<(int)data_size<<" data bytes"<<std::endl;
 
     const ByteVector data = sp.read(data_size);
+
+    printData(data);
 
     const uint8_t rcv_crc = sp.read();
     if(rcv_crc!=crc(id, data)) {
@@ -86,7 +100,7 @@ MSP::ByteVector MSP::receiveData(const uint8_t id) {
         throw WrongCRC();
     }
 
-    return data;
+    return DataID(data,id);
 }
 
 uint8_t MSP::crc(const uint8_t id, const ByteVector &data) {
