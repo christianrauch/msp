@@ -17,7 +17,24 @@ public:
 // exception to throw if reported CRC does not match with computed
 class WrongCRC : public std::runtime_error {
 public:
-    WrongCRC() : std::runtime_error("CRC not matching") {}
+    WrongCRC(const uint8_t exp, const uint8_t rcv)
+        : std::runtime_error("CRC not matching"),
+          expected(exp),
+          received(rcv)
+    { }
+
+    virtual const char* what() throw() {
+        msg.str("");
+        msg << runtime_error::what() << ": ";
+        msg << "expected " << (int)expected << ", ";
+        msg << "received " << (int)received << std::endl;
+
+        return msg.str().c_str();
+    }
+private:
+    const uint8_t expected; ///<! expected CRC
+    const uint8_t received; ///<! received CRC
+    std::stringstream msg;  ///<! error message
 };
 
 /**
@@ -35,15 +52,46 @@ struct DataID {
     DataID(ByteVector data, ID id) : data(data), id(id) {}
 };
 
+/**
+ * @brief The MSP class
+ */
 class MSP {
 public:
+    /**
+     * @brief MSP constructor msp communication
+     * @param device device path
+     */
     MSP(const std::string &device);
 
-    // request (get) data from FC
+    /**
+     * @brief request send command and request data from FC once
+     * @param request request message
+     * @return true on success
+     * @return false on failure
+     */
     bool request(msp::Request &request);
 
-    // respond (set) with data to FC
+    /**
+     * @brief request_block continuously send command and request data until data has been received
+     * @param request request message
+     * @return true when data has been received
+     */
+    bool request_block(msp::Request &request);
+
+    /**
+     * @brief respond send data to FC and read acknowledge
+     * @param response response message
+     * @return true on success
+     * @return false on failure
+     */
     bool respond(msp::Response &response);
+
+    /**
+     * @brief respond_block send data to FC until acknowledge has been received
+     * @param response response message with data
+     * @return true when acknowledge has been received
+     */
+    bool respond_block(msp::Response &response);
 
     /**
      * @brief sendData send raw data and ID to flight controller
@@ -83,8 +131,6 @@ private:
     SerialPort sp;      //!< serial port
     unsigned int wait;  //!< time (micro seconds) to wait before waiting for response
 };
-
-
 
 } // namespace msp
 

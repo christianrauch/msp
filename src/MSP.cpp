@@ -17,34 +17,49 @@ bool MSP::request(msp::Request &request) {
     if(!sendData(request.id()))
         return false;
 
-    std::cout<<"Requested "<<(int)request.id()<<std::endl;
-
     usleep(wait);
 
     try {
         const DataID pkg = receiveData();
-        if(pkg.id==request.id()) {
-            std::cout<<"accept id: "<<(int)pkg.id<<std::endl;
+        if(pkg.id==request.id())
             request.decode(pkg.data);
-        }
-        else {
-            std::cout<<"wrong id: "<<(int)pkg.id<<" (expected:"<<(int)request.id()<<")"<<std::endl;
-        }
         return pkg.id==request.id();
     }
-    catch(MalformedHeader) {
-        std::cerr<<"Malformed header"<<std::endl;
+    catch(const MalformedHeader &e) {
+        std::cerr<<e.what()<<std::endl;
         return false;
     }
     catch(boost::system::system_error) { return false; }
 }
 
+bool MSP::request_block(msp::Request &request) {
+    bool success = false;
+    while(success==false) {
+        // write ID
+        if(!sendData(request.id())) {
+            success = false;
+            continue;
+        }
+
+        try {
+            const DataID pkg = receiveData();
+            success = (pkg.id==request.id());
+            if(success)
+                request.decode(pkg.data);
+        }
+        catch(const MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            success = false;
+        }
+        catch(boost::system::system_error) { success = false; }
+    }
+
+    return true;
+}
+
 bool MSP::respond(msp::Response &response) {
     if(!sendData(response.id(), response.encode()))
         return false;
-
-    std::cout<<"Responded "<<(int)response.id()<<std::endl;
-    //printData(response.encode());
 
     usleep(wait);
 
@@ -52,8 +67,34 @@ bool MSP::respond(msp::Response &response) {
         const DataID pkg = receiveData();
         return (pkg.id==response.id() && pkg.data.size()==0);
     }
-    catch(MalformedHeader) { return false; }
+    catch(const MalformedHeader &e) {
+        std::cerr<<e.what()<<std::endl;
+        return false;
+    }
     catch(boost::system::system_error) { return false; }
+}
+
+bool MSP::respond_block(msp::Response &response) {
+    bool success = false;
+    while(success==false) {
+        // write ID and data and skip to write again if error occurred
+        if(!sendData(response.id(), response.encode())) {
+            success = false;
+            continue;
+        }
+
+        try {
+            const DataID pkg = receiveData();
+            success = (pkg.id==response.id() && pkg.data.size()==0);
+        }
+        catch(const MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            success = false;
+        }
+        catch(boost::system::system_error) { success = false; }
+    }
+
+    return true;
 }
 
 bool MSP::sendData(const uint8_t id, const ByteVector &data) {
@@ -86,19 +127,16 @@ DataID MSP::receiveData() {
 
     // get ID of msg
     const uint8_t id = sp.read();
-    std::cout<<"received id: "<<(int)id<<std::endl;
 
-    //std::cout<<"going to read "<<(int)data_size<<" data bytes"<<std::endl;
-
+    // read payload data
     const ByteVector data = sp.read(data_size);
 
-    printData(data);
-
+    // check CRC
     const uint8_t rcv_crc = sp.read();
-    if(rcv_crc!=crc(id, data)) {
-        //std::cerr<<"ignoring package with wrong check sum"<<std::endl;
-        throw WrongCRC();
-    }
+    const uint8_t exp_crc = crc(id, data);
+
+    if(rcv_crc!=exp_crc)
+        throw WrongCRC(exp_crc, rcv_crc);
 
     return DataID(data,id);
 }
