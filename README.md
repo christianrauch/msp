@@ -3,6 +3,8 @@
 This library implements the MultiWii Serial Protocoll ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii flight controller (FC) over a serial device.
 It currently implements the sending and reading from a serial device and defines some of the messages and encoding/decoding functions for raw data.
 
+The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 300Hz (for a FC cycle time of 2.8ms / 357Hz).
+
 ## Installation and Test
 - install boost: `sudo apt install libboost-system-dev`
 - check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..`
@@ -50,6 +52,8 @@ or to timeout while reading and resending the request:
 bool request_timeout(msp::Request &request, unsigned int timeout_ms)
 ```
 which can be useful to block until the FC is available.
+
+E.g. the Arduino Nano 3.0 is reset when openning the serial device and needs some time to boot until it will respond to messages. `request_timeout` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to wait for data.
 
 #### Respond with data to FC
 For sending data to the FC (→ FC) a message containing the id and the payload is send to the FC and confirmed by a acknowledge message which only contains the id with no data.
