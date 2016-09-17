@@ -24,17 +24,18 @@ public:
     { }
 
     virtual const char* what() throw() {
-        msg.str("");
-        msg << runtime_error::what() << ": ";
-        msg << "expected " << (int)expected << ", ";
-        msg << "received " << (int)received << std::endl;
+        std::stringstream ss_msg;
+        ss_msg << runtime_error::what() << ": ";
+        ss_msg << "expected " << (int)expected << ", ";
+        ss_msg << "received " << (int)received;
 
-        return msg.str().c_str();
+        msg = ss_msg.str();
+        return msg.c_str();
     }
 private:
     const uint8_t expected; ///<! expected CRC
     const uint8_t received; ///<! received CRC
-    std::stringstream msg;  ///<! error message
+    std::string msg;        ///<! error message
 };
 
 /**
