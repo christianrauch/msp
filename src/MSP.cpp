@@ -1,5 +1,6 @@
 #include "MSP.hpp"
 
+#include <future>
 #include <iostream>
 
 namespace msp {
@@ -48,6 +49,38 @@ bool MSP::request_block(msp::Request &request) {
                 request.decode(pkg.data);
         }
         catch(const MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            success = false;
+        }
+        catch(boost::system::system_error) { success = false; }
+    }
+
+    return true;
+}
+
+bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
+
+    const std::chrono::milliseconds timeout(timeout_ms);
+
+    bool success = false;
+    while(success==false) {
+        try {
+            std::future<DataID> proc = std::async(std::launch::async, &MSP::receiveData, this);
+
+            // write ID while waiting for data
+            while(proc.wait_for(timeout)==std::future_status::timeout)
+                while(sendData(request.id())!=true);
+
+            DataID pkg = proc.get();
+            success = (pkg.id==request.id());
+            if(success)
+                request.decode(pkg.data);
+        }
+        catch(const MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            success = false;
+        }
+        catch(WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }

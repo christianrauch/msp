@@ -4,6 +4,7 @@ project(msp)
 add_definitions(-std=c++11)
 
 find_package(Boost REQUIRED system)
+find_package(Threads)
 
 set(MSP_SOURCE_DIR src)
 
@@ -22,6 +23,7 @@ include_directories(${MSP_SOURCE_DIR})
 
 add_library(msp ${MSP_SRC})
 target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
+target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable(get_msp_info main.cpp)
 target_link_libraries(get_msp_info msp)
