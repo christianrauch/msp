@@ -15,6 +15,26 @@ public:
     MalformedHeader() : std::runtime_error("Malformed header") {}
 };
 
+class UnknownMsgId : public std::runtime_error {
+public:
+    UnknownMsgId(uint8_t id)
+        : runtime_error("Unknown MSP id!"),
+          id(id)
+    { }
+
+    virtual const char* what() throw() {
+        std::stringstream ss_msg;
+        ss_msg << runtime_error::what() << ": ";
+        ss_msg << "FC refused to process message with id: "<<id;
+
+        msg = ss_msg.str();
+        return msg.c_str();
+    }
+private:
+    uint8_t id;
+    std::string msg;        ///<! error message
+};
+
 // exception to throw if reported CRC does not match with computed
 class WrongCRC : public std::runtime_error {
 public:

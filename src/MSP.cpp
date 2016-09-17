@@ -152,8 +152,26 @@ DataID MSP::receiveData() {
     if( (char)sp.read() != 'M')
         throw MalformedHeader();
 
-    if( (char)sp.read() != '>')
+    const uint8_t com_state = sp.read();
+    switch((char)com_state) {
+    case '>':
+        // expected char
+        break;
+    case '!': {
+        // the send message ID is unknown to the FC
+        sp.read(); // ignore data size
+        const uint8_t id = sp.read(); // get faulty ID
+        throw UnknownMsgId(id);
+        break;
+    }
+    default:
         throw MalformedHeader();
+        break;
+    }
+
+    if( (char)com_state != '>') {
+        throw MalformedHeader();
+    }
 
     // read data size
     const uint8_t data_size = sp.read();

@@ -19,21 +19,16 @@ typedef std::vector<uint8_t> ByteVector;
 typedef uint8_t ID;
 
 struct Message {
-    //static const uint8_t id = 0;
-    //Message() : id(getID()) {}
-    //Message(uint8_t id) : id(getID()) {}
     virtual ID id() = 0;
 };
 
 // send to FC
 struct Request : public Message {
-    //using Message::Message;
     virtual void decode(const std::vector<uint8_t> &data) = 0;
 };
 
 // received from FC
 struct Response : public Message {
-    //using Message::Message;
     virtual std::vector<uint8_t> encode() = 0;
 };
 
