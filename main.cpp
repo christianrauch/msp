@@ -1,5 +1,6 @@
 #include <iostream>
 #include <MSP.hpp>
+#include <msp_msg.hpp>
 
 #include <chrono>
 

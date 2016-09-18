@@ -14,14 +14,15 @@ set(MSP_SRC
 )
 
 set(MSP_HDR
-    ${MSP_SOURCE_DIR}/msp_msg.h
+    ${MSP_SOURCE_DIR}/msp_msg.hpp
+    ${MSP_SOURCE_DIR}/types.hpp
     ${MSP_SOURCE_DIR}/SerialPort.hpp
     ${MSP_SOURCE_DIR}/MSP.hpp
 )
 
 include_directories(${MSP_SOURCE_DIR})
 
-add_library(msp ${MSP_SRC})
+add_library(msp ${MSP_SRC} ${MSP_HDR})
 target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 

@@ -2,7 +2,7 @@
 #define MSP_HPP
 
 #include "SerialPort.hpp"
-#include "msp_msg.hpp"
+#include "types.hpp"
 
 #include <stdexcept>
 #include <chrono>
