@@ -64,3 +64,27 @@ bool respond(msp::Response &response)
 ```
 
 Messages and the encoding/decoding methods are defined in `msp_msg.hpp`.
+
+### Examples
+
+#### Get MultiWii version and multi-copter type
+
+We will use the command MSP_IDENT (100) to get the version, multi-copter type and it capabilities.
+
+Instantiate the driver:
+```
+msp::MSP msp(path_to_device);
+```
+create request message and send the request to the FC:
+```
+msp::Ident ident;
+msp.request_block(ident);
+```
+When the call to `request_block` returns, the values of structure `ident` will be populated can be accessed:
+```
+std::cout<<"MSP version "<<(int)ident.version<<std::endl;
+```
+
+## TODO
+- implement remaining request and response messages
+- create high-level API that uses the message to extract further information (e.g. hasBaro(), arm(), disarm()) and reports SI units instead of sensor depending values
