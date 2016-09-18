@@ -395,6 +395,20 @@ struct SetRcTuning : public Response {
     }
 };
 
+// MSP_SET_MOTOR: 214
+struct SetMotor : public Response {
+    ID id() { return 214; }
+
+    uint16_t motor[N_MOTOR];
+
+    std::vector<uint8_t> encode() {
+        std::vector<uint8_t> data(N_MOTOR*2);
+        for(unsigned int i=0; i<N_MOTOR; i++)
+            ser16(motor[i], data);
+        return data;
+    }
+};
+
 } // namespace msp
 
 #endif // MSP_MSG_HPP
