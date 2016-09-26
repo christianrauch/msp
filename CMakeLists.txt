@@ -15,6 +15,7 @@ set(MSP_SRC
 
 set(MSP_HDR
     ${MSP_SOURCE_DIR}/msp_msg.hpp
+    ${MSP_SOURCE_DIR}/msp_id.hpp
     ${MSP_SOURCE_DIR}/types.hpp
     ${MSP_SOURCE_DIR}/SerialPort.hpp
     ${MSP_SOURCE_DIR}/MSP.hpp

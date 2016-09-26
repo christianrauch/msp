@@ -130,7 +130,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
+    bool sendData(const ID id, const ByteVector &data = ByteVector(0));
 
     /**
      * @brief receiveData receive raw data from flight controller
@@ -156,7 +156,7 @@ private:
      * @param data raw data vector
      * @return checksum
      */
-    uint8_t crc(const uint8_t id, const ByteVector &data);
+    uint8_t crc(const ID id, const ByteVector &data);
 
     SerialPort sp;      //!< serial port
     unsigned int wait;  //!< time (micro seconds) to wait before waiting for response

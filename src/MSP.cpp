@@ -2,6 +2,7 @@
 
 #include <future>
 #include <iostream>
+#include <type_traits>
 
 namespace msp {
 
@@ -130,7 +131,7 @@ bool MSP::respond_block(msp::Response &response) {
     return true;
 }
 
-bool MSP::sendData(const uint8_t id, const ByteVector &data) {
+bool MSP::sendData(const ID id, const ByteVector &data) {
     ByteVector msg;
     msg.reserve(6+data.size());
 
@@ -138,7 +139,7 @@ bool MSP::sendData(const uint8_t id, const ByteVector &data) {
     msg.push_back('M');
     msg.push_back('<');
     msg.push_back(data.size());                         // data size
-    msg.push_back(id);                                  // message_id
+    msg.push_back((std::underlying_type<ID>::type)id);  // message_id
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crc(id, data) );                     // crc
 
@@ -177,7 +178,7 @@ DataID MSP::receiveData() {
     const uint8_t data_size = sp.read();
 
     // get ID of msg
-    const uint8_t id = sp.read();
+    const ID id = (ID)sp.read();
 
     // read payload data
     const ByteVector data = sp.read(data_size);
@@ -192,8 +193,8 @@ DataID MSP::receiveData() {
     return DataID(data,id);
 }
 
-uint8_t MSP::crc(const uint8_t id, const ByteVector &data) {
-    uint8_t crc = data.size()^id;
+uint8_t MSP::crc(const ID id, const ByteVector &data) {
+    uint8_t crc = data.size()^(std::underlying_type<ID>::type)id;
 
     for(uint8_t d : data)
         crc = crc^d;

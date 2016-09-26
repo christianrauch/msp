@@ -42,7 +42,7 @@ uint32_t deser32(const ByteVector &data, const size_t start) {
 
 // MSP_IDENT: 100
 struct Ident : public Request {
-    ID id() { return 100; }
+    ID id() { return ID::MSP_IDENT; }
 
     uint8_t     version;
     uint8_t     type;
@@ -60,7 +60,7 @@ struct Ident : public Request {
 
 // MSP_STATUS: 101
 struct Status : public Request {
-    ID id() { return 101; }
+    ID id() { return ID::MSP_STATUS; }
 
     uint16_t    time;   // in us
     uint16_t    i2c_errors_count;
@@ -80,7 +80,7 @@ struct Status : public Request {
 
 // MSP_RAW_IMU: 102
 struct RawImu : public Request {
-    ID id() { return 102; }
+    ID id() { return ID::MSP_RAW_IMU; }
 
     int16_t accx;
     int16_t accy;
@@ -111,7 +111,7 @@ struct RawImu : public Request {
 
 // MSP_SERVO: 103
 struct Servo : public Request {
-    ID id() { return 103; }
+    ID id() { return ID::MSP_SERVO; }
 
     uint16_t servo[N_SERVO];
 
@@ -123,7 +123,7 @@ struct Servo : public Request {
 
 // MSP_MOTOR: 104
 struct Motor : public Request {
-    ID id() { return 104; }
+    ID id() { return ID::MSP_MOTOR; }
 
     uint16_t motor[N_MOTOR];
 
@@ -135,7 +135,7 @@ struct Motor : public Request {
 
 // MSP_RC: 105
 struct Rc : public Request {
-    ID id() { return 105; }
+    ID id() { return ID::MSP_RC; }
 
     uint16_t roll;
     uint16_t pitch;
@@ -159,7 +159,7 @@ struct Rc : public Request {
 
 // MSP_RAW_GPS: 106
 struct RawGPS : public Request {
-    ID id() { return 106; }
+    ID id() { return ID::MSP_RAW_GPS; }
 
     uint8_t fix;
     uint8_t numSat;
@@ -182,7 +182,7 @@ struct RawGPS : public Request {
 
 // MSP_COMP_GPS: 107
 struct CompGPS : public Request {
-    ID id() { return 107; }
+    ID id() { return ID::MSP_COMP_GPS; }
 
     uint16_t distanceToHome;    // meter
     uint16_t directionToHome;   // degree
@@ -197,7 +197,7 @@ struct CompGPS : public Request {
 
 // MSP_ATTITUDE: 108
 struct Attitude : public Request {
-    ID id() { return 108; }
+    ID id() { return ID::MSP_ATTITUDE; }
 
     uint16_t angx;
     uint16_t angy;
@@ -212,7 +212,7 @@ struct Attitude : public Request {
 
 // MSP_ALTITUDE: 109
 struct Altitude : public Request {
-    ID id() { return 109; }
+    ID id() { return ID::MSP_ALTITUDE; }
 
     uint32_t EstAlt;
     uint16_t vario;
@@ -225,7 +225,7 @@ struct Altitude : public Request {
 
 // MSP_ANALOG: 110
 struct Analog : public Request {
-    ID id() { return 110; }
+    ID id() { return ID::MSP_ANALOG; }
 
     uint8_t vbat;
     uint16_t intPowerMeterSum;
@@ -242,7 +242,7 @@ struct Analog : public Request {
 
 // MSP_RC_TUNING: 111
 struct RcTuning : Request {
-    ID id() { return 111; }
+    ID id() { return ID::MSP_RC_TUNING; }
 
     uint8_t RC_RATE;
     uint8_t RC_EXPO;
@@ -278,7 +278,7 @@ struct PidTerms {
 
 // MSP_PID: 112
 struct Pid : public Request {
-    ID id() { return 112; }
+    ID id() { return ID::MSP_PID; }
 
     PidTerms roll;
     PidTerms pitch;
@@ -311,7 +311,7 @@ struct Pid : public Request {
 
 // MSP_SET_RAW_RC: 200
 struct SetRc : public Response {
-    ID id() { return 200; }
+    ID id() { return ID::MSP_SET_RAW_RC; }
 
     uint16_t roll;
     uint16_t pitch;
@@ -335,7 +335,7 @@ struct SetRc : public Response {
 
 // MSP_SET_RAW_GPS: 201
 struct SetRawGPS : public Request {
-    ID id() { return 201; }
+    ID id() { return ID::MSP_SET_RAW_GPS; }
 
     uint8_t fix;
     uint8_t numSat;
@@ -358,7 +358,7 @@ struct SetRawGPS : public Request {
 
 // MSP_SET_RC_TUNING: 204
 struct SetRcTuning : public Response {
-    ID id() { return 204; }
+    ID id() { return ID::MSP_SET_RC_TUNING; }
 
     uint8_t RC_RATE;
     uint8_t RC_EXPO;
@@ -397,7 +397,7 @@ struct SetRcTuning : public Response {
 
 // MSP_SET_MOTOR: 214
 struct SetMotor : public Response {
-    ID id() { return 214; }
+    ID id() { return ID::MSP_SET_MOTOR; }
 
     uint16_t motor[N_MOTOR];
 

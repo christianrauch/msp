@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include "msp_id.hpp"
 
 namespace msp {
 
@@ -10,11 +11,6 @@ namespace msp {
  * @brief ByteVector vector of bytes
  */
 typedef std::vector<uint8_t> ByteVector;
-
-/**
- * @brief ID id of a message
- */
-typedef uint8_t ID;
 
 
 /////////////////////////////////////////////////////////////////////
@@ -26,12 +22,12 @@ struct Message {
 
 // send to FC
 struct Request : public Message {
-    virtual void decode(const std::vector<uint8_t> &data) = 0;
+    virtual void decode(const ByteVector &data) = 0;
 };
 
 // received from FC
 struct Response : public Message {
-    virtual std::vector<uint8_t> encode() const = 0;
+    virtual ByteVector encode() const = 0;
 };
 
 } // namespace msp
