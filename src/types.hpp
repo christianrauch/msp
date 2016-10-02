@@ -17,7 +17,7 @@ typedef std::vector<uint8_t> ByteVector;
 /// Generic message types
 
 struct Message {
-    virtual ID id() = 0;
+    virtual ID id() const = 0;
 };
 
 // send to FC

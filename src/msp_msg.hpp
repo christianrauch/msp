@@ -16,25 +16,33 @@ namespace msp {
 /////////////////////////////////////////////////////////////////////
 /// de-/serialization for 16 and 32 bit unsigned integer
 
-void ser16(const uint16_t val, ByteVector &data) {
-    data.push_back(val>>0);
-    data.push_back(val>>8);
-}
+//void ser16(const uint16_t val, ByteVector &data) {
+//    data.push_back(val>>0);
+//    data.push_back(val>>8);
+//}
 
-uint16_t deser16(const ByteVector &data, const size_t start) {
-    return (data[start]<<0) | (data[start+1]<<8);
-}
+//uint16_t deser16(const ByteVector &data, const size_t start) {
+//    return (data[start]<<0) | (data[start+1]<<8);
+//}
 
-void ser32(const uint32_t val, ByteVector &data) {
-    data.push_back(val>>0);
-    data.push_back(val>>8);
-    data.push_back(val>>16);
-    data.push_back(val>>24);
-}
+//void ser32(const uint32_t val, ByteVector &data) {
+//    data.push_back(val>>0);
+//    data.push_back(val>>8);
+//    data.push_back(val>>16);
+//    data.push_back(val>>24);
+//}
 
-uint32_t deser32(const ByteVector &data, const size_t start) {
-    return (data[start]<<0) | (data[start+1]<<8) | (data[start+2]<<16) | (data[start+3]<<24);
-}
+//uint32_t deser32(const ByteVector &data, const size_t start) {
+//    return (data[start]<<0) | (data[start+1]<<8) | (data[start+2]<<16) | (data[start+3]<<24);
+//}
+
+void ser16(const uint16_t val, ByteVector &data);
+
+uint16_t deser16(const ByteVector &data, const size_t start);
+
+void ser32(const uint32_t val, ByteVector &data);
+
+uint32_t deser32(const ByteVector &data, const size_t start);
 
 
 /////////////////////////////////////////////////////////////////////
@@ -42,7 +50,7 @@ uint32_t deser32(const ByteVector &data, const size_t start) {
 
 // MSP_IDENT: 100
 struct Ident : public Request {
-    ID id() { return ID::MSP_IDENT; }
+    ID id() const { return ID::MSP_IDENT; }
 
     uint8_t     version;
     uint8_t     type;
@@ -60,7 +68,7 @@ struct Ident : public Request {
 
 // MSP_STATUS: 101
 struct Status : public Request {
-    ID id() { return ID::MSP_STATUS; }
+    ID id() const { return ID::MSP_STATUS; }
 
     uint16_t    time;   // in us
     uint16_t    i2c_errors_count;
@@ -80,7 +88,7 @@ struct Status : public Request {
 
 // MSP_RAW_IMU: 102
 struct RawImu : public Request {
-    ID id() { return ID::MSP_RAW_IMU; }
+    ID id() const { return ID::MSP_RAW_IMU; }
 
     int16_t accx;
     int16_t accy;
