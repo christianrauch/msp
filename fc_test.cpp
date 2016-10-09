@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     else
         device = "/dev/ttyUSB0";
 
-    msp::FlightController fcu(device);
+    fcu::FlightController fcu(device);
     std::cout<<"MSP ready"<<std::endl;
 
     fcu.subscribe(msp::ID::MSP_IDENT, onIdent);

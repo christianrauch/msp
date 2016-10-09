@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace msp {
+namespace fcu {
 
 FlightController::FlightController(const std::string &device) : msp(device) {
     populate_all();
@@ -16,13 +16,13 @@ FlightController::FlightController(const std::string &device) : msp(device) {
 
 FlightController::~FlightController() { }
 
-void FlightController::populate(Request *req) {
+void FlightController::populate(msp::Request *req) {
     database[req->id()] = req;
 }
 
 void FlightController::populate_all() {
-    populate(new Ident);
-    populate(new Status);
+    populate(new msp::Ident);
+    populate(new msp::Status);
 }
 
 void FlightController::handle() {

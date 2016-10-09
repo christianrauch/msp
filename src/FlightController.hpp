@@ -12,7 +12,7 @@
 
 #include <functional>
 
-namespace msp {
+namespace fcu {
 
 class SubscriptionBase {
 public:
@@ -43,22 +43,22 @@ public:
     ~FlightController();
 
     template<typename T>
-    void subscribe(ID id, void (callback)(T)) {
+    void subscribe(msp::ID id, void (callback)(T)) {
         subscriptions[id] = new Subscription<T>(callback);
     }
 
     void handle();
 
 private:
-    void populate(Request *req);
+    void populate(msp::Request *req);
 
     void populate_all();
 
     msp::MSP msp;
 
-    std::map<ID, Request*> database;
+    std::map<msp::ID, msp::Request*> database;
 
-    std::map<ID, SubscriptionBase*> subscriptions;
+    std::map<msp::ID, SubscriptionBase*> subscriptions;
 };
 
 } // namespace msp
