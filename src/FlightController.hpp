@@ -5,19 +5,47 @@
 #include "msp_id.hpp"
 
 #include <map>
+#include <unordered_map>
+
+#include <typeinfo>
+#include <typeindex>
+
+#include <functional>
 
 namespace msp {
 
+class SubscriptionBase {
+public:
+    virtual void call(void *msg) = 0;
+//    virtual void setMsg(void *msg) = 0;
+};
+
+//template<typename T, typename R>
+template<typename T>
+class Subscription : public SubscriptionBase {
+public:
+    typedef std::function<void(T)> Callback;
+
+    Subscription(Callback caller) { setCaller(caller); }
+
+    void setCaller(Callback caller) { funct = caller; }
+
+    void call(void *msg) { funct(*static_cast<T*>(msg)); }
+
+private:
+    Callback funct;
+};
+
 class FlightController {
 public:
-    // function pointer
-    typedef void (*RequestCallback)(Request *request);
-
     FlightController(const std::string &device);
 
     ~FlightController();
 
-    void subscribe(ID id, RequestCallback callback);
+    template<typename T>
+    void subscribe(ID id, void (callback)(T)) {
+        subscriptions[id] = new Subscription<T>(callback);
+    }
 
     void handle();
 
@@ -30,7 +58,7 @@ private:
 
     std::map<ID, Request*> database;
 
-    std::map<ID, RequestCallback> subscriptions;
+    std::map<ID, SubscriptionBase*> subscriptions;
 };
 
 } // namespace msp
