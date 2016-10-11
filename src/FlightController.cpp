@@ -1,5 +1,6 @@
 #include "FlightController.hpp"
 #include "msp_msg.hpp"
+#include "fcu_msg.hpp"
 
 #include <iostream>
 
@@ -29,7 +30,19 @@ void FlightController::handle() {
     for(auto s : subscriptions) {
         //msp.request_block(*database[s.first]);
         msp.request(*database[s.first]);
-        s.second->call(database[s.first]);
+        try {
+            s.second->call(database[s.first]);
+        }
+        catch(const std::bad_cast &e) {
+            std::cerr<<"no Request, other type"<<std::endl;
+            switch(s.first) {
+            case msp::ID::MSP_IDENT:
+                fcu::Ident ident;
+                ident.fromIdent(*dynamic_cast<msp::Ident*>(database[s.first]));
+                s.second->call(&ident);
+                break;
+            }
+        }
     }
 }
 

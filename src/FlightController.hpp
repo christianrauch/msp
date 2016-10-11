@@ -12,25 +12,46 @@
 
 #include <functional>
 
+#include <iostream>
+
 namespace fcu {
 
 class SubscriptionBase {
 public:
-    virtual void call(void *msg) = 0;
-//    virtual void setMsg(void *msg) = 0;
+    msp::ID channel;
+    virtual void call(const void* const msg) = 0;
+    virtual void call(const msp::Request* const msg) = 0;
 };
 
 //template<typename T, typename R>
 template<typename T>
 class Subscription : public SubscriptionBase {
 public:
-    typedef std::function<void(T)> Callback;
+    typedef std::function<void(const T&)> Callback;
 
-    Subscription(Callback caller) { setCaller(caller); }
+    Subscription(const msp::ID id, const Callback caller) {
+        setCaller(caller);
+        channel = id;
+    }
 
     void setCaller(Callback caller) { funct = caller; }
 
-    void call(void *msg) { funct(*static_cast<T*>(msg)); }
+    void call(const msp::Request* const msg) {
+        std::cout<<"Request type"<<std::endl;
+        // test cast, e.g. check if T is derived from Request
+        if(dynamic_cast<T>(msg)==NULL) {
+            throw std::bad_cast();
+        }
+        // call callback function
+        funct(dynamic_cast<T>(msg));
+
+    }
+
+    void call(const void* const msg) {
+        std::cout<<"Other type"<<std::endl;
+        // call callback function
+        funct(static_cast<T>(msg));
+    }
 
 private:
     Callback funct;
@@ -44,7 +65,7 @@ public:
 
     template<typename T>
     void subscribe(msp::ID id, void (callback)(T)) {
-        subscriptions[id] = new Subscription<T>(callback);
+        subscriptions[id] = new Subscription<T>(id, callback);
     }
 
     void handle();
