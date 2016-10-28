@@ -84,6 +84,19 @@ struct Status {
 
 };
 
+struct Imu {
+    std::array<float, 3> acc;
+    std::array<float, 3> gyro;
+    std::array<float, 3> magn;
+
+    Imu(const msp::RawImu &imu, const float acc_1g, const float gyro_unit) {
+        acc = {float(imu.accx/acc_1g), float(imu.accy/acc_1g), float(imu.accz/acc_1g)};
+        gyro = {imu.gyrx*gyro_unit, imu.gyry*gyro_unit, imu.gyrz*gyro_unit};
+        // TODO: transform to real values
+        magn = {float(imu.magx), float(imu.magy), float(imu.magz)};
+    }
+};
+
 }
 
 #endif // FCU_MSG_HPP

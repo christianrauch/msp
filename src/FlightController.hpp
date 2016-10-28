@@ -70,6 +70,10 @@ public:
 
     void handle();
 
+    void setAcc1G(const float acc1g) { acc_1g=acc1g; }
+
+    void setGyroUnit(const float gyro) { gyro_unit=gyro; }
+
 private:
     void populate(msp::Request *req);
 
@@ -80,6 +84,11 @@ private:
     std::map<msp::ID, msp::Request*> database;
 
     std::map<msp::ID, SubscriptionBase*> subscriptions;
+
+   // sensor specific units
+    float acc_1g;
+
+    float gyro_unit;
 };
 
 } // namespace msp

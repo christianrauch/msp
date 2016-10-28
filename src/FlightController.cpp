@@ -52,6 +52,10 @@ void FlightController::handle() {
                 ident.fromIdent(*dynamic_cast<msp::Ident*>(database[s.first]));
                 s.second->call(&ident);
                 break;
+            case msp::ID::MSP_RAW_IMU:
+                fcu::Imu imu(*dynamic_cast<msp::RawImu*>(database[s.first]), acc_1g, gyro_unit);
+                s.second->call(&imu);
+                break;
             }
         }
     }
