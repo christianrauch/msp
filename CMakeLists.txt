@@ -32,7 +32,7 @@ target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 add_executable(get_msp_info main.cpp)
 target_link_libraries(get_msp_info msp)
 
-add_executable(fc_test fc_test.cpp)
+add_executable(fc_test fc_test.cpp src/msp_msg.cpp)
 target_link_libraries(fc_test msp)
 
 #get_cmake_property(_variableNames VARIABLES)

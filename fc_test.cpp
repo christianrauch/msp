@@ -4,30 +4,15 @@
 
 #include <iostream>
 
-//void onIdent(const msp::Ident &ident) {
-//    std::cout<<"MSP version: "<<(int)ident.version<<std::endl;
-//}
-
 void onIdent(const msp::Ident* const ident) {
     std::cout<<"MSP version: "<<(int)ident->version<<std::endl;
 }
-
-//void onIdentFCU(const fcu::Ident &ident) {
-//    std::cout<<"MSP version: "<<ident.version<<std::endl;
-//    std::cout<<"type QUADX: "<<(ident.type==fcu::MultiType::QUADX)<<std::endl;
-//    std::cout<<"type QUADP: "<<(ident.type==fcu::MultiType::QUADP)<<std::endl;
-//}
 
 void onIdentFCU(const fcu::Ident* const ident) {
     std::cout<<"MSP version: "<<ident->version<<std::endl;
     std::cout<<"type QUADX: "<<(ident->type==fcu::MultiType::QUADX)<<std::endl;
     std::cout<<"type QUADP: "<<(ident->type==fcu::MultiType::QUADP)<<std::endl;
 }
-
-//void onStatus(const msp::Status &status) {
-//    std::cout<<"cycle time: "<<(int)status.time<<" us"<<std::endl;
-//    std::cout<<"error count: "<<(int)status.i2c_errors_count<<std::endl;
-//}
 
 void onStatus(const msp::Status* const status) {
     std::cout<<"cycle time: "<<(int)status->time<<" us"<<std::endl;

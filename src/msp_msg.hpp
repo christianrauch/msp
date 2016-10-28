@@ -6,6 +6,8 @@
 
 #include "types.hpp"
 
+#include <cstdlib>
+
 #define N_SERVO     8
 #define N_MOTOR     8
 #define RC_CHANS    8
@@ -119,7 +121,7 @@ struct RawImu : public Request {
 
 // MSP_SERVO: 103
 struct Servo : public Request {
-    ID id() { return ID::MSP_SERVO; }
+    ID id() const { return ID::MSP_SERVO; }
 
     uint16_t servo[N_SERVO];
 
@@ -131,7 +133,7 @@ struct Servo : public Request {
 
 // MSP_MOTOR: 104
 struct Motor : public Request {
-    ID id() { return ID::MSP_MOTOR; }
+    ID id() const { return ID::MSP_MOTOR; }
 
     uint16_t motor[N_MOTOR];
 
@@ -143,7 +145,7 @@ struct Motor : public Request {
 
 // MSP_RC: 105
 struct Rc : public Request {
-    ID id() { return ID::MSP_RC; }
+    ID id() const { return ID::MSP_RC; }
 
     uint16_t roll;
     uint16_t pitch;
@@ -167,7 +169,7 @@ struct Rc : public Request {
 
 // MSP_RAW_GPS: 106
 struct RawGPS : public Request {
-    ID id() { return ID::MSP_RAW_GPS; }
+    ID id() const { return ID::MSP_RAW_GPS; }
 
     uint8_t fix;
     uint8_t numSat;
@@ -190,7 +192,7 @@ struct RawGPS : public Request {
 
 // MSP_COMP_GPS: 107
 struct CompGPS : public Request {
-    ID id() { return ID::MSP_COMP_GPS; }
+    ID id() const { return ID::MSP_COMP_GPS; }
 
     uint16_t distanceToHome;    // meter
     uint16_t directionToHome;   // degree
@@ -205,7 +207,7 @@ struct CompGPS : public Request {
 
 // MSP_ATTITUDE: 108
 struct Attitude : public Request {
-    ID id() { return ID::MSP_ATTITUDE; }
+    ID id() const { return ID::MSP_ATTITUDE; }
 
     uint16_t angx;
     uint16_t angy;
@@ -220,7 +222,7 @@ struct Attitude : public Request {
 
 // MSP_ALTITUDE: 109
 struct Altitude : public Request {
-    ID id() { return ID::MSP_ALTITUDE; }
+    ID id() const { return ID::MSP_ALTITUDE; }
 
     uint32_t EstAlt;
     uint16_t vario;
@@ -233,7 +235,7 @@ struct Altitude : public Request {
 
 // MSP_ANALOG: 110
 struct Analog : public Request {
-    ID id() { return ID::MSP_ANALOG; }
+    ID id() const { return ID::MSP_ANALOG; }
 
     uint8_t vbat;
     uint16_t intPowerMeterSum;
@@ -250,7 +252,7 @@ struct Analog : public Request {
 
 // MSP_RC_TUNING: 111
 struct RcTuning : Request {
-    ID id() { return ID::MSP_RC_TUNING; }
+    ID id() const { return ID::MSP_RC_TUNING; }
 
     uint8_t RC_RATE;
     uint8_t RC_EXPO;
@@ -286,7 +288,7 @@ struct PidTerms {
 
 // MSP_PID: 112
 struct Pid : public Request {
-    ID id() { return ID::MSP_PID; }
+    ID id() const { return ID::MSP_PID; }
 
     PidTerms roll;
     PidTerms pitch;

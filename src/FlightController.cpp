@@ -24,6 +24,17 @@ void FlightController::populate(msp::Request *req) {
 void FlightController::populate_all() {
     populate(new msp::Ident);
     populate(new msp::Status);
+    populate(new msp::RawImu);
+    populate(new msp::Servo);
+    populate(new msp::Motor);
+    populate(new msp::Rc);
+    populate(new msp::RawGPS);
+    populate(new msp::CompGPS);
+    populate(new msp::Attitude);
+    populate(new msp::Altitude);
+    populate(new msp::Analog);
+    populate(new msp::RcTuning);
+    populate(new msp::Pid);
 }
 
 void FlightController::handle() {
