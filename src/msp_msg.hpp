@@ -6,7 +6,7 @@
 
 #include "types.hpp"
 
-#include <cstdlib>
+#include "deserialise.hpp"
 
 #define N_SERVO     8
 #define N_MOTOR     8
@@ -14,38 +14,6 @@
 #define PIDITEMS    10
 
 namespace msp {
-
-/////////////////////////////////////////////////////////////////////
-/// de-/serialization for 16 and 32 bit unsigned integer
-
-//void ser16(const uint16_t val, ByteVector &data) {
-//    data.push_back(val>>0);
-//    data.push_back(val>>8);
-//}
-
-//uint16_t deser16(const ByteVector &data, const size_t start) {
-//    return (data[start]<<0) | (data[start+1]<<8);
-//}
-
-//void ser32(const uint32_t val, ByteVector &data) {
-//    data.push_back(val>>0);
-//    data.push_back(val>>8);
-//    data.push_back(val>>16);
-//    data.push_back(val>>24);
-//}
-
-//uint32_t deser32(const ByteVector &data, const size_t start) {
-//    return (data[start]<<0) | (data[start+1]<<8) | (data[start+2]<<16) | (data[start+3]<<24);
-//}
-
-void ser16(const uint16_t val, ByteVector &data);
-
-uint16_t deser16(const ByteVector &data, const size_t start);
-
-void ser32(const uint32_t val, ByteVector &data);
-
-uint32_t deser32(const ByteVector &data, const size_t start);
-
 
 /////////////////////////////////////////////////////////////////////
 /// Requests (1xx)
@@ -63,8 +31,7 @@ struct Ident : public Request {
         version     = data[0];
         type        = data[1];
         msp_version = data[2];
-        capability  = (data[3]<<0) | (data[4]<<8) |
-                      (data[5]<<16) | (data[6]<<24);
+        capability  = deser32(data, 3);
     }
 };
 
@@ -79,11 +46,10 @@ struct Status : public Request {
     uint8_t     current_setting;
 
     void decode(const std::vector<uint8_t> &data) {
-        time                = (data[0]<<0) | (data[1]<<8);
-        i2c_errors_count    = (data[2]<<0) | (data[3]<<8);
-        sensor              = (data[4]<<0) | (data[5]<<8);
-        flag                = (data[6]<<0) | (data[7]<<8) |
-                              (data[8]<<16) | (data[9]<<24);
+        time                = deser16(data, 0);
+        i2c_errors_count    = deser16(data, 2);
+        sensor              = deser16(data, 4);
+        flag                = deser32(data, 6);
         current_setting     = data[10];
     }
 };
@@ -105,17 +71,17 @@ struct RawImu : public Request {
     int16_t magz;
 
     void decode(const std::vector<uint8_t> &data) {
-        accx = (data[0]<<0) | (data[1]<<8);
-        accy = (data[2]<<0) | (data[3]<<8);
-        accz = (data[4]<<0) | (data[5]<<8);
+        accx = deser_int16(data, 0);
+        accy = deser_int16(data, 2);
+        accz = deser_int16(data, 4);
 
-        gyrx = (data[6]<<0) | (data[7]<<8);
-        gyry = (data[8]<<0) | (data[9]<<8);
-        gyrz = (data[10]<<0) | (data[11]<<8);
+        gyrx = deser_int16(data, 6);
+        gyry = deser_int16(data, 8);
+        gyrz = deser_int16(data, 10);
 
-        magx = (data[12]<<0) | (data[13]<<8);
-        magy = (data[14]<<0) | (data[15]<<8);
-        magz = (data[16]<<0) | (data[17]<<8);
+        magx = deser_int16(data, 12);
+        magy = deser_int16(data, 14);
+        magz = deser_int16(data, 16);
     }
 };
 
@@ -228,8 +194,8 @@ struct Altitude : public Request {
     uint16_t vario;
 
     void decode(const std::vector<uint8_t> &data) {
-        EstAlt    = deser32(data, 0);
-        vario    = deser16(data, 4);
+        EstAlt  = deser32(data, 0);
+        vario   = deser16(data, 4);
     }
 };
 

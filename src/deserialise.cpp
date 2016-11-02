@@ -1,4 +1,4 @@
-#include "msp_msg.hpp"
+#include "deserialise.hpp"
 
 namespace msp {
 
@@ -8,6 +8,10 @@ void ser16(const uint16_t val, ByteVector &data) {
 }
 
 uint16_t deser16(const ByteVector &data, const size_t start) {
+    return (data[start]<<0) | (data[start+1]<<8);
+}
+
+int16_t deser_int16(const ByteVector &data, const size_t start) {
     return (data[start]<<0) | (data[start+1]<<8);
 }
 
