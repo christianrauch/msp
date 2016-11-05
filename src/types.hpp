@@ -2,7 +2,7 @@
 #define TYPES_HPP
 
 #include <vector>
-#include <cstdint>
+#include <stdint.h>
 #include "msp_id.hpp"
 
 namespace msp {

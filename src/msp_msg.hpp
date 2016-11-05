@@ -8,6 +8,7 @@
 
 #include "deserialise.hpp"
 
+
 #define N_SERVO     8
 #define N_MOTOR     8
 #define RC_CHANS    8
@@ -278,6 +279,254 @@ struct Pid : public Request {
         level = PidTerms(data[21], data[22], data[23]);
         mag = PidTerms(data[24], data[25], data[26]);
         vel = PidTerms(data[27], data[28], data[29]);
+    }
+};
+
+// MSP_BOX: 113
+struct Box : public Request {
+    ID id() const { return ID::MSP_BOX; }
+
+    // after decode, box_conf should have length of BOXITEMS
+    std::vector<uint16_t> box_conf;
+
+    void decode(const std::vector<uint8_t> &data) {
+        box_conf.clear();
+        for(uint i(0); i<data.size(); i+=4)
+            box_conf.push_back(deser16(data, i));
+    }
+};
+
+// MSP_MISC: 114
+struct Misc : public Request {
+    ID id() const { return ID::MSP_MISC; }
+
+    uint16_t intPowerTrigger;
+    uint16_t minThrottle;
+    uint16_t maxThrottle;
+    uint16_t minCommand;
+
+    uint16_t failsafeThrottle;
+    uint16_t arm;
+    uint32_t lifetime;
+    uint16_t mag_declination;
+
+    uint8_t vbatScale;
+    uint8_t vbatLevelWarn1;
+    uint8_t vbatLevelWarn2;
+    uint8_t vbatLevelCrit;
+
+    void decode(const std::vector<uint8_t> &data) {
+        intPowerTrigger     = deser16(data, 0);
+        minThrottle         = deser16(data, 2);
+        maxThrottle         = deser16(data, 4);
+        minCommand          = deser16(data, 6);
+
+        failsafeThrottle    = deser16(data, 8);
+        arm                 = deser16(data, 10);
+        lifetime            = deser32(data, 12);
+        mag_declination     = deser16(data, 16);
+
+        vbatScale           = data[18];
+        vbatLevelWarn1      = data[19];
+        vbatLevelWarn2      = data[20];
+        vbatLevelCrit       = data[21];
+    }
+};
+
+// MSP_MOTOR_PINS: 115
+struct MotorPin : public Request {
+    ID id() const { return ID::MSP_MOTOR_PINS; }
+
+    uint8_t pwm_pin[N_MOTOR];
+
+    void decode(const std::vector<uint8_t> &data) {
+        for(uint i(0); i<N_MOTOR; i++)
+            pwm_pin[i] = data[i];
+    }
+};
+
+// MSP_BOXNAMES: 116
+struct BoxNames : public Request {
+    ID id() const { return ID::MSP_BOXNAMES; }
+
+    std::vector<std::string> box_names;
+
+    void decode(const std::vector<uint8_t> &data) {
+        box_names.clear();
+
+        std::stringstream ss(std::string(data.begin(), data.end()));
+        std::string bname;
+        while(getline(ss, bname, ';')) {
+            box_names.push_back(bname);
+        }
+    }
+};
+
+// MSP_PIDNAMES: 117
+struct PidNames : public Request {
+    ID id() const { return ID::MSP_PIDNAMES; }
+
+    std::vector<std::string> pid_names;
+
+    void decode(const std::vector<uint8_t> &data) {
+        pid_names.clear();
+
+        std::stringstream ss(std::string(data.begin(), data.end()));
+        std::string pname;
+        while(getline(ss, pname, ';')) {
+            pid_names.push_back(pname);
+        }
+    }
+};
+
+// MSP_WP: 118
+struct WayPoint : public Request {
+    ID id() const { return ID::MSP_WP; }
+
+    uint8_t wp_no;
+    uint32_t lat;
+    uint32_t lon;
+    uint32_t altHold;
+    uint16_t heading;
+    uint16_t staytime;
+    uint8_t navflag;
+
+    void decode(const std::vector<uint8_t> &data) {
+        wp_no = data[0];
+        lat = deser32(data, 1);
+        lon = deser32(data, 5);
+        altHold = deser32(data, 9);
+        heading = deser16(data, 13);
+        staytime = deser16(data, 15);
+        navflag = data[18];
+    }
+};
+
+// MSP_BOXIDS: 119
+struct BoxIds : public Request {
+    ID id() const { return ID::MSP_BOXIDS; }
+
+    std::vector<uint8_t> box_ids;
+
+    void decode(const std::vector<uint8_t> &data) {
+        box_ids.clear();
+
+        for(uint8_t bi : data)
+            box_ids.push_back(bi);;
+    }
+};
+
+struct ServoConfRange {
+    uint16_t min;
+    uint16_t max;
+    uint16_t middle;
+    uint8_t rate;
+};
+
+// MSP_SERVO_CONF: 120
+struct ServoConf : public Request {
+    ID id() const { return ID::MSP_SERVO_CONF; }
+
+    ServoConfRange servo_conf[N_SERVO];
+
+    void decode(const std::vector<uint8_t> &data) {
+        for(uint i(0); i<N_SERVO; i++) {
+            servo_conf[i].min = deser16(data, 7*i);
+            servo_conf[i].max = deser16(data, 7*i+2);
+            servo_conf[i].middle = deser16(data, 7*i+4);
+            servo_conf[i].rate = deser16(data, 7*i+6);
+        }
+    }
+};
+
+// MSP_NAV_STATUS: 121
+struct NavStatus: public Request {
+    ID id() const { return ID::MSP_NAV_STATUS; }
+
+    uint8_t GPS_mode;
+    uint8_t NAV_state;
+    uint8_t mission_action;
+    uint8_t mission_number;
+    uint8_t NAV_error;
+    int16_t target_bearing; // degrees
+
+    void decode(const std::vector<uint8_t> &data) {
+        GPS_mode = data[0];
+        NAV_state = data[1];
+        mission_action = data[2];
+        mission_number = data[3];
+        NAV_error = data[4];
+        target_bearing = deser_int16(data, 5);
+    }
+};
+
+
+struct GpsConf {
+  uint8_t filtering;
+  uint8_t lead_filter;
+  uint8_t dont_reset_home_at_arm;
+  uint8_t nav_controls_heading;
+
+  uint8_t nav_tail_first;
+  uint8_t nav_rth_takeoff_heading;
+  uint8_t slow_nav;
+  uint8_t wait_for_rth_alt;
+
+  uint8_t ignore_throttle;
+  uint8_t takeover_baro;
+
+  uint16_t wp_radius;           // in cm
+  uint16_t safe_wp_distance;    // in meter
+  uint16_t nav_max_altitude;    // in meter
+  uint16_t nav_speed_max;       // in cm/s
+  uint16_t nav_speed_min;       // in cm/s
+
+  uint8_t  crosstrack_gain;     // * 100 (0-2.56)
+  uint16_t nav_bank_max;        // degree * 100; (3000 default)
+  uint16_t rth_altitude;        // in meter
+  uint8_t  land_speed;          // between 50 and 255 (100 approx = 50cm/sec)
+  uint16_t fence;               // fence control in meters
+
+  uint8_t  max_wp_number;
+
+  uint8_t  checksum;
+};
+
+// MSP_NAV_CONFIG: 122
+struct NavConfig: public Request {
+    ID id() const { return ID::MSP_NAV_CONFIG; }
+
+    GpsConf gps_conf;
+
+    void decode(const std::vector<uint8_t> &data) {
+        gps_conf.filtering = data[0];
+        gps_conf.lead_filter = data[1];
+        gps_conf.dont_reset_home_at_arm = data[2];
+        gps_conf.nav_controls_heading = data[3];
+
+        gps_conf.nav_tail_first = data[4];
+        gps_conf.nav_rth_takeoff_heading = data[5];
+        gps_conf.slow_nav = data[6];
+        gps_conf.wait_for_rth_alt = data[7];
+
+        gps_conf.ignore_throttle = data[8];
+        gps_conf.takeover_baro = data[9];
+
+        gps_conf.wp_radius = deser16(data, 10);
+        gps_conf.safe_wp_distance = deser16(data, 12);
+        gps_conf.nav_max_altitude = deser16(data, 14);
+        gps_conf.nav_speed_max = deser16(data, 16);
+        gps_conf.nav_speed_min = deser16(data, 18);
+
+        gps_conf.crosstrack_gain = data[20];
+        gps_conf.nav_bank_max = deser16(data, 21);
+        gps_conf.rth_altitude = deser16(data, 23);
+        gps_conf.land_speed = data[25];
+        gps_conf.fence = deser16(data, 26);
+
+        gps_conf.max_wp_number = data[28];
+
+        gps_conf.checksum = data[29];
     }
 };
 
