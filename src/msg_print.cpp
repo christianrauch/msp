@@ -1,4 +1,5 @@
 #include "msg_print.hpp"
+#include <iomanip>
 
 std::ostream& operator<<(std::ostream& s, const fcu::Ident& ident) {
     std::string type;
@@ -89,4 +90,72 @@ std::ostream& operator<<(std::ostream& s, const msp::Rc& rc) {
     s << "#Rc:" << std::endl;
     s << rc.roll << " " << rc.pitch << " " << rc.yaw << " " << rc.throttle << std::endl;
     s << rc.aux1 << " " << rc.aux2 << " " << rc.aux3 << " " << rc.aux4 << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Attitude& attitude) {
+    s << "#Attitude:" << std::endl;
+    s << "Ang : " << attitude.ang_x << ", " << attitude.ang_y << " deg" << std::endl;
+    s << "Heading: " << attitude.heading << " deg" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Altitude& altitude) {
+    s << "#Altitude:" << std::endl;
+    s << "Altitude: " << altitude.altitude << " m, var: " << altitude.vario << " m/s" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Analog& analog) {
+    s << "#Analog:" << std::endl;
+    s << "Battery Voltage: " << analog.vbat << " V" << std::endl;
+    s << "Current: " << analog.amperage << " A" << std::endl;
+    s << "Power consumption: " << analog.powerMeterSum << " Ah" << std::endl;
+    s << "RSSI: " << analog.rssi << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
+    s << "#Rc Tuning:" << std::endl;
+    s << "Rc Rate: " << (uint)rc_tuning.RC_RATE << std::endl;
+    s << "Rc Expo: " << (uint)rc_tuning.RC_EXPO << std::endl;
+    s << "Roll/Pitch Rate: " << (uint)rc_tuning.RollPitchRate << std::endl;
+    s << "Yaw Rate: " << (uint)rc_tuning.YawRate << std::endl;
+
+    s << "Dynamic Throttle PID: " << (uint)rc_tuning.DynThrPID << std::endl;
+    s << "Throttle MID: " << (uint)rc_tuning.Throttle_MID << std::endl;
+    s << "Throttle Expo: " << (uint)rc_tuning.Throttle_EXPO << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::PID& pid) {
+    //std::setprecision(3);
+
+    s << std::setprecision(3);
+    s << "#PID:" << std::endl;
+    s << "Name      P     | I     | D     |" << std::endl;
+    s << "----------------|-------|-------|" << std::endl;
+    s << "Roll:      " << pid.roll.P << "\t| " << pid.roll.I << "\t| " << pid.roll.D << std::endl;
+    s << "Pitch:     " << pid.pitch.P << "\t| " << pid.pitch.I << "\t| " << pid.pitch.D << std::endl;
+    s << "Yaw:       " << pid.yaw.P << "\t| " << pid.yaw.I << "\t| " << pid.yaw.D << std::endl;
+    s << "Altitude:  " << pid.alt.P << "\t| " << pid.alt.I << "\t| " << pid.alt.D << std::endl;
+
+    s << "Position:  " << pid.pos.P << "\t| " << pid.pos.I << "\t| " << pid.pos.D << std::endl;
+    s << "PositionR: " << pid.posr.P << "\t| " << pid.posr.I << "\t| " << pid.posr.D << std::endl;
+    s << "NavR:      " << pid.navr.P << "\t| " << pid.navr.I << "\t| " << pid.navr.D << std::endl;
+    s << "Level:     " << pid.level.P << "\t| " << pid.level.I << "\t| " << pid.level.D << std::endl;
+    s << "Magn:      " << pid.mag.P << "\t| " << pid.mag.I << "\t| " << pid.mag.D << std::endl;
+    s << "Vel:       " << pid.vel.P << "\t| " << pid.vel.I << "\t| " << pid.vel.D << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc) {
+    s << "#Miscellaneous:" << std::endl;
+    s << "Power Trigger: " << misc.powerTrigger << std::endl;
+    s << "Min Throttle: " << misc.minThrottle << std::endl;
+    s << "Max Throttle: " << misc.maxThrottle << std::endl;
+    s << "Failsafe Throttle: " << misc.failsafeThrottle << std::endl;
+
+    s << "Arm Counter: " << misc.arm << std::endl;
+    s << "Lifetime: " << misc.lifetime << std::endl;
+
+    s << "Magnetic Declination: " << misc.mag_declination << " deg" << std::endl;
+    s << "Battery Voltage Scale: " << misc.vbatScale << " V" << std::endl;
+    s << "Battery Warning Level 1: " << misc.vbatLevelWarn1 << " V" << std::endl;
+    s << "Battery Warning Level 2: " << misc.vbatLevelWarn2 << " V" << std::endl;
+    s << "Battery Critical Level: " << misc.vbatLevelCrit << " V" << std::endl;
 }

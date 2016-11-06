@@ -16,4 +16,16 @@ std::ostream& operator<<(std::ostream& s, const msp::Motor& motor);
 
 std::ostream& operator<<(std::ostream& s, const msp::Rc& rc);
 
+std::ostream& operator<<(std::ostream& s, const fcu::Attitude& attitude);
+
+std::ostream& operator<<(std::ostream& s, const fcu::Altitude& altitude);
+
+std::ostream& operator<<(std::ostream& s, const fcu::Analog& analog);
+
+std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning);
+
+std::ostream& operator<<(std::ostream& s, const fcu::PID& pid);
+
+std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc);
+
 #endif // MSG_PRINT_HPP

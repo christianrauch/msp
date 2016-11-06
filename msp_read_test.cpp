@@ -15,13 +15,15 @@ int main(int argc, char *argv[]) {
     msp::MSP msp(device);
     msp.setWait(1);
 
+    sleep(8);
+
     // wait for flight controller to become ready
-    {
-    std::cout<<"Connecting FCU..."<<std::endl;
-    msp::Ident ident;
-    msp.request_timeout(ident, 10);
-    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
-    }
+//    {
+//    std::cout<<"Connecting FCU..."<<std::endl;
+//    msp::Ident ident;
+//    msp.request_timeout(ident, 10);
+//    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
+//    }
 
     msp::Ident ident;
     msp.request_block(ident);
@@ -46,4 +48,28 @@ int main(int argc, char *argv[]) {
     msp::Rc rc;
     msp.request_block(rc);
     std::cout<<rc;
+
+    msp::Attitude attitude;
+    msp.request_block(attitude);
+    std::cout<<fcu::Attitude(attitude);
+
+    msp::Altitude altitude;
+    msp.request_block(altitude);
+    std::cout<<fcu::Altitude(altitude);
+
+    msp::Analog analog;
+    msp.request_block(analog);
+    std::cout<<fcu::Analog(analog);
+
+    msp::RcTuning rc_tuning;
+    msp.request_block(rc_tuning);
+    std::cout<<rc_tuning;
+
+    msp::Pid pid;
+    msp.request_block(pid);
+    std::cout<<fcu::PID(pid);
+
+    msp::Misc misc;
+    msp.request_block(misc);
+    std::cout<<fcu::Misc(misc);
 }

@@ -131,6 +131,95 @@ struct Imu {
     }
 };
 
+struct Attitude {
+    float ang_x;    // degree
+    float ang_y;    // degree
+    int heading;    // degree
+
+    Attitude(const msp::Attitude &attitude) {
+        ang_x = attitude.angx/10.0;
+        ang_y = attitude.angy/10.0;
+        heading = attitude.heading;
+    }
+};
+
+struct Altitude {
+    float altitude; // m
+    float vario;    // m/s
+
+    Altitude(const msp::Altitude &alt) {
+        altitude = alt.EstAlt/100.0;
+        vario = alt.vario/100.0;
+    }
+};
+
+struct Analog {
+    float vbat;             // Volt
+    float powerMeterSum;  // Ah
+    uint rssi;  // Received Signal Strength Indication [0; 1023]
+    uint amperage;          // Ampere
+
+    Analog(const msp::Analog &analog) {
+        vbat = analog.vbat/10.0;
+        powerMeterSum = analog.intPowerMeterSum/1000.0;
+        rssi = analog.rssi;
+        amperage = analog.amperage/10.0;
+    }
+};
+
+struct PidTerms {
+    float P;
+    float I;
+    float D;
+
+    PidTerms() { }
+
+    PidTerms(const msp::PidTerms &pid) {
+        P = pid.P / 10.0;
+        I = pid.I / 10.0;
+        D = pid.D / 10.0;
+    }
+};
+
+struct PID {
+    PidTerms roll, pitch, yaw, alt;
+    PidTerms pos, posr, navr, level, mag, vel;
+
+    PID(const msp::Pid &pid) :
+        roll(pid.roll), pitch(pid.pitch), yaw(pid.yaw), alt(pid.alt),
+        pos(pid.pos), posr(pid.posr), navr(pid.navr), level(pid.level),
+        mag(pid.mag), vel(pid.vel)
+    {
+        //
+    }
+
+};
+
+struct Misc {
+    uint powerTrigger;
+    uint minThrottle, maxThrottle, failsafeThrottle;
+    uint arm, lifetime;
+    float mag_declination; // degree
+
+    float vbatScale, vbatLevelWarn1, vbatLevelWarn2, vbatLevelCrit;
+
+    Misc(const msp::Misc &misc) {
+        powerTrigger = misc.intPowerTrigger;
+        minThrottle = misc.minThrottle;
+        maxThrottle = misc.minThrottle;
+        failsafeThrottle = misc.failsafeThrottle;
+
+        arm = misc.arm;
+        lifetime = misc.lifetime;
+        mag_declination = misc.mag_declination / 10.0;
+
+        vbatScale = misc.vbatScale / 10.0;
+        vbatLevelWarn1 = misc.vbatLevelWarn1 / 10.0;
+        vbatLevelWarn2 = misc.vbatLevelWarn2 / 10.0;
+        vbatLevelCrit = misc.vbatLevelCrit / 10.0;
+    }
+};
+
 }
 
 #endif // FCU_MSG_HPP
