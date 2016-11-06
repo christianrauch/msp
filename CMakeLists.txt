@@ -48,7 +48,7 @@ target_link_libraries(msp_fcu msp)
 
 # testing publish/subscribe
 add_executable(fc_test fc_test.cpp)
-target_link_libraries(fc_test msp_fcu)
+target_link_libraries(fc_test msp_fcu msg_print)
 
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})

@@ -9,10 +9,10 @@ namespace fcu {
 FlightController::FlightController(const std::string &device) : msp(device) {
     populate_all();
 
-    std::cout<<"Wait for FC..."<<std::endl;
-    msp::Ident ident;
-    msp.request_timeout(ident, 10);
-    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
+//    std::cout<<"Wait for FC..."<<std::endl;
+//    msp::Ident ident;
+//    msp.request_timeout(ident, 10);
+//    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
 }
 
 FlightController::~FlightController() { }
