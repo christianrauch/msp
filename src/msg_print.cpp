@@ -1,9 +1,4 @@
-//#include <msp_msg.hpp>
-//#include <fcu_msg.hpp>
-//#include <ostream>
 #include "msg_print.hpp"
-
-namespace fcu {
 
 std::ostream& operator<<(std::ostream& s, const fcu::Ident& ident) {
     std::string type;
@@ -42,8 +37,6 @@ std::ostream& operator<<(std::ostream& s, const fcu::Ident& ident) {
     s << "    Flap:   ";
     ident.hasFlap() ? s<<"ON" : s<< "OFF";
     s << std::endl;
-
-    return s;
 }
 
 std::ostream& operator<<(std::ostream& s, const fcu::Status& status) {
@@ -77,7 +70,23 @@ std::ostream& operator<<(std::ostream& s, const fcu::Imu& imu) {
     s << "#Imu:" << std::endl;
     s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << " g" << std::endl;
     s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << " deg/s" << std::endl;
-    s << "Magnetomoeter: " << imu.magn[0] << ", " << imu.magn[1] << ", " << imu.magn[2] << std::endl;
+    s << "Magnetometer: " << imu.magn[0] << ", " << imu.magn[1] << ", " << imu.magn[2] << std::endl;
 }
 
-} // namespace fcu
+std::ostream& operator<<(std::ostream& s, const msp::Servo& servo) {
+    s << "#Servo:" << std::endl;
+    s << servo.servo[0] << " " << servo.servo[1] << " " << servo.servo[2] << " " << servo.servo[3] << std::endl;
+    s << servo.servo[4] << " " << servo.servo[5] << " " << servo.servo[6] << " " << servo.servo[7] << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::Motor& motor) {
+    s << "#Motor:" << std::endl;
+    s << motor.motor[0] << " " << motor.motor[1] << " " << motor.motor[2] << " " << motor.motor[3] << std::endl;
+    s << motor.motor[4] << " " << motor.motor[5] << " " << motor.motor[6] << " " << motor.motor[7] << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::Rc& rc) {
+    s << "#Rc:" << std::endl;
+    s << rc.roll << " " << rc.pitch << " " << rc.yaw << " " << rc.throttle << std::endl;
+    s << rc.aux1 << " " << rc.aux2 << " " << rc.aux3 << " " << rc.aux4 << std::endl;
+}
