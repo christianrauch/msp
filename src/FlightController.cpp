@@ -2,8 +2,6 @@
 #include "msp_msg.hpp"
 #include "fcu_msg.hpp"
 
-#include <iostream>
-
 namespace fcu {
 
 FlightController::FlightController(const std::string &device) : msp(device) {
@@ -45,7 +43,6 @@ void FlightController::handle() {
             s.second->call(database[s.first]);
         }
         catch(const std::bad_cast &e) {
-            std::cerr<<"no Request, other type"<<std::endl;
             switch(s.first) {
             case msp::ID::MSP_IDENT:
             {
