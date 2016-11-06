@@ -25,16 +25,28 @@ set(MSP_HDR
 
 include_directories(${MSP_SOURCE_DIR})
 
+# low-level API
 add_library(msp ${MSP_SRC} ${MSP_HDR})
 target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
+# printing message content
+add_library(msg_print ${MSP_SOURCE_DIR}/msg_print.cpp
+                      ${MSP_SOURCE_DIR}/msg_print.hpp)
+
+#
 add_executable(get_msp_info main.cpp)
 target_link_libraries(get_msp_info msp)
 
+# test and print all requests
+add_executable(msp_read_test msp_read_test.cpp)
+target_link_libraries(msp_read_test msp msg_print)
+
+# high-level API
 add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp)
 target_link_libraries(msp_fcu msp)
 
+# testing publish/subscribe
 add_executable(fc_test fc_test.cpp)
 target_link_libraries(fc_test msp_fcu)
 

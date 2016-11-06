@@ -38,11 +38,18 @@ enum class MultiType {
     DUALCOPTER, // 20
 };
 
+enum class Capability {
+    BIND,
+    DYNBAL,
+    FLAP
+};
+
 struct Ident {
     uint version;
     MultiType type;
+    std::set<Capability> capabilities;
 
-    void fromIdent(const msp::Ident &ident) {
+    Ident(const msp::Ident &ident) {
         version = ident.version;
         switch(ident.type) {
         case 1: type = MultiType::TRI; break;
@@ -52,24 +59,51 @@ struct Ident {
         default:
             break;
         }
+
+        if(ident.capability & (1 << 0))
+            capabilities.insert(Capability::BIND);
+        if(ident.capability & (1 << 1))
+            capabilities.insert(Capability::DYNBAL);
+        if(ident.capability & (1 << 2))
+            capabilities.insert(Capability::FLAP);
+    }
+
+    bool has(const Capability &cap) const {
+        return capabilities.count(cap);
+    }
+
+    bool hasBind() const {
+        return has(Capability::BIND);
+    }
+
+    bool hasDynBal() const {
+        return has(Capability::DYNBAL);
+    }
+
+    bool hasFlap() const {
+        return has(Capability::FLAP);
     }
 };
 
 struct Status {
     std::set<Sensor> sensors;
+    uint time;
+    uint errors;
 
-    void fromStatus(const msp::Status &status) {
-        // st.sensor = ACC|BARO<<1|MAG<<2|GPS<<3|SONAR<<4;
-        if(status.sensor & 1)
+    Status(const msp::Status &status) {
+        if(status.sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
-        if(status.sensor & 2)
+        if(status.sensor & (1 << 1))
             sensors.insert(Sensor::Barometer);
-        if(status.sensor & 4)
+        if(status.sensor & (1 << 2))
             sensors.insert(Sensor::Magnetometer);
-        if(status.sensor & 8)
+        if(status.sensor & (1 << 3))
             sensors.insert(Sensor::GPS);
-        if(status.sensor & 16)
+        if(status.sensor & (1 << 4))
             sensors.insert(Sensor::Sonar);
+
+        time = status.time;
+        errors = status.i2c_errors_count;
     }
 
     bool hasAccelerometer() const { return sensors.count(Sensor::Accelerometer); }
@@ -80,7 +114,7 @@ struct Status {
 
     bool hasGPS() const { return sensors.count(Sensor::GPS); }
 
-    bool hasSonar() { return sensors.count(Sensor::Sonar); }
+    bool hasSonar() const { return sensors.count(Sensor::Sonar); }
 
 };
 

@@ -48,14 +48,17 @@ void FlightController::handle() {
             std::cerr<<"no Request, other type"<<std::endl;
             switch(s.first) {
             case msp::ID::MSP_IDENT:
-                fcu::Ident ident;
-                ident.fromIdent(*dynamic_cast<msp::Ident*>(database[s.first]));
+            {
+                const fcu::Ident ident(*dynamic_cast<msp::Ident*>(database[s.first]));
                 s.second->call(&ident);
                 break;
+            }
             case msp::ID::MSP_RAW_IMU:
-                fcu::Imu imu(*dynamic_cast<msp::RawImu*>(database[s.first]), acc_1g, gyro_unit);
+            {
+                const fcu::Imu imu(*dynamic_cast<msp::RawImu*>(database[s.first]), acc_1g, gyro_unit);
                 s.second->call(&imu);
                 break;
+            }
             }
         }
     }

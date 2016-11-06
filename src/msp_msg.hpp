@@ -4,6 +4,10 @@
 #ifndef MSP_MSG_HPP
 #define MSP_MSG_HPP
 
+#include <string>
+#include <array>
+#include <sstream>
+
 #include "types.hpp"
 
 #include "deserialise.hpp"
