@@ -26,8 +26,16 @@ std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning);
 
 std::ostream& operator<<(std::ostream& s, const fcu::PID& pid);
 
+std::ostream& operator<<(std::ostream& s, const fcu::Box& box);
+
 std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Box& box);
+std::ostream& operator<<(std::ostream& s, const msp::MotorPin& pin);
+
+std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names);
+
+std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names);
+
+std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids);
 
 #endif // MSG_PRINT_HPP

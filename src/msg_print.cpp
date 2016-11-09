@@ -141,23 +141,6 @@ std::ostream& operator<<(std::ostream& s, const fcu::PID& pid) {
     s << "Vel:       " << pid.vel.P << "\t| " << pid.vel.I << "\t| " << pid.vel.D << std::endl;
 }
 
-std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc) {
-    s << "#Miscellaneous:" << std::endl;
-    s << "Power Trigger: " << misc.powerTrigger << std::endl;
-    s << "Min Throttle: " << misc.minThrottle << std::endl;
-    s << "Max Throttle: " << misc.maxThrottle << std::endl;
-    s << "Failsafe Throttle: " << misc.failsafeThrottle << std::endl;
-
-    s << "Arm Counter: " << misc.arm << std::endl;
-    s << "Lifetime: " << misc.lifetime << std::endl;
-
-    s << "Magnetic Declination: " << misc.mag_declination << " deg" << std::endl;
-    s << "Battery Voltage Scale: " << misc.vbatScale << " V" << std::endl;
-    s << "Battery Warning Level 1: " << misc.vbatLevelWarn1 << " V" << std::endl;
-    s << "Battery Warning Level 2: " << misc.vbatLevelWarn2 << " V" << std::endl;
-    s << "Battery Critical Level: " << misc.vbatLevelCrit << " V" << std::endl;
-}
-
 std::ostream& operator<<(std::ostream& s, const fcu::Box& box) {
     s << "#Box:" << std::endl;
     for(uint ibox(0); ibox<box.boxs.size(); ibox++) {
@@ -179,5 +162,50 @@ std::ostream& operator<<(std::ostream& s, const fcu::Box& box) {
             s << ", ";
         }
         s << std::endl;
+    }
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc) {
+    s << "#Miscellaneous:" << std::endl;
+    s << "Power Trigger: " << misc.powerTrigger << std::endl;
+    s << "Min Throttle: " << misc.minThrottle << std::endl;
+    s << "Max Throttle: " << misc.maxThrottle << std::endl;
+    s << "Failsafe Throttle: " << misc.failsafeThrottle << std::endl;
+
+    s << "Arm Counter: " << misc.arm << std::endl;
+    s << "Lifetime: " << misc.lifetime << std::endl;
+
+    s << "Magnetic Declination: " << misc.mag_declination << " deg" << std::endl;
+    s << "Battery Voltage Scale: " << misc.vbatScale << " V" << std::endl;
+    s << "Battery Warning Level 1: " << misc.vbatLevelWarn1 << " V" << std::endl;
+    s << "Battery Warning Level 2: " << misc.vbatLevelWarn2 << " V" << std::endl;
+    s << "Battery Critical Level: " << misc.vbatLevelCrit << " V" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::MotorPin& pin) {
+    s << "#Motor pins:" << std::endl;
+    for(uint imotor(0); imotor<N_MOTOR; imotor++) {
+        s << "Motor " << imotor << ": pin " << (uint)pin.pwm_pin[imotor] << std::endl;
+    }
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names) {
+    s << "#Box names:" << std::endl;
+    for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
+        s << ibox << ": " << box_names.box_names[ibox] << std::endl;
+    }
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names) {
+    s << "#PID names:" << std::endl;
+    for(uint ipid(0); ipid<pid_names.pid_names.size(); ipid++) {
+        s << ipid << ": " << pid_names.pid_names[ipid] << std::endl;
+    }
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
+    s << "#Box IDs:" << std::endl;
+    for(uint ibox(0); ibox<box_ids.box_ids.size(); ibox++) {
+        s << ibox << ": " << (uint)box_ids.box_ids[ibox] << std::endl;
     }
 }

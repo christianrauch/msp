@@ -76,4 +76,20 @@ int main(int argc, char *argv[]) {
     msp::Misc misc;
     msp.request_block(misc);
     std::cout<<fcu::Misc(misc);
+
+    msp::MotorPin pins;
+    msp.request_block(pins);
+    std::cout<<pins;
+
+    msp::BoxNames box_names;
+    msp.request_block(box_names);
+    std::cout<<box_names;
+
+    msp::PidNames pid_names;
+    msp.request_block(pid_names);
+    std::cout<<pid_names;
+
+    msp::BoxIds box_ids;
+    msp.request_block(box_ids);
+    std::cout<<box_ids;
 }

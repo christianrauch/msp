@@ -84,6 +84,9 @@ void FlightController::handle() {
             case msp::ID::MSP_BOX: {
                 const fcu::Box msg(*(msp::Box*)req);
                 sub->call(&msg); break; }
+            case msp::ID::MSP_MISC: {
+                const fcu::Misc msg(*(msp::Misc*)req);
+                sub->call(&msg); break; }
             } // switch ID
         }
     }
