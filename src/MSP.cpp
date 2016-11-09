@@ -31,6 +31,10 @@ bool MSP::request(msp::Request &request) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
+    catch(WrongCRC &e) {
+        std::cerr<<e.what()<<std::endl;
+        return false;
+    }
     catch(boost::system::system_error) { return false; }
 }
 
@@ -50,6 +54,10 @@ bool MSP::request_block(msp::Request &request) {
                 request.decode(pkg.data);
         }
         catch(const MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            success = false;
+        }
+        catch(WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
