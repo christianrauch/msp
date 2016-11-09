@@ -69,6 +69,10 @@ int main(int argc, char *argv[]) {
     msp.request_block(pid);
     std::cout<<fcu::PID(pid);
 
+    msp::Box box;
+    msp.request_block(box);
+    std::cout<<fcu::Box(box);
+
     msp::Misc misc;
     msp.request_block(misc);
     std::cout<<fcu::Misc(misc);

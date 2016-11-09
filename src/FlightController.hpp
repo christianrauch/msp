@@ -74,6 +74,10 @@ private:
 
     void populate_all();
 
+    msp::Request* getRequestById(const msp::ID id) {
+        return database[id];
+    }
+
     msp::MSP msp;
 
     std::map<msp::ID, msp::Request*> database;

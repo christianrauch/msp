@@ -28,4 +28,6 @@ std::ostream& operator<<(std::ostream& s, const fcu::PID& pid);
 
 std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc);
 
+std::ostream& operator<<(std::ostream& s, const fcu::Box& box);
+
 #endif // MSG_PRINT_HPP

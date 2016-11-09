@@ -124,8 +124,6 @@ std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
 }
 
 std::ostream& operator<<(std::ostream& s, const fcu::PID& pid) {
-    //std::setprecision(3);
-
     s << std::setprecision(3);
     s << "#PID:" << std::endl;
     s << "Name      P     | I     | D     |" << std::endl;
@@ -158,4 +156,28 @@ std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc) {
     s << "Battery Warning Level 1: " << misc.vbatLevelWarn1 << " V" << std::endl;
     s << "Battery Warning Level 2: " << misc.vbatLevelWarn2 << " V" << std::endl;
     s << "Battery Critical Level: " << misc.vbatLevelCrit << " V" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& s, const fcu::Box& box) {
+    s << "#Box:" << std::endl;
+    for(uint ibox(0); ibox<box.boxs.size(); ibox++) {
+        s << ibox << " ";
+        for(uint iaux(0); iaux<box.boxs[ibox].size(); iaux++) {
+            s << "aux" << iaux+1 << ": ";
+            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::LOW))
+                s << "L";
+            else
+                s << "_";
+            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::MID))
+                s << "M";
+            else
+                s << "_";
+            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::HIGH))
+                s << "H";
+            else
+                s << "_";
+            s << ", ";
+        }
+        s << std::endl;
+    }
 }

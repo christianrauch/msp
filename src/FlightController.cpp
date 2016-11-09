@@ -1,5 +1,4 @@
 #include "FlightController.hpp"
-#include "msp_msg.hpp"
 #include "fcu_msg.hpp"
 
 namespace fcu {
@@ -20,7 +19,7 @@ void FlightController::populate(msp::Request *req) {
 }
 
 void FlightController::populate_all() {
-    populate(new msp::Ident);
+    populate(new msp::Ident);   // 100
     populate(new msp::Status);
     populate(new msp::RawImu);
     populate(new msp::Servo);
@@ -30,33 +29,62 @@ void FlightController::populate_all() {
     populate(new msp::CompGPS);
     populate(new msp::Attitude);
     populate(new msp::Altitude);
-    populate(new msp::Analog);
+    populate(new msp::Analog);  // 110
     populate(new msp::RcTuning);
     populate(new msp::Pid);
+    populate(new msp::Box);
+    populate(new msp::Misc);
+    populate(new msp::MotorPin);
+    populate(new msp::BoxNames);
+    populate(new msp::PidNames);
+    populate(new msp::WayPoint);
+    populate(new msp::BoxIds);
+    populate(new msp::ServoConf);
+    populate(new msp::NavStatus);
+    populate(new msp::NavConfig);   // 122
 }
 
 void FlightController::handle() {
     for(auto s : subscriptions) {
-        //msp.request_block(*database[s.first]);
-        msp.request(*database[s.first]);
+        // pointer to request
+        const msp::ID id = s.first;
+        msp::Request* const req = getRequestById(id);
+        SubscriptionBase* const sub = s.second;
+
+        // request data
+        msp.request(*req);
+
+        // callback
         try {
-            s.second->call(database[s.first]);
+            s.second->call(req);
         }
         catch(const std::bad_cast &e) {
-            switch(s.first) {
-            case msp::ID::MSP_IDENT:
-            {
-                const fcu::Ident ident(*dynamic_cast<msp::Ident*>(database[s.first]));
-                s.second->call(&ident);
-                break;
-            }
-            case msp::ID::MSP_RAW_IMU:
-            {
-                const fcu::Imu imu(*dynamic_cast<msp::RawImu*>(database[s.first]), acc_1g, gyro_unit);
-                s.second->call(&imu);
-                break;
-            }
-            }
+            switch(id) {
+            case msp::ID::MSP_IDENT: {
+                const fcu::Ident msg(*(msp::Ident*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_STATUS: {
+                const fcu::Status msg(*(msp::Status*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_RAW_IMU: {
+                const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_ATTITUDE: {
+                const fcu::Attitude msg(*(msp::Attitude*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_ALTITUDE: {
+                const fcu::Altitude msg(*(msp::Altitude*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_ANALOG: {
+                const fcu::Analog msg(*(msp::Analog*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_PID: {
+                const fcu::PID msg(*(msp::Pid*)req);
+                sub->call(&msg); break; }
+            case msp::ID::MSP_BOX: {
+                const fcu::Box msg(*(msp::Box*)req);
+                sub->call(&msg); break; }
+            } // switch ID
         }
     }
 }

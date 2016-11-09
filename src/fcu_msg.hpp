@@ -4,8 +4,12 @@
 #include "msp_msg.hpp"
 
 #include <set>
+#include <vector>
+#include <array>
 
 namespace fcu {
+
+const static uint NAUX = 4;
 
 enum class Sensor {
     Accelerometer,
@@ -44,6 +48,13 @@ enum class Capability {
     FLAP
 };
 
+enum class SwitchPosition : uint {
+    LOW  = 0,
+    MID  = 1,
+    HIGH = 2,
+};
+
+// 100
 struct Ident {
     uint version;
     MultiType type;
@@ -85,6 +96,7 @@ struct Ident {
     }
 };
 
+// 101
 struct Status {
     std::set<Sensor> sensors;
     uint time;
@@ -118,6 +130,7 @@ struct Status {
 
 };
 
+// 102
 struct Imu {
     std::array<float, 3> acc;
     std::array<float, 3> gyro;
@@ -131,6 +144,7 @@ struct Imu {
     }
 };
 
+// 108
 struct Attitude {
     float ang_x;    // degree
     float ang_y;    // degree
@@ -143,6 +157,7 @@ struct Attitude {
     }
 };
 
+// 109
 struct Altitude {
     float altitude; // m
     float vario;    // m/s
@@ -153,6 +168,7 @@ struct Altitude {
     }
 };
 
+// 110
 struct Analog {
     float vbat;             // Volt
     float powerMeterSum;  // Ah
@@ -181,6 +197,7 @@ struct PidTerms {
     }
 };
 
+// 112
 struct PID {
     PidTerms roll, pitch, yaw, alt;
     PidTerms pos, posr, navr, level, mag, vel;
@@ -193,6 +210,25 @@ struct PID {
         //
     }
 
+};
+
+// 113
+struct Box {
+    // box activation pattern
+    std::vector<std::array<std::set<SwitchPosition>,NAUX>> boxs;
+
+    Box(const msp::Box &box) {
+        for(uint16_t b : box.box_conf) {
+            std::array<std::set<SwitchPosition>,NAUX> aux_sp;
+            for(uint iaux(0); iaux<NAUX; iaux++) {
+                for(uint ip(0); ip<3; ip++) {
+                    if(b & (1<<(iaux*3+ip)))
+                        aux_sp[iaux].insert((SwitchPosition)ip);
+                } // each position (L,M,H)
+            } // each aux switch
+            boxs.push_back(aux_sp);
+        } // each box
+    }
 };
 
 struct Misc {

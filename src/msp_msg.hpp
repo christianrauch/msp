@@ -295,7 +295,7 @@ struct Box : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         box_conf.clear();
-        for(uint i(0); i<data.size(); i+=4)
+        for(uint i(0); i<data.size(); i+=2)
             box_conf.push_back(deser16(data, i));
     }
 };
