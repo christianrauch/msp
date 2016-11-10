@@ -534,6 +534,34 @@ struct NavConfig: public Request {
     }
 };
 
+// MSP_DEBUGMSG: 253
+struct DebugMessage : public Request {
+    ID id() const { return ID::MSP_DEBUGMSG; }
+
+    std::string msg;
+
+    void decode(const std::vector<uint8_t> &data) {
+        msg = std::string(data.begin(), data.end());
+    }
+};
+
+// MSP_DEBUG: 254
+struct Debug : public Request {
+    ID id() const { return ID::MSP_DEBUG; }
+
+    uint16_t debug1;
+    uint16_t debug2;
+    uint16_t debug3;
+    uint16_t debug4;
+
+    void decode(const std::vector<uint8_t> &data) {
+        debug1 = deser16(data, 0);
+        debug2 = deser16(data, 2);
+        debug3 = deser16(data, 4);
+        debug4 = deser16(data, 6);
+    }
+};
+
 
 /////////////////////////////////////////////////////////////////////
 /// Response (2xx)

@@ -38,4 +38,6 @@ std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names);
 
 std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids);
 
+std::ostream& operator<<(std::ostream& s, const msp::Debug& debug);
+
 #endif // MSG_PRINT_HPP

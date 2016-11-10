@@ -92,4 +92,15 @@ int main(int argc, char *argv[]) {
     msp::BoxIds box_ids;
     msp.request_block(box_ids);
     std::cout<<box_ids;
+
+    // needs "#define DEBUGMSG" in MultiWii firmware
+    msp::DebugMessage debug_msg;
+    if(msp.request_block(debug_msg)) {
+        std::cout<<"#Debug message:"<<std::endl;
+        std::cout<<debug_msg.msg<<std::endl;
+    }
+
+    msp::Debug debug;
+    msp.request_block(debug);
+    std::cout<<debug;
 }

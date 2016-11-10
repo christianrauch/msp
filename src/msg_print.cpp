@@ -209,3 +209,11 @@ std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
         s << ibox << ": " << (uint)box_ids.box_ids[ibox] << std::endl;
     }
 }
+
+std::ostream& operator<<(std::ostream& s, const msp::Debug& debug) {
+    s << "#Debug:" << std::endl;
+    s << "debug1: " << debug.debug1 << std::endl;
+    s << "debug2: " << debug.debug2 << std::endl;
+    s << "debug3: " << debug.debug3 << std::endl;
+    s << "debug4: " << debug.debug4 << std::endl;
+}
