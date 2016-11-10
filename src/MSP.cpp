@@ -35,6 +35,10 @@ bool MSP::request(msp::Request &request) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
+    catch(UnknownMsgId &e) {
+        std::cerr<<e.what()<<std::endl;
+        return false;
+    }
     catch(boost::system::system_error) { return false; }
 }
 
@@ -60,6 +64,10 @@ bool MSP::request_block(msp::Request &request) {
         catch(WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
+        }
+        catch(UnknownMsgId &e) {
+            std::cerr<<e.what()<<std::endl;
+            return false;
         }
         catch(boost::system::system_error) { success = false; }
     }
@@ -92,6 +100,10 @@ bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
         catch(WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
+        }
+        catch(UnknownMsgId &e) {
+            std::cerr<<e.what()<<std::endl;
+            return false;
         }
         catch(boost::system::system_error) { success = false; }
     }

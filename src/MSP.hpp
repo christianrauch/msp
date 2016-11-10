@@ -25,7 +25,7 @@ public:
     virtual const char* what() throw() {
         std::stringstream ss_msg;
         ss_msg << runtime_error::what() << ": ";
-        ss_msg << "FC refused to process message with id: "<<id;
+        ss_msg << "FC refused to process message with id: "<<(uint)id;
 
         msg = ss_msg.str();
         return msg.c_str();
