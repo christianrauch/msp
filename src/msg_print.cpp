@@ -182,7 +182,7 @@ std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc) {
     s << "Battery Critical Level: " << misc.vbatLevelCrit << " V" << std::endl;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::MotorPin& pin) {
+std::ostream& operator<<(std::ostream& s, const msp::MotorPins& pin) {
     s << "#Motor pins:" << std::endl;
     for(uint imotor(0); imotor<N_MOTOR; imotor++) {
         s << "Motor " << imotor << ": pin " << (uint)pin.pwm_pin[imotor] << std::endl;

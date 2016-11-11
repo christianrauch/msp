@@ -338,7 +338,7 @@ struct Misc : public Request {
 };
 
 // MSP_MOTOR_PINS: 115
-struct MotorPin : public Request {
+struct MotorPins : public Request {
     ID id() const { return ID::MSP_MOTOR_PINS; }
 
     uint8_t pwm_pin[N_MOTOR];

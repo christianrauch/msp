@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& s, const fcu::Box& box);
 
 std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc);
 
-std::ostream& operator<<(std::ostream& s, const msp::MotorPin& pin);
+std::ostream& operator<<(std::ostream& s, const msp::MotorPins& pin);
 
 std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names);
 

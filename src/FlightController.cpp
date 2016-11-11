@@ -34,7 +34,7 @@ void FlightController::populate_all() {
     populate(new msp::Pid);
     populate(new msp::Box);
     populate(new msp::Misc);
-    populate(new msp::MotorPin);
+    populate(new msp::MotorPins);
     populate(new msp::BoxNames);
     populate(new msp::PidNames);
     populate(new msp::WayPoint);

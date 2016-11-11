@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     msp.request_block(misc);
     std::cout<<fcu::Misc(misc);
 
-    msp::MotorPin pins;
+    msp::MotorPins pins;
     msp.request_block(pins);
     std::cout<<pins;
 
