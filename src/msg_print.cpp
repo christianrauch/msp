@@ -111,16 +111,16 @@ std::ostream& operator<<(std::ostream& s, const fcu::Analog& analog) {
     s << "RSSI: " << analog.rssi << std::endl;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
+std::ostream& operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning) {
     s << "#Rc Tuning:" << std::endl;
-    s << "Rc Rate: " << (uint)rc_tuning.RC_RATE << std::endl;
-    s << "Rc Expo: " << (uint)rc_tuning.RC_EXPO << std::endl;
+    s << "Rc Rate: " << rc_tuning.RC_RATE << std::endl;
+    s << "Rc Expo: " << rc_tuning.RC_EXPO << std::endl;
     s << "Roll/Pitch Rate: " << (uint)rc_tuning.RollPitchRate << std::endl;
-    s << "Yaw Rate: " << (uint)rc_tuning.YawRate << std::endl;
+    s << "Yaw Rate: " << rc_tuning.YawRate << std::endl;
 
-    s << "Dynamic Throttle PID: " << (uint)rc_tuning.DynThrPID << std::endl;
-    s << "Throttle MID: " << (uint)rc_tuning.Throttle_MID << std::endl;
-    s << "Throttle Expo: " << (uint)rc_tuning.Throttle_EXPO << std::endl;
+    s << "Dynamic Throttle PID: " << rc_tuning.DynThrPID << std::endl;
+    s << "Throttle MID: " << rc_tuning.Throttle_MID << std::endl;
+    s << "Throttle Expo: " << rc_tuning.Throttle_EXPO << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& s, const fcu::PID& pid) {

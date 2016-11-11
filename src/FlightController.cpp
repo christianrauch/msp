@@ -78,6 +78,9 @@ void FlightController::handle() {
             case msp::ID::MSP_ANALOG: {
                 const fcu::Analog msg(*(msp::Analog*)req);
                 sub->call(&msg); break; }
+            case msp::ID::MSP_RC_TUNING: {
+                const fcu::RcTuning msg(*(msp::RcTuning*)req);
+                sub->call(&msg); break; }
             case msp::ID::MSP_PID: {
                 const fcu::PID msg(*(msp::Pid*)req);
                 sub->call(&msg); break; }

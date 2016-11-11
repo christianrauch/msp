@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 
     msp::RcTuning rc_tuning;
     msp.request_block(rc_tuning);
-    std::cout<<rc_tuning;
+    std::cout<<fcu::RcTuning(rc_tuning);
 
     msp::Pid pid;
     msp.request_block(pid);

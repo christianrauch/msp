@@ -22,7 +22,7 @@ std::ostream& operator<<(std::ostream& s, const fcu::Altitude& altitude);
 
 std::ostream& operator<<(std::ostream& s, const fcu::Analog& analog);
 
-std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning);
+std::ostream& operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning);
 
 std::ostream& operator<<(std::ostream& s, const fcu::PID& pid);
 

@@ -183,6 +183,27 @@ struct Analog {
     }
 };
 
+// 111
+struct RcTuning {
+    double RC_RATE;
+    double RC_EXPO;
+    double RollPitchRate;
+    double YawRate;
+    double DynThrPID;
+    double Throttle_MID;
+    double Throttle_EXPO;
+
+    RcTuning(const msp::RcTuning &rc_tuning) {
+        RC_RATE = rc_tuning.RC_RATE / 100.0;
+        RC_EXPO = rc_tuning.RC_EXPO / 100.0;
+        RollPitchRate = rc_tuning.RollPitchRate / 100.0;
+        YawRate = rc_tuning.YawRate / 100.0;
+        DynThrPID = rc_tuning.DynThrPID / 100.0;
+        Throttle_MID = rc_tuning.Throttle_MID / 100.0;
+        Throttle_EXPO = rc_tuning.Throttle_EXPO / 100.0;
+    }
+};
+
 struct PidTerms {
     float P;
     float I;
