@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     msp::MSP msp(device);
     msp.setWait(1);
 
-    sleep(8);
+    sleep(5);
 
     // wait for flight controller to become ready
 //    {
@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
 //    msp.request_timeout(ident, 10);
 //    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
 //    }
+
+    std::cout<<"ready"<<std::endl;
 
     msp::Ident ident;
     msp.request_block(ident);
@@ -92,6 +94,10 @@ int main(int argc, char *argv[]) {
     msp::BoxIds box_ids;
     msp.request_block(box_ids);
     std::cout<<box_ids;
+
+    msp::ServoConf servo_conf;
+    msp.request_block(servo_conf);
+    std::cout<<servo_conf;
 
     // needs "#define DEBUGMSG" in MultiWii firmware
     msp::DebugMessage debug_msg;

@@ -210,6 +210,15 @@ std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
     }
 }
 
+std::ostream& operator<<(std::ostream& s, const msp::ServoConf& servo_conf) {
+    s << "#Servo conf:" << std::endl;
+    s << "Nr. | [min | middle | max] (rate)" << std::endl;
+    for(uint iservo(0); iservo<N_SERVO; iservo++) {
+        const msp::ServoConfRange servo = servo_conf.servo_conf[iservo];
+        s << iservo << ":  | "<< "["<< servo.min <<" | "<< servo.middle <<" | "<< servo.max <<"] ("<< (uint)servo.rate <<")"  << std::endl;
+    }
+}
+
 std::ostream& operator<<(std::ostream& s, const msp::Debug& debug) {
     s << "#Debug:" << std::endl;
     s << "debug1: " << debug.debug1 << std::endl;
