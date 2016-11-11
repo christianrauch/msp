@@ -136,11 +136,10 @@ struct Imu {
     std::array<float, 3> gyro;
     std::array<float, 3> magn;
 
-    Imu(const msp::RawImu &imu, const float acc_1g, const float gyro_unit) {
+    Imu(const msp::RawImu &imu, const float acc_1g, const float gyro_unit, const float magn_gain) {
         acc = {float(imu.accx/acc_1g), float(imu.accy/acc_1g), float(imu.accz/acc_1g)};
         gyro = {imu.gyrx*gyro_unit, imu.gyry*gyro_unit, imu.gyrz*gyro_unit};
-        // TODO: transform to real values
-        magn = {float(imu.magx), float(imu.magy), float(imu.magz)};
+        magn = {float(imu.magx)*magn_gain, float(imu.magy)*magn_gain, float(imu.magz)*magn_gain};
     }
 };
 

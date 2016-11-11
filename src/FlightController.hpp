@@ -69,6 +69,8 @@ public:
 
     void setGyroUnit(const float gyro) { gyro_unit=gyro; }
 
+    void setMagnGain(const float gain) { magn_gain=gain; }
+
 private:
     void populate(msp::Request *req);
 
@@ -85,9 +87,11 @@ private:
     std::map<msp::ID, SubscriptionBase*> subscriptions;
 
    // sensor specific units
-    float acc_1g;
+    float acc_1g;       // reported acceleration value at 1G
 
     float gyro_unit;
+
+    float magn_gain;    // scale magnetic value to uT (micro Tesla)
 };
 
 } // namespace msp

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     msp::RawImu imu;
     msp.request_block(imu);
-    std::cout<<fcu::Imu(imu, 512, 1/4096.0);
+    std::cout<<fcu::Imu(imu, 512.0, 1.0/4096.0, 1090.0/100.0);
 
     msp::Servo servo;
     msp.request_block(servo);
