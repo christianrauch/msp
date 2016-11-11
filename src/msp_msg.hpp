@@ -180,14 +180,14 @@ struct CompGPS : public Request {
 struct Attitude : public Request {
     ID id() const { return ID::MSP_ATTITUDE; }
 
-    uint16_t angx;
-    uint16_t angy;
-    uint16_t heading;
+    int16_t angx;
+    int16_t angy;
+    int16_t heading;
 
     void decode(const std::vector<uint8_t> &data) {
-        angx    = deser16(data, 0);
-        angy    = deser16(data, 2);
-        heading = deser16(data, 4);
+        angx    = deser_int16(data, 0);
+        angy    = deser_int16(data, 2);
+        heading = deser_int16(data, 4);
     }
 };
 

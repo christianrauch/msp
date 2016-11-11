@@ -146,9 +146,9 @@ struct Imu {
 
 // 108
 struct Attitude {
-    float ang_x;    // degree
-    float ang_y;    // degree
-    int heading;    // degree
+    float ang_x;        // degree
+    float ang_y;        // degree
+    int16_t heading;    // degree
 
     Attitude(const msp::Attitude &attitude) {
         ang_x = attitude.angx/10.0;
