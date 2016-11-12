@@ -99,4 +99,26 @@ void FlightController::handle() {
     }
 }
 
+bool FlightController::setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle) {
+    msp::SetRc rc;
+    rc.roll = roll;
+    rc.pitch = pitch;
+    rc.yaw = yaw;
+    rc.throttle = throttle;
+
+    // send MSP_SET_RAW_RC without waiting for ACK
+    return msp.send(rc);
+}
+
+bool FlightController::arm(const bool arm) {
+    // arm:
+    // throttle: 1000 (bottom), yaw: 2000 (right)
+    // disarm:
+    // throttle: 1000 (bottom), yaw: 1000 (left)
+
+    const uint yaw = arm ? 2000 : 1000;
+
+    return setRc(0,0,yaw,1000);
+}
+
 } // namespace msp

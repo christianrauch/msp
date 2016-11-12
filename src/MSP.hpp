@@ -117,14 +117,14 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool respond(msp::Response &response);
+    bool respond(const msp::Response &response);
 
     /**
      * @brief respond_block send data to FC until acknowledge has been received
      * @param response response message with data
      * @return true when acknowledge has been received
      */
-    bool respond_block(msp::Response &response);
+    bool respond_block(const msp::Response &response);
 
     /**
      * @brief sendData send raw data and ID to flight controller
@@ -134,6 +134,16 @@ public:
      * @return false on failure
      */
     bool sendData(const ID id, const ByteVector &data = ByteVector(0));
+
+    /**
+     * @brief send encode message and send payload
+     * @param response message sent to FC
+     * @return true on success
+     * @return false on failure
+     */
+    bool send(const msp::Response &response) {
+        return sendData(response.id(), response.encode());
+    }
 
     /**
      * @brief receiveData receive raw data from flight controller

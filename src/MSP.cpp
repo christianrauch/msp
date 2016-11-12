@@ -111,7 +111,7 @@ bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
     return true;
 }
 
-bool MSP::respond(msp::Response &response) {
+bool MSP::respond(const msp::Response &response) {
     if(!sendData(response.id(), response.encode()))
         return false;
 
@@ -128,7 +128,7 @@ bool MSP::respond(msp::Response &response) {
     catch(boost::system::system_error) { return false; }
 }
 
-bool MSP::respond_block(msp::Response &response) {
+bool MSP::respond_block(const msp::Response &response) {
     bool success = false;
     while(success==false) {
         // write ID and data and skip to write again if error occurred

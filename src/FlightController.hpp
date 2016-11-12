@@ -59,10 +59,19 @@ public:
     ~FlightController();
 
     template<typename T, typename C>
+    /**
+     * @brief subscribe register message type with callback function
+     * @param id message type ID
+     * @param callback pointer to callback function (method of class)
+     * @param context class of callback method
+     */
     void subscribe(msp::ID id, void (C::*callback)(T), C *context) {
         subscriptions[id] = new Subscription<T,C>(id, callback, context);
     }
 
+    /**
+     * @brief handle listen for messages and call callback functions
+     */
     void handle();
 
     void setAcc1G(const float acc1g) { acc_1g=acc1g; }
@@ -70,6 +79,10 @@ public:
     void setGyroUnit(const float gyro) { gyro_unit=gyro; }
 
     void setMagnGain(const float gain) { magn_gain=gain; }
+
+    bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
+
+    bool arm(const bool arm);
 
 private:
     void populate(msp::Request *req);
