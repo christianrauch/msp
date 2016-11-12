@@ -570,7 +570,7 @@ struct Debug : public Request {
 
 // MSP_SET_RAW_RC: 200
 struct SetRc : public Response {
-    ID id() { return ID::MSP_SET_RAW_RC; }
+    ID id() const { return ID::MSP_SET_RAW_RC; }
 
     uint16_t roll;
     uint16_t pitch;
@@ -581,7 +581,7 @@ struct SetRc : public Response {
     uint16_t aux3;
     uint16_t aux4;
 
-    std::vector<uint8_t> encode() {
+    std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(RC_CHANS*2);
         for(auto channel : {roll, pitch, yaw, throttle,
                             aux1, aux2, aux3, aux4})
@@ -594,7 +594,7 @@ struct SetRc : public Response {
 
 // MSP_SET_RAW_GPS: 201
 struct SetRawGPS : public Request {
-    ID id() { return ID::MSP_SET_RAW_GPS; }
+    ID id() const { return ID::MSP_SET_RAW_GPS; }
 
     uint8_t fix;
     uint8_t numSat;
@@ -603,7 +603,7 @@ struct SetRawGPS : public Request {
     uint16_t altitude;
     uint16_t speed;
 
-    std::vector<uint8_t> encode() {
+    std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(14);
         data[0] = fix;
         data[1] = numSat;
@@ -617,7 +617,7 @@ struct SetRawGPS : public Request {
 
 // MSP_SET_RC_TUNING: 204
 struct SetRcTuning : public Response {
-    ID id() { return ID::MSP_SET_RC_TUNING; }
+    ID id() const { return ID::MSP_SET_RC_TUNING; }
 
     uint8_t RC_RATE;
     uint8_t RC_EXPO;
@@ -641,7 +641,7 @@ struct SetRcTuning : public Response {
         Throttle_EXPO = rc_tuning.Throttle_EXPO;
     }
 
-    std::vector<uint8_t> encode() {
+    std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(7);
         data[0] = RC_RATE;
         data[1] = RC_EXPO;
@@ -656,35 +656,35 @@ struct SetRcTuning : public Response {
 
 // MSP_ACC_CALIBRATION: 205
 struct AccCalibration : public Response {
-    ID id() { return ID::MSP_ACC_CALIBRATION; }
-    std::vector<uint8_t> encode() {
+    ID id() const { return ID::MSP_ACC_CALIBRATION; }
+    std::vector<uint8_t> encode() const {
         return std::vector<uint8_t>();
     }
 };
 
 // MSP_MAG_CALIBRATION: 206
 struct MagCalibration : public Response {
-    ID id() { return ID::MSP_MAG_CALIBRATION; }
-    std::vector<uint8_t> encode() {
+    ID id() const { return ID::MSP_MAG_CALIBRATION; }
+    std::vector<uint8_t> encode() const {
         return std::vector<uint8_t>();
     }
 };
 
 // MSP_RESET_CONF: 208
 struct ResetConfig : public Response {
-    ID id() { return ID::MSP_RESET_CONF; }
-    std::vector<uint8_t> encode() {
+    ID id() const { return ID::MSP_RESET_CONF; }
+    std::vector<uint8_t> encode() const {
         return std::vector<uint8_t>();
     }
 };
 
 // MSP_SET_MOTOR: 214
 struct SetMotor : public Response {
-    ID id() { return ID::MSP_SET_MOTOR; }
+    ID id() const { return ID::MSP_SET_MOTOR; }
 
     uint16_t motor[N_MOTOR];
 
-    std::vector<uint8_t> encode() {
+    std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(N_MOTOR*2);
         for(unsigned int i=0; i<N_MOTOR; i++)
             ser16(motor[i], data);
