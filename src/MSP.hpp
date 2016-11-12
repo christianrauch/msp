@@ -38,8 +38,9 @@ private:
 // exception to throw if reported CRC does not match with computed
 class WrongCRC : public std::runtime_error {
 public:
-    WrongCRC(const uint8_t exp, const uint8_t rcv)
+    WrongCRC(const msp::ID msg_id, const uint8_t exp, const uint8_t rcv)
         : std::runtime_error("CRC not matching"),
+          msg_id(msg_id),
           expected(exp),
           received(rcv)
     { }
@@ -47,13 +48,15 @@ public:
     virtual const char* what() throw() {
         std::stringstream ss_msg;
         ss_msg << runtime_error::what() << ": ";
-        ss_msg << "expected " << (int)expected << ", ";
-        ss_msg << "received " << (int)received;
+        ss_msg << "Message " << (uint)msg_id << " ";
+        ss_msg << "expected CRC " << (int)expected << ", ";
+        ss_msg << "received CRC " << (int)received;
 
         msg = ss_msg.str();
         return msg.c_str();
     }
 private:
+    const msp::ID msg_id;   ///<! ID of message
     const uint8_t expected; ///<! expected CRC
     const uint8_t received; ///<! received CRC
     std::string msg;        ///<! error message

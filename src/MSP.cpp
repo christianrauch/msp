@@ -208,7 +208,7 @@ DataID MSP::receiveData() {
     const uint8_t exp_crc = crc(id, data);
 
     if(rcv_crc!=exp_crc)
-        throw WrongCRC(exp_crc, rcv_crc);
+        throw WrongCRC(id, exp_crc, rcv_crc);
 
     return DataID(data,id);
 }
