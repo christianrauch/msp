@@ -65,6 +65,12 @@ std::ostream& operator<<(std::ostream& s, const fcu::Status& status) {
     s << "    Sonar: ";
     status.hasSonar() ? s<<"ON" : s<< "OFF";
     s << std::endl;
+
+    s << "Active Boxes (by ID):";
+    for(const uint box_id : status.active_box_id) {
+        s << " " << box_id;
+    }
+    s << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& s, const fcu::Imu& imu) {

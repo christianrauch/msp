@@ -101,6 +101,7 @@ struct Status {
     std::set<Sensor> sensors;
     uint time;
     uint errors;
+    std::set<uint> active_box_id;
 
     Status(const msp::Status &status) {
         if(status.sensor & (1 << 0))
@@ -113,6 +114,12 @@ struct Status {
             sensors.insert(Sensor::GPS);
         if(status.sensor & (1 << 4))
             sensors.insert(Sensor::Sonar);
+
+        // check active boxes
+        for(uint ibox(0); ibox<32; ibox++) {
+            if(status.flag & (1 << ibox))
+                active_box_id.insert(ibox);
+        }
 
         time = status.time;
         errors = status.i2c_errors_count;

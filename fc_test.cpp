@@ -142,6 +142,8 @@ int main(int argc, char *argv[]) {
     // TODO: WayPoint
     fcu.subscribe(msp::ID::MSP_BOXIDS, &App::onBoxIds, &app);
     fcu.subscribe(msp::ID::MSP_SERVO_CONF, &App::onServoConf, &app);
+    // TODO: NavStatus
+    // TODO: NavConfig
     fcu.subscribe(msp::ID::MSP_DEBUGMSG, &App::onDebugMessage, &app);
     fcu.subscribe(msp::ID::MSP_DEBUG, &App::onDebug, &app);
 
