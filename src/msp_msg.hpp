@@ -652,6 +652,30 @@ struct SetRcTuning : public Response {
     }
 };
 
+// MSP_ACC_CALIBRATION: 205
+struct AccCalibration : public Response {
+    ID id() { return ID::MSP_ACC_CALIBRATION; }
+    std::vector<uint8_t> encode() {
+        return std::vector<uint8_t>();
+    }
+};
+
+// MSP_MAG_CALIBRATION: 206
+struct MagCalibration : public Response {
+    ID id() { return ID::MSP_MAG_CALIBRATION; }
+    std::vector<uint8_t> encode() {
+        return std::vector<uint8_t>();
+    }
+};
+
+// MSP_RESET_CONF: 208
+struct ResetConfig : public Response {
+    ID id() { return ID::MSP_RESET_CONF; }
+    std::vector<uint8_t> encode() {
+        return std::vector<uint8_t>();
+    }
+};
+
 // MSP_SET_MOTOR: 214
 struct SetMotor : public Response {
     ID id() { return ID::MSP_SET_MOTOR; }
