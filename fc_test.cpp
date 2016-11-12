@@ -119,6 +119,8 @@ int main(int argc, char *argv[]) {
     fcu.setAcc1G(512.0);
     fcu.setGyroUnit(1.0/4096);
     fcu.setMagnGain(1090.0/100.0);
+    fcu.setStandardGravity(9.80665);
+
 
     App app("MultiWii");
     fcu.subscribe(msp::ID::MSP_IDENT, &App::onIdent, &app);

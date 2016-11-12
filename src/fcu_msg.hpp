@@ -139,12 +139,17 @@ struct Status {
 
 // 102
 struct Imu {
-    std::array<float, 3> acc;
-    std::array<float, 3> gyro;
-    std::array<float, 3> magn;
+    std::array<float, 3> acc;   // m/s^2
+    std::array<float, 3> gyro;  // deg/s
+    std::array<float, 3> magn;  // uT
 
-    Imu(const msp::RawImu &imu, const float acc_1g, const float gyro_unit, const float magn_gain) {
-        acc = {float(imu.accx/acc_1g), float(imu.accy/acc_1g), float(imu.accz/acc_1g)};
+    Imu(const msp::RawImu &imu,
+        const float acc_1g,
+        const float gyro_unit,
+        const float magn_gain,
+        const float si_unit_1g)
+    {
+        acc = {float(imu.accx/acc_1g)*si_unit_1g, float(imu.accy/acc_1g)*si_unit_1g, float(imu.accz/acc_1g)*si_unit_1g};
         gyro = {imu.gyrx*gyro_unit, imu.gyry*gyro_unit, imu.gyrz*gyro_unit};
         magn = {float(imu.magx)*magn_gain, float(imu.magy)*magn_gain, float(imu.magz)*magn_gain};
     }

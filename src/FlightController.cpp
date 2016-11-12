@@ -69,7 +69,7 @@ void FlightController::handle() {
                 const fcu::Status msg(*(msp::Status*)req);
                 sub->call(&msg); break; }
             case msp::ID::MSP_RAW_IMU: {
-                const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit, magn_gain);
+                const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit, magn_gain, standard_gravity);
                 sub->call(&msg); break; }
             case msp::ID::MSP_ATTITUDE: {
                 const fcu::Attitude msg(*(msp::Attitude*)req);

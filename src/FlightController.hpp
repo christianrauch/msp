@@ -80,6 +80,8 @@ public:
 
     void setMagnGain(const float gain) { magn_gain=gain; }
 
+    void setStandardGravity(const float gravity) { standard_gravity=gravity; }
+
     bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
 
     bool arm(const bool arm);
@@ -105,6 +107,8 @@ private:
     float gyro_unit;
 
     float magn_gain;    // scale magnetic value to uT (micro Tesla)
+
+    float standard_gravity; // standard gravity for 1g in m/s^2
 };
 
 } // namespace msp
