@@ -42,6 +42,8 @@ void FlightController::populate_all() {
     populate(new msp::ServoConf);
     populate(new msp::NavStatus);
     populate(new msp::NavConfig);   // 122
+    populate(new msp::DebugMessage);// 253
+    populate(new msp::Debug);       // 254
 }
 
 void FlightController::handle() {
