@@ -4,42 +4,42 @@
 #include "fcu_msg.hpp"
 #include <ostream>
 
-std::ostream& operator<<(std::ostream& s, const fcu::Ident& ident);
+void operator<<(std::ostream& s, const fcu::Ident& ident);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Status& status);
+void operator<<(std::ostream& s, const fcu::Status& status);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Imu& imu);
+void operator<<(std::ostream& s, const fcu::Imu& imu);
 
-std::ostream& operator<<(std::ostream& s, const msp::Servo& servo);
+void operator<<(std::ostream& s, const msp::Servo& servo);
 
-std::ostream& operator<<(std::ostream& s, const msp::Motor& motor);
+void operator<<(std::ostream& s, const msp::Motor& motor);
 
-std::ostream& operator<<(std::ostream& s, const msp::Rc& rc);
+void operator<<(std::ostream& s, const msp::Rc& rc);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Attitude& attitude);
+void operator<<(std::ostream& s, const fcu::Attitude& attitude);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Altitude& altitude);
+void operator<<(std::ostream& s, const fcu::Altitude& altitude);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Analog& analog);
+void operator<<(std::ostream& s, const fcu::Analog& analog);
 
-std::ostream& operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning);
+void operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning);
 
-std::ostream& operator<<(std::ostream& s, const fcu::PID& pid);
+void operator<<(std::ostream& s, const fcu::PID& pid);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Box& box);
+void operator<<(std::ostream& s, const fcu::Box& box);
 
-std::ostream& operator<<(std::ostream& s, const fcu::Misc& misc);
+void operator<<(std::ostream& s, const fcu::Misc& misc);
 
-std::ostream& operator<<(std::ostream& s, const msp::MotorPins& pin);
+void operator<<(std::ostream& s, const msp::MotorPins& pin);
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names);
+void operator<<(std::ostream& s, const msp::BoxNames& box_names);
 
-std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names);
+void operator<<(std::ostream& s, const msp::PidNames& pid_names);
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids);
+void operator<<(std::ostream& s, const msp::BoxIds& box_ids);
 
-std::ostream& operator<<(std::ostream& s, const msp::ServoConf& servo_conf);
+void operator<<(std::ostream& s, const msp::ServoConf& servo_conf);
 
-std::ostream& operator<<(std::ostream& s, const msp::Debug& debug);
+void operator<<(std::ostream& s, const msp::Debug& debug);
 
 #endif // MSG_PRINT_HPP

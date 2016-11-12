@@ -128,13 +128,15 @@ struct Rc : public Request {
     uint16_t aux4;
 
     void decode(const std::vector<uint8_t> &data) {
-        size_t i = 0;
-        for(auto channel : {roll, pitch, yaw, throttle,
-                            aux1, aux2, aux3, aux4})
-        {
-            channel = deser16(data, i);
-            i +=2;
-        }
+        roll        = deser16(data, 0);
+        pitch       = deser16(data, 2);
+        yaw         = deser16(data, 4);
+        throttle    = deser16(data, 6);
+
+        aux1        = deser16(data, 8);
+        aux2        = deser16(data, 10);
+        aux3        = deser16(data, 12);
+        aux4        = deser16(data, 14);
     }
 };
 

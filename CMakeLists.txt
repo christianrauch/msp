@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(msp)
 
 add_definitions(-std=c++11)
+add_definitions(-Wall)
 
 find_package(Boost REQUIRED system)
 find_package(Threads)

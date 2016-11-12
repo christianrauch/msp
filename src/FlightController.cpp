@@ -92,6 +92,8 @@ void FlightController::handle() {
             case msp::ID::MSP_MISC: {
                 const fcu::Misc msg(*(msp::Misc*)req);
                 sub->call(&msg); break; }
+            default:
+                throw std::runtime_error("message ID not handeled");
             } // switch ID
         }
     }
