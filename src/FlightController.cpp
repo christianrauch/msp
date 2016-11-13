@@ -1,6 +1,8 @@
 #include "FlightController.hpp"
 #include "fcu_msg.hpp"
 
+#include <iostream>
+
 namespace fcu {
 
 FlightController::FlightController(const std::string &device) : msp(device) {
@@ -97,6 +99,91 @@ void FlightController::handle() {
             } // switch ID
         }
     }
+}
+
+void FlightController::sendRequests() {
+    for(auto s : subscriptions) {
+        msp.sendData(s.first);
+    }
+}
+
+void FlightController::handleRequests() {
+    while(true) {
+        msp::ID id;
+        msp::ByteVector data;
+
+        try {
+            const msp::DataID data_id = msp.receiveData();
+            id = data_id.id;
+            data = data_id.data;
+        }
+        catch(const msp::MalformedHeader &e) {
+            std::cerr<<e.what()<<std::endl;
+            break;
+        }
+        catch(msp::WrongCRC &e) {
+            std::cerr<<e.what()<<std::endl;
+            break;
+        }
+        catch(msp::UnknownMsgId &e) {
+            std::cerr<<e.what()<<std::endl;
+            break;
+        }
+        catch(boost::system::system_error &e) {
+            // no more data
+            break;
+        }
+
+        // search for correct subscribtion
+        for(auto s : subscriptions) {
+            if(s.first==id) {
+                // get correct request type and decode message
+                msp::Request *const req = getRequestById(id);
+                req->decode(data);
+
+                SubscriptionBase* const sub = s.second;
+                try {
+                    sub->call(req);
+                }
+                catch(const std::bad_cast &e) {
+                    switch(id) {
+                    case msp::ID::MSP_IDENT: {
+                        const fcu::Ident msg(*(msp::Ident*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_STATUS: {
+                        const fcu::Status msg(*(msp::Status*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_RAW_IMU: {
+                        const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit, magn_gain, standard_gravity);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_ATTITUDE: {
+                        const fcu::Attitude msg(*(msp::Attitude*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_ALTITUDE: {
+                        const fcu::Altitude msg(*(msp::Altitude*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_ANALOG: {
+                        const fcu::Analog msg(*(msp::Analog*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_RC_TUNING: {
+                        const fcu::RcTuning msg(*(msp::RcTuning*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_PID: {
+                        const fcu::PID msg(*(msp::Pid*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_BOX: {
+                        const fcu::Box msg(*(msp::Box*)req);
+                        sub->call(&msg); break; }
+                    case msp::ID::MSP_MISC: {
+                        const fcu::Misc msg(*(msp::Misc*)req);
+                        sub->call(&msg); break; }
+                    default:
+                        throw std::runtime_error("message ID not handeled");
+                    } // switch ID
+                }
+            } // check ID
+        } // subscriptions
+    } // while there is still data
 }
 
 bool FlightController::setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle) {

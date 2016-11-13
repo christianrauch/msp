@@ -74,6 +74,24 @@ public:
      */
     void handle();
 
+    /**
+     * @brief handle listen for messages and call callback functions
+     */
+    void handle_batch() {
+        sendRequests();
+        handleRequests();
+    }
+
+    /**
+     * @brief sendRequests send all subscribed requests
+     */
+    void sendRequests();
+
+    /**
+     * @brief handleRequests read incomming data and call corresponding callbacks
+     */
+    void handleRequests();
+
     void setAcc1G(const float acc1g) { acc_1g=acc1g; }
 
     void setGyroUnit(const float gyro) { gyro_unit=gyro; }
