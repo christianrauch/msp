@@ -4,10 +4,26 @@ project(msp)
 add_definitions(-std=c++11)
 add_definitions(-Wall)
 
-find_package(Boost REQUIRED system)
+find_package(Boost REQUIRED COMPONENTS system)
+include_directories( ${Boost_INCLUDE_DIRS} )
+
 find_package(Threads)
 
+find_package(catkin QUIET)
+
+if(catkin_FOUND)
+    catkin_package(
+        INCLUDE_DIRS inc
+        LIBRARIES msp msp_fcu
+    #    DEPENDS Boost
+    )
+endif()
+
 set(MSP_SOURCE_DIR src)
+
+set(MSP_INCLUDE_DIR inc/msp)
+
+include_directories(${MSP_INCLUDE_DIR})
 
 set(MSP_SRC
     ${MSP_SOURCE_DIR}/SerialPort.cpp
@@ -16,15 +32,13 @@ set(MSP_SRC
 )
 
 set(MSP_HDR
-    ${MSP_SOURCE_DIR}/msp_msg.hpp
-    ${MSP_SOURCE_DIR}/msp_id.hpp
-    ${MSP_SOURCE_DIR}/types.hpp
-    ${MSP_SOURCE_DIR}/SerialPort.hpp
-    ${MSP_SOURCE_DIR}/MSP.hpp
-    ${MSP_SOURCE_DIR}/deserialise.hpp
+    ${MSP_INCLUDE_DIR}/msp_msg.hpp
+    ${MSP_INCLUDE_DIR}/msp_id.hpp
+    ${MSP_INCLUDE_DIR}/types.hpp
+    ${MSP_INCLUDE_DIR}/SerialPort.hpp
+    ${MSP_INCLUDE_DIR}/MSP.hpp
+    ${MSP_INCLUDE_DIR}/deserialise.hpp
 )
-
-include_directories(${MSP_SOURCE_DIR})
 
 # low-level API
 add_library(msp SHARED ${MSP_SRC} ${MSP_HDR})
@@ -50,10 +64,11 @@ target_link_libraries(msp_fcu msp)
 add_executable(fc_test fc_test.cpp)
 target_link_libraries(fc_test msp_fcu msp_msg_print)
 
+# installation
 install(TARGETS msp LIBRARY DESTINATION lib)
 install(TARGETS msp_msg_print LIBRARY DESTINATION lib)
 install(TARGETS msp_fcu LIBRARY DESTINATION lib)
-install(DIRECTORY src/ DESTINATION include/msp FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/msp FILES_MATCHING PATTERN "*.hpp")
 
 SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
 SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/msp" )
@@ -67,6 +82,19 @@ CONFIGURE_FILE(
 
 INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
         DESTINATION lib/pkgconfig)
+
+if(catkin_FOUND)
+    install(TARGETS msp msp_fcu msp_msg_print
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
+
+    install(DIRECTORY include/${PROJECT_NAME}/
+       DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+       FILES_MATCHING PATTERN "*.hpp"
+    )
+endif()
 
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})
