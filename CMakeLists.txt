@@ -14,7 +14,7 @@ find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS inc
-        LIBRARIES msp msp_fcu
+        LIBRARIES msp msp_fcu msp_msg_print
     #    DEPENDS Boost
     )
 endif()
