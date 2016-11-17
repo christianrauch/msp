@@ -107,6 +107,10 @@ void FlightController::sendRequests() {
     }
 }
 
+bool FlightController::sendRequest(const msp::ID id) {
+    return msp.sendData(id);
+}
+
 void FlightController::handleRequests() {
     while(true) {
         msp::ID id;

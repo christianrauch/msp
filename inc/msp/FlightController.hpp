@@ -88,6 +88,14 @@ public:
     void sendRequests();
 
     /**
+     * @brief sendRequest send request with ID
+     * @param id message ID of request
+     * @return true on success
+     * @return false on failure
+     */
+    bool sendRequest(const msp::ID id);
+
+    /**
      * @brief handleRequests read incomming data and call corresponding callbacks
      */
     void handleRequests();
