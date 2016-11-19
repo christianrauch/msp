@@ -46,7 +46,8 @@ target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 # printing message content
-add_library(msp_msg_print SHARED ${MSP_SOURCE_DIR}/msg_print.cpp)
+add_library(msp_msg_print SHARED ${MSP_SOURCE_DIR}/msg_print.cpp
+                                 ${MSP_INCLUDE_DIR}/msg_print.hpp)
 
 # test reading speed
 add_executable(get_msp_info main.cpp)
@@ -57,7 +58,9 @@ add_executable(msp_read_test msp_read_test.cpp)
 target_link_libraries(msp_read_test msp msp_msg_print)
 
 # high-level API
-add_library(msp_fcu SHARED ${MSP_SOURCE_DIR}/FlightController.cpp)
+add_library(msp_fcu SHARED ${MSP_SOURCE_DIR}/FlightController.cpp
+                           ${MSP_INCLUDE_DIR}/FlightController.hpp
+                           ${MSP_INCLUDE_DIR}/fcu_msg.hpp)
 target_link_libraries(msp_fcu msp)
 
 # testing publish/subscribe
