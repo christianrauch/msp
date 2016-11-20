@@ -1,19 +1,19 @@
 #include "msg_print.hpp"
 #include <iomanip>
 
-void operator<<(std::ostream& s, const fcu::Ident& ident) {
+void operator<<(std::ostream& s, const msp::Ident& ident) {
     std::string type;
     switch(ident.type) {
-    case fcu::MultiType::TRI:
+    case msp::MultiType::TRI:
         type = "Tricopter";
         break;
-    case fcu::MultiType::QUADP:
+    case msp::MultiType::QUADP:
         type = "Quadrocopter Plus";
         break;
-    case fcu::MultiType::QUADX:
+    case msp::MultiType::QUADX:
         type = "Quadrocopter X";
         break;
-    case fcu::MultiType::BI:
+    case msp::MultiType::BI:
         type = "BI-copter";
         break;
     default:
@@ -40,7 +40,7 @@ void operator<<(std::ostream& s, const fcu::Ident& ident) {
     s << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Status& status) {
+void operator<<(std::ostream& s, const msp::Status& status) {
     s << "#Status:" << std::endl;
     s << "Cycle time: " << status.time<< " us" << std::endl;
     s << "I2C errors: " << status.errors<< std::endl;
@@ -73,7 +73,7 @@ void operator<<(std::ostream& s, const fcu::Status& status) {
     s << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Imu& imu) {
+void operator<<(std::ostream& s, const msp::Imu& imu) {
     s << "#Imu:" << std::endl;
     s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << " g" << std::endl;
     s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << " deg/s" << std::endl;
@@ -98,18 +98,18 @@ void operator<<(std::ostream& s, const msp::Rc& rc) {
     s << rc.aux1 << " " << rc.aux2 << " " << rc.aux3 << " " << rc.aux4 << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Attitude& attitude) {
+void operator<<(std::ostream& s, const msp::Attitude& attitude) {
     s << "#Attitude:" << std::endl;
     s << "Ang : " << attitude.ang_x << ", " << attitude.ang_y << " deg" << std::endl;
     s << "Heading: " << attitude.heading << " deg" << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Altitude& altitude) {
+void operator<<(std::ostream& s, const msp::Altitude& altitude) {
     s << "#Altitude:" << std::endl;
     s << "Altitude: " << altitude.altitude << " m, var: " << altitude.vario << " m/s" << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Analog& analog) {
+void operator<<(std::ostream& s, const msp::Analog& analog) {
     s << "#Analog:" << std::endl;
     s << "Battery Voltage: " << analog.vbat << " V" << std::endl;
     s << "Current: " << analog.amperage << " A" << std::endl;
@@ -117,7 +117,7 @@ void operator<<(std::ostream& s, const fcu::Analog& analog) {
     s << "RSSI: " << analog.rssi << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning) {
+void operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
     s << "#Rc Tuning:" << std::endl;
     s << "Rc Rate: " << rc_tuning.RC_RATE << std::endl;
     s << "Rc Expo: " << rc_tuning.RC_EXPO << std::endl;
@@ -129,7 +129,7 @@ void operator<<(std::ostream& s, const fcu::RcTuning& rc_tuning) {
     s << "Throttle Expo: " << rc_tuning.Throttle_EXPO << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::PID& pid) {
+void operator<<(std::ostream& s, const msp::Pid& pid) {
     s << std::setprecision(3);
     s << "#PID:" << std::endl;
     s << "Name      P     | I     | D     |" << std::endl;
@@ -147,21 +147,21 @@ void operator<<(std::ostream& s, const fcu::PID& pid) {
     s << "Vel:       " << pid.vel.P << "\t| " << pid.vel.I << "\t| " << pid.vel.D << std::endl;
 }
 
-void operator<<(std::ostream& s, const fcu::Box& box) {
+void operator<<(std::ostream& s, const msp::Box& box) {
     s << "#Box:" << std::endl;
-    for(uint ibox(0); ibox<box.boxs.size(); ibox++) {
+    for(uint ibox(0); ibox<box.box_pattern.size(); ibox++) {
         s << ibox << " ";
-        for(uint iaux(0); iaux<box.boxs[ibox].size(); iaux++) {
+        for(uint iaux(0); iaux<box.box_pattern[ibox].size(); iaux++) {
             s << "aux" << iaux+1 << ": ";
-            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::LOW))
+            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::LOW))
                 s << "L";
             else
                 s << "_";
-            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::MID))
+            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::MID))
                 s << "M";
             else
                 s << "_";
-            if(box.boxs[ibox][iaux].count(fcu::SwitchPosition::HIGH))
+            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::HIGH))
                 s << "H";
             else
                 s << "_";
@@ -171,7 +171,7 @@ void operator<<(std::ostream& s, const fcu::Box& box) {
     }
 }
 
-void operator<<(std::ostream& s, const fcu::Misc& misc) {
+void operator<<(std::ostream& s, const msp::Misc& misc) {
     s << "#Miscellaneous:" << std::endl;
     s << "Power Trigger: " << misc.powerTrigger << std::endl;
     s << "Min Throttle: " << misc.minThrottle << std::endl;
@@ -190,7 +190,7 @@ void operator<<(std::ostream& s, const fcu::Misc& misc) {
 
 void operator<<(std::ostream& s, const msp::MotorPins& pin) {
     s << "#Motor pins:" << std::endl;
-    for(uint imotor(0); imotor<N_MOTOR; imotor++) {
+    for(uint imotor(0); imotor<msp::N_MOTOR; imotor++) {
         s << "Motor " << imotor << ": pin " << (uint)pin.pwm_pin[imotor] << std::endl;
     }
 }
@@ -219,7 +219,7 @@ void operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
 void operator<<(std::ostream& s, const msp::ServoConf& servo_conf) {
     s << "#Servo conf:" << std::endl;
     s << "Nr. | [min | middle | max] (rate)" << std::endl;
-    for(uint iservo(0); iservo<N_SERVO; iservo++) {
+    for(uint iservo(0); iservo<msp::N_SERVO; iservo++) {
         const msp::ServoConfRange servo = servo_conf.servo_conf[iservo];
         s << iservo << ":  | "<< "["<< servo.min <<" | "<< servo.middle <<" | "<< servo.max <<"] ("<< (uint)servo.rate <<")"  << std::endl;
     }

@@ -58,6 +58,8 @@ public:
 
     ~FlightController();
 
+    void populate_all();
+
     template<typename T, typename C>
     /**
      * @brief subscribe register message type with callback function
@@ -114,8 +116,6 @@ public:
 
 private:
     void populate(msp::Request *req);
-
-    void populate_all();
 
     msp::Request* getRequestById(const msp::ID id) {
         return database[id];

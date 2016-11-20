@@ -7,18 +7,64 @@
 #include <string>
 #include <array>
 #include <sstream>
+#include <set>
+#include <climits>
 
 #include "types.hpp"
 
 #include "deserialise.hpp"
 
-
-#define N_SERVO     8
-#define N_MOTOR     8
-#define RC_CHANS    8
-#define PIDITEMS    10
-
 namespace msp {
+
+const static uint N_SERVO = 8;
+const static uint N_MOTOR = 8;
+const static uint RC_CHANS = 8;
+const static uint PIDITEMS = 10;
+
+enum class MultiType : uint8_t {
+    TRI,    // 1
+    QUADP,  // 2
+    QUADX,  // 3
+    BI,     // 4
+    GIMBAL, // 5
+    Y6,     // 6
+    HEX6,   // 7
+    FLYING_WING, // 8
+    Y4,     // 9
+    HEX6X,  // 10
+    OCTOX8, // 11
+    OCTOFLATP,  // 12
+    OCTOFLATX,  // 13
+    AIRPLANE,   // 14
+    HELI_120_CCPM,  // 15
+    HELI_90_DEG,    //16
+    VTAIL4,     // 17
+    HEX6H,      // 18
+    SINGLECOPTER,   // 21
+    DUALCOPTER, // 20
+};
+
+enum class Capability {
+    BIND,
+    DYNBAL,
+    FLAP
+};
+
+enum class Sensor {
+    Accelerometer,
+    Barometer,
+    Magnetometer,
+    GPS,
+    Sonar
+};
+
+const static uint NAUX = 4;
+
+enum class SwitchPosition : uint {
+    LOW  = 0,
+    MID  = 1,
+    HIGH = 2,
+};
 
 /////////////////////////////////////////////////////////////////////
 /// Requests (1xx)
@@ -27,17 +73,36 @@ namespace msp {
 struct Ident : public Request {
     ID id() const { return ID::MSP_IDENT; }
 
-    uint8_t     version;
-    uint8_t     type;
-    uint8_t     msp_version;
-    uint32_t    capability;
+    uint version;
+    MultiType type;
+    uint msp_version;
+    std::set<Capability> capabilities;
 
     void decode(const std::vector<uint8_t> &data) {
-        version     = data[0];
-        type        = data[1];
+        version = data[0];
+
+        // determine multicopter type
+        type = MultiType(data[1]);
+
         msp_version = data[2];
-        capability  = deser32(data, 3);
+
+        const uint32_t capability = deser32(data, 3);
+
+        if(capability & (1 << 0))
+            capabilities.insert(Capability::BIND);
+        if(capability & (1 << 1))
+            capabilities.insert(Capability::DYNBAL);
+        if(capability & (1 << 2))
+            capabilities.insert(Capability::FLAP);
     }
+
+    bool has(const Capability &cap) const { return capabilities.count(cap); }
+
+    bool hasBind() const { return has(Capability::BIND); }
+
+    bool hasDynBal() const { return has(Capability::DYNBAL); }
+
+    bool hasFlap() const { return has(Capability::FLAP); }
 };
 
 // MSP_STATUS: 101
@@ -45,48 +110,80 @@ struct Status : public Request {
     ID id() const { return ID::MSP_STATUS; }
 
     uint16_t    time;   // in us
-    uint16_t    i2c_errors_count;
-    uint16_t    sensor;
-    uint32_t    flag;
-    uint8_t     current_setting;
+    uint16_t    errors;
+    std::set<Sensor> sensors;
+    uint        current_setting;
+    std::set<uint> active_box_id;
 
     void decode(const std::vector<uint8_t> &data) {
-        time                = deser16(data, 0);
-        i2c_errors_count    = deser16(data, 2);
-        sensor              = deser16(data, 4);
-        flag                = deser32(data, 6);
-        current_setting     = data[10];
+        time = deser16(data, 0);
+
+        errors = deser16(data, 2);
+
+        // get sensors
+        const uint16_t sensor = deser16(data, 4);
+        if(sensor & (1 << 0))
+            sensors.insert(Sensor::Accelerometer);
+        if(sensor & (1 << 1))
+            sensors.insert(Sensor::Barometer);
+        if(sensor & (1 << 2))
+            sensors.insert(Sensor::Magnetometer);
+        if(sensor & (1 << 3))
+            sensors.insert(Sensor::GPS);
+        if(sensor & (1 << 4))
+            sensors.insert(Sensor::Sonar);
+
+        // check active boxes
+        const uint32_t flag = deser32(data, 6);
+        for(uint ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
+            if(flag & (1 << ibox))
+                active_box_id.insert(ibox);
+        }
+
+        current_setting = data[10];
     }
+
+    bool hasAccelerometer() const { return sensors.count(Sensor::Accelerometer); }
+
+    bool hasBarometer() const { return sensors.count(Sensor::Barometer); }
+
+    bool hasMagnetometer() const { return sensors.count(Sensor::Magnetometer); }
+
+    bool hasGPS() const { return sensors.count(Sensor::GPS); }
+
+    bool hasSonar() const { return sensors.count(Sensor::Sonar); }
 };
 
 // MSP_RAW_IMU: 102
-struct RawImu : public Request {
+struct Imu : public Request {
     ID id() const { return ID::MSP_RAW_IMU; }
 
-    int16_t accx;
-    int16_t accy;
-    int16_t accz;
+    std::array<float, 3> acc;   // m/s^2
+    std::array<float, 3> gyro;  // deg/s
+    std::array<float, 3> magn;  // uT
 
-    int16_t gyrx;
-    int16_t gyry;
-    int16_t gyrz;
+    // conversion units
+    float acc_1g;       // sensor value at 1g
+    float gyro_unit;    // resolution in 1/(deg/s)
+    float magn_gain;    // scale magnetic value to uT (micro Tesla)
+    float si_unit_1g;   // acceleration at 1g (in m/s^2)
 
-    int16_t magx;
-    int16_t magy;
-    int16_t magz;
+    Imu(float acc_1g = 1.0, float gyro_unit = 1.0, float magn_gain = 1.0, float si_unit_1g = 1.0)
+        : acc_1g(acc_1g), gyro_unit(gyro_unit), magn_gain(magn_gain), si_unit_1g(si_unit_1g)
+    { }
 
     void decode(const std::vector<uint8_t> &data) {
-        accx = deser_int16(data, 0);
-        accy = deser_int16(data, 2);
-        accz = deser_int16(data, 4);
+        acc = {{deser_int16(data, 0)/acc_1g*si_unit_1g,
+                deser_int16(data, 2)/acc_1g*si_unit_1g,
+                deser_int16(data, 4)/acc_1g*si_unit_1g}};
 
-        gyrx = deser_int16(data, 6);
-        gyry = deser_int16(data, 8);
-        gyrz = deser_int16(data, 10);
+        gyro = {{deser_int16(data, 6)*gyro_unit,
+                 deser_int16(data, 8)*gyro_unit,
+                 deser_int16(data, 10)*gyro_unit}};
 
-        magx = deser_int16(data, 12);
-        magy = deser_int16(data, 14);
-        magz = deser_int16(data, 16);
+        magn = {{deser_int16(data, 12)*magn_gain,
+                 deser_int16(data, 14)*magn_gain,
+                 deser_int16(data, 16)*magn_gain}};
     }
 };
 
@@ -182,13 +279,13 @@ struct CompGPS : public Request {
 struct Attitude : public Request {
     ID id() const { return ID::MSP_ATTITUDE; }
 
-    int16_t angx;
-    int16_t angy;
-    int16_t heading;
+    float ang_x;        // degree
+    float ang_y;        // degree
+    int16_t heading;    // degree
 
     void decode(const std::vector<uint8_t> &data) {
-        angx    = deser_int16(data, 0);
-        angy    = deser_int16(data, 2);
+        ang_x   = deser_int16(data, 0)/10.0f;
+        ang_y   = deser_int16(data, 2)/10.0f;
         heading = deser_int16(data, 4);
     }
 };
@@ -197,12 +294,12 @@ struct Attitude : public Request {
 struct Altitude : public Request {
     ID id() const { return ID::MSP_ALTITUDE; }
 
-    uint32_t EstAlt;
-    uint16_t vario;
+    float altitude; // m
+    float vario;    // m/s
 
     void decode(const std::vector<uint8_t> &data) {
-        EstAlt  = deser32(data, 0);
-        vario   = deser16(data, 4);
+        altitude = deser32(data, 0)/100.0f;
+        vario    = deser16(data, 4)/100.0f;
     }
 };
 
@@ -210,16 +307,16 @@ struct Altitude : public Request {
 struct Analog : public Request {
     ID id() const { return ID::MSP_ANALOG; }
 
-    uint8_t vbat;
-    uint16_t intPowerMeterSum;
-    uint16_t rssi;
-    uint16_t amperage;
+    float vbat;           // Volt
+    float powerMeterSum;  // Ah
+    uint rssi;  // Received Signal Strength Indication [0; 1023]
+    float amperage;       // Ampere
 
     void decode(const std::vector<uint8_t> &data) {
-        vbat                = data[0];
-        intPowerMeterSum    = deser16(data, 1);
-        rssi                = deser16(data, 3);
-        amperage            = deser16(data, 5);
+        vbat          = data[0]/10.0f;
+        powerMeterSum = deser16(data, 1)/1000.0f;
+        rssi          = deser16(data, 3);
+        amperage      = deser16(data, 5)/10.0f;
     }
 };
 
@@ -227,64 +324,56 @@ struct Analog : public Request {
 struct RcTuning : Request {
     ID id() const { return ID::MSP_RC_TUNING; }
 
-    uint8_t RC_RATE;
-    uint8_t RC_EXPO;
-    uint8_t RollPitchRate;
-    uint8_t YawRate;
-    uint8_t DynThrPID;
-    uint8_t Throttle_MID;
-    uint8_t Throttle_EXPO;
+    double RC_RATE;
+    double RC_EXPO;
+    double RollPitchRate;
+    double YawRate;
+    double DynThrPID;
+    double Throttle_MID;
+    double Throttle_EXPO;
 
     void decode(const std::vector<uint8_t> &data) {
-        RC_RATE         = data[0];
-        RC_EXPO         = data[1];
-        RollPitchRate   = data[2];
-        YawRate         = data[3];
-        DynThrPID       = data[4];
-        Throttle_MID    = data[5];
-        Throttle_EXPO   = data[6];
+        RC_RATE         = data[0] / 100.0;
+        RC_EXPO         = data[1] / 100.0;
+        RollPitchRate   = data[2] / 100.0;
+        YawRate         = data[3] / 100.0;
+        DynThrPID       = data[4] / 100.0;
+        Throttle_MID    = data[5] / 100.0;
+        Throttle_EXPO   = data[6] / 100.0;
     }
 };
 
 // PID struct for messages 112 and 204
 struct PidTerms {
-    uint8_t P;
-    uint8_t I;
-    uint8_t D;
+    float P;
+    float I;
+    float D;
 
-    PidTerms(uint8_t p=0, uint8_t i=0, uint8_t d=0) {
-        P = p;
-        I = i;
-        D = d;
-    }
+    PidTerms() { }
+
+    PidTerms(const uint8_t P, const uint8_t I, const uint8_t D)
+        : P(P/10.0f), I(I/10.0f), D(D/10.0f)
+    { }
 };
 
 // MSP_PID: 112
 struct Pid : public Request {
     ID id() const { return ID::MSP_PID; }
 
-    PidTerms roll;
-    PidTerms pitch;
-    PidTerms yaw;
-    PidTerms alt;
-    PidTerms pos;
-    PidTerms posr;
-    PidTerms navr;
-    PidTerms level;
-    PidTerms mag;
-    PidTerms vel;
+    PidTerms roll, pitch, yaw, alt;
+    PidTerms pos, posr, navr, level, mag, vel;
 
     void decode(const std::vector<uint8_t> &data) {
-        roll = PidTerms(data[0], data[1], data[2]);
+        roll  = PidTerms(data[0], data[1], data[2]);
         pitch = PidTerms(data[3], data[4], data[5]);
-        yaw = PidTerms(data[6], data[7], data[8]);
-        alt = PidTerms(data[9], data[10], data[11]);
-        pos = PidTerms(data[12], data[13], data[14]);
-        posr = PidTerms(data[15], data[16], data[17]);
-        navr = PidTerms(data[18], data[19], data[20]);
+        yaw   = PidTerms(data[6], data[7], data[8]);
+        alt   = PidTerms(data[9], data[10], data[11]);
+        pos   = PidTerms(data[12], data[13], data[14]);
+        posr  = PidTerms(data[15], data[16], data[17]);
+        navr  = PidTerms(data[18], data[19], data[20]);
         level = PidTerms(data[21], data[22], data[23]);
-        mag = PidTerms(data[24], data[25], data[26]);
-        vel = PidTerms(data[27], data[28], data[29]);
+        mag   = PidTerms(data[24], data[25], data[26]);
+        vel   = PidTerms(data[27], data[28], data[29]);
     }
 };
 
@@ -292,13 +381,24 @@ struct Pid : public Request {
 struct Box : public Request {
     ID id() const { return ID::MSP_BOX; }
 
-    // after decode, box_conf should have length of BOXITEMS
-    std::vector<uint16_t> box_conf;
+    // box activation pattern
+    std::vector<std::array<std::set<SwitchPosition>,NAUX>> box_pattern;
 
     void decode(const std::vector<uint8_t> &data) {
-        box_conf.clear();
-        for(uint i(0); i<data.size(); i+=2)
-            box_conf.push_back(deser16(data, i));
+        box_pattern.clear();
+        for(uint i(0); i<data.size(); i+=2) {
+            const uint16_t box_conf = deser16(data, i);
+            //box_conf.push_back(deser16(data, i));
+
+            std::array<std::set<SwitchPosition>,NAUX> aux_sp;
+            for(uint iaux(0); iaux<NAUX; iaux++) {
+                for(uint ip(0); ip<3; ip++) {
+                    if(box_conf & (1<<(iaux*3+ip)))
+                        aux_sp[iaux].insert(SwitchPosition(ip));
+                } // each position (L,M,H)
+            } // each aux switch
+            box_pattern.push_back(aux_sp);
+        } // each box
     }
 };
 
@@ -306,23 +406,15 @@ struct Box : public Request {
 struct Misc : public Request {
     ID id() const { return ID::MSP_MISC; }
 
-    uint16_t intPowerTrigger;
-    uint16_t minThrottle;
-    uint16_t maxThrottle;
-    uint16_t minCommand;
-
-    uint16_t failsafeThrottle;
-    uint16_t arm;
-    uint32_t lifetime;
-    uint16_t mag_declination;
-
-    uint8_t vbatScale;
-    uint8_t vbatLevelWarn1;
-    uint8_t vbatLevelWarn2;
-    uint8_t vbatLevelCrit;
+    uint powerTrigger;
+    uint minThrottle, maxThrottle, failsafeThrottle;
+    uint minCommand;
+    uint arm, lifetime;
+    float mag_declination; // degree
+    float vbatScale, vbatLevelWarn1, vbatLevelWarn2, vbatLevelCrit;
 
     void decode(const std::vector<uint8_t> &data) {
-        intPowerTrigger     = deser16(data, 0);
+        powerTrigger     = deser16(data, 0);
         minThrottle         = deser16(data, 2);
         maxThrottle         = deser16(data, 4);
         minCommand          = deser16(data, 6);
@@ -330,12 +422,12 @@ struct Misc : public Request {
         failsafeThrottle    = deser16(data, 8);
         arm                 = deser16(data, 10);
         lifetime            = deser32(data, 12);
-        mag_declination     = deser16(data, 16);
+        mag_declination     = deser16(data, 16) / 10.0f;
 
-        vbatScale           = data[18];
-        vbatLevelWarn1      = data[19];
-        vbatLevelWarn2      = data[20];
-        vbatLevelCrit       = data[21];
+        vbatScale           = data[18] / 10.0f;
+        vbatLevelWarn1      = data[19] / 10.0f;
+        vbatLevelWarn2      = data[20] / 10.0f;
+        vbatLevelCrit       = data[21] / 10.0f;
     }
 };
 

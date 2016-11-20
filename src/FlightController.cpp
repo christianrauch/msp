@@ -1,13 +1,11 @@
 #include "FlightController.hpp"
-#include "fcu_msg.hpp"
+#include "msp_msg.hpp"
 
 #include <iostream>
 
 namespace fcu {
 
 FlightController::FlightController(const std::string &device) : msp(device) {
-    populate_all();
-
 //    std::cout<<"Wait for FC..."<<std::endl;
 //    msp::Ident ident;
 //    msp.request_timeout(ident, 10);
@@ -23,7 +21,7 @@ void FlightController::populate(msp::Request *req) {
 void FlightController::populate_all() {
     populate(new msp::Ident);   // 100
     populate(new msp::Status);
-    populate(new msp::RawImu);
+    populate(new msp::Imu(acc_1g, gyro_unit, magn_gain, standard_gravity));
     populate(new msp::Servo);
     populate(new msp::Motor);
     populate(new msp::Rc);
@@ -64,36 +62,6 @@ void FlightController::handle() {
         }
         catch(const std::bad_cast &e) {
             switch(id) {
-            case msp::ID::MSP_IDENT: {
-                const fcu::Ident msg(*(msp::Ident*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_STATUS: {
-                const fcu::Status msg(*(msp::Status*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_RAW_IMU: {
-                const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit, magn_gain, standard_gravity);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_ATTITUDE: {
-                const fcu::Attitude msg(*(msp::Attitude*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_ALTITUDE: {
-                const fcu::Altitude msg(*(msp::Altitude*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_ANALOG: {
-                const fcu::Analog msg(*(msp::Analog*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_RC_TUNING: {
-                const fcu::RcTuning msg(*(msp::RcTuning*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_PID: {
-                const fcu::PID msg(*(msp::Pid*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_BOX: {
-                const fcu::Box msg(*(msp::Box*)req);
-                sub->call(&msg); break; }
-            case msp::ID::MSP_MISC: {
-                const fcu::Misc msg(*(msp::Misc*)req);
-                sub->call(&msg); break; }
             default:
                 throw std::runtime_error("message ID not handeled");
             } // switch ID
@@ -151,36 +119,6 @@ void FlightController::handleRequests() {
                 }
                 catch(const std::bad_cast &e) {
                     switch(id) {
-                    case msp::ID::MSP_IDENT: {
-                        const fcu::Ident msg(*(msp::Ident*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_STATUS: {
-                        const fcu::Status msg(*(msp::Status*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_RAW_IMU: {
-                        const fcu::Imu msg(*(msp::RawImu*)req, acc_1g, gyro_unit, magn_gain, standard_gravity);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_ATTITUDE: {
-                        const fcu::Attitude msg(*(msp::Attitude*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_ALTITUDE: {
-                        const fcu::Altitude msg(*(msp::Altitude*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_ANALOG: {
-                        const fcu::Analog msg(*(msp::Analog*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_RC_TUNING: {
-                        const fcu::RcTuning msg(*(msp::RcTuning*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_PID: {
-                        const fcu::PID msg(*(msp::Pid*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_BOX: {
-                        const fcu::Box msg(*(msp::Box*)req);
-                        sub->call(&msg); break; }
-                    case msp::ID::MSP_MISC: {
-                        const fcu::Misc msg(*(msp::Misc*)req);
-                        sub->call(&msg); break; }
                     default:
                         throw std::runtime_error("message ID not handeled");
                     } // switch ID

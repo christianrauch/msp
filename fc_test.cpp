@@ -1,6 +1,6 @@
 #include <FlightController.hpp>
 #include <msp_msg.hpp>
-#include <fcu_msg.hpp>
+#include <msp_msg.hpp>
 
 #include <iostream>
 
@@ -14,24 +14,17 @@ public:
         this->name = name;
     }
 
-    void onIdent(const fcu::Ident* const ident) {
+    void onIdent(const msp::Ident* const ident) {
         std::cout<<"Name: "<<name<<std::endl;
         std::cout<<(*ident);
     }
 
-    void onStatus(const fcu::Status *status) {
+    void onStatus(const msp::Status *status) {
         std::cout<<"Name: "<<name<<std::endl;
         std::cout<<(*status);
     }
 
-    void onRawImu(const msp::RawImu* const imu) {
-        std::cout<<"imu in raw sensor specific units"<<std::endl;
-        std::cout<<"acc (x,y,z): "<<imu->accx<<", "<<imu->accy<<", "<<imu->accz<<std::endl;
-        std::cout<<"gyro (x,y,z): "<<imu->gyrx<<", "<<imu->gyry<<", "<<imu->gyrz<<std::endl;
-        std::cout<<"magn (x,y,z): "<<imu->magx<<", "<<imu->magy<<", "<<imu->magz<<std::endl;
-    }
-
-    void onImu(const fcu::Imu* const imu) {
+    void onImu(const msp::Imu* const imu) {
         std::cout<<"Name: "<<name<<std::endl;
         std::cout<<(*imu);
     }
@@ -48,31 +41,31 @@ public:
         std::cout<<(*rc);
     }
 
-    void onAttitude(const fcu::Attitude* const attitude) {
+    void onAttitude(const msp::Attitude* const attitude) {
         std::cout<<(*attitude);
     }
 
-    void onAltitude(const fcu::Altitude* const altitude) {
+    void onAltitude(const msp::Altitude* const altitude) {
         std::cout<<(*altitude);
     }
 
-    void onAnalog(const fcu::Analog* const analog) {
+    void onAnalog(const msp::Analog* const analog) {
         std::cout<<(*analog);
     }
 
-    void onRcTuning(const fcu::RcTuning* const rc_tuning) {
+    void onRcTuning(const msp::RcTuning* const rc_tuning) {
         std::cout<<(*rc_tuning);
     }
 
-    void onPID(const fcu::PID* const pid) {
+    void onPID(const msp::Pid* const pid) {
         std::cout<<(*pid);
     }
 
-    void onBox(const fcu::Box* const box) {
+    void onBox(const msp::Box* const box) {
         std::cout<<(*box);
     }
 
-    void onMisc(const fcu::Misc* const misc) {
+    void onMisc(const msp::Misc* const misc) {
         std::cout<<(*misc);
     }
 
@@ -114,12 +107,14 @@ int main(int argc, char *argv[]) {
         device = "/dev/ttyUSB0";
 
     fcu::FlightController fcu(device);
-    sleep(8);
-    std::cout<<"MSP ready"<<std::endl;
     fcu.setAcc1G(512.0);
     fcu.setGyroUnit(1.0/4096);
     fcu.setMagnGain(1090.0/100.0);
     fcu.setStandardGravity(9.80665);
+    fcu.populate_all();
+
+    sleep(8);
+    std::cout<<"MSP ready"<<std::endl;
 
 
     App app("MultiWii");

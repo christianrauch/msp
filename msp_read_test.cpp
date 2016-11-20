@@ -29,15 +29,15 @@ int main(int argc, char *argv[]) {
 
     msp::Ident ident;
     msp.request_block(ident);
-    std::cout<<fcu::Ident(ident);
+    std::cout<<ident;
 
     msp::Status status;
     msp.request_block(status);
-    std::cout<<fcu::Status(status);
+    std::cout<<status;
 
-    msp::RawImu imu;
+    msp::Imu imu(512.0, 1.0/4096.0, 1090.0/100.0, 9.80665);
     msp.request_block(imu);
-    std::cout<<fcu::Imu(imu, 512.0, 1.0/4096.0, 1090.0/100.0, 9.80665);
+    std::cout<<imu;
 
     msp::Servo servo;
     msp.request_block(servo);
@@ -53,31 +53,31 @@ int main(int argc, char *argv[]) {
 
     msp::Attitude attitude;
     msp.request_block(attitude);
-    std::cout<<fcu::Attitude(attitude);
+    std::cout<<attitude;
 
     msp::Altitude altitude;
     msp.request_block(altitude);
-    std::cout<<fcu::Altitude(altitude);
+    std::cout<<altitude;
 
     msp::Analog analog;
     msp.request_block(analog);
-    std::cout<<fcu::Analog(analog);
+    std::cout<<analog;
 
     msp::RcTuning rc_tuning;
     msp.request_block(rc_tuning);
-    std::cout<<fcu::RcTuning(rc_tuning);
+    std::cout<<rc_tuning;
 
     msp::Pid pid;
     msp.request_block(pid);
-    std::cout<<fcu::PID(pid);
+    std::cout<<pid;
 
     msp::Box box;
     msp.request_block(box);
-    std::cout<<fcu::Box(box);
+    std::cout<<box;
 
     msp::Misc misc;
     msp.request_block(misc);
-    std::cout<<fcu::Misc(misc);
+    std::cout<<misc;
 
     msp::MotorPins pins;
     msp.request_block(pins);

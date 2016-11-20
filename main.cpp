@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     unsigned int n_msg = 0;
     auto start = std::chrono::steady_clock::now();
     while(n_msg!=max_msg) {
-        msp::RawImu status;
+        msp::Imu status;
         msp.request_block(status);
         n_msg++;
     }

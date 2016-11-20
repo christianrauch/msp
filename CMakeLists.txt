@@ -59,8 +59,7 @@ target_link_libraries(msp_read_test msp msp_msg_print)
 
 # high-level API
 add_library(msp_fcu SHARED ${MSP_SOURCE_DIR}/FlightController.cpp
-                           ${MSP_INCLUDE_DIR}/FlightController.hpp
-                           ${MSP_INCLUDE_DIR}/fcu_msg.hpp)
+                           ${MSP_INCLUDE_DIR}/FlightController.hpp)
 target_link_libraries(msp_fcu msp)
 
 # testing publish/subscribe
