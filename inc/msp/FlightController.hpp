@@ -5,46 +5,26 @@
 #include "msp_id.hpp"
 
 #include <map>
-#include <unordered_map>
-
-#include <typeinfo>
-#include <typeindex>
-
-#include <functional>
 
 namespace fcu {
 
 class SubscriptionBase {
 public:
-    msp::ID channel;
-    virtual void call(const void* const msg) = 0;
-    virtual void call(const msp::Request* const msg) = 0;
+    virtual void call(const msp::Request &req) = 0;
+
+    virtual ~SubscriptionBase() { }
 };
 
 template<typename T, typename C>
 class Subscription : public SubscriptionBase {
 public:
-    typedef void(C::*Callback)(T);
+    typedef void(C::*Callback)(T&);
 
-    Subscription(const msp::ID id, const Callback caller, C *const context_class) : context(context_class) {
-        setCaller(caller);
-        channel = id;
+    Subscription(const Callback caller, C *const context_class) : funct(caller), context(context_class) {
     }
 
-    void setCaller(Callback caller) { funct = caller; }
-
-    void call(const msp::Request* const msg) {
-        // test cast, e.g. check if T is derived from Request
-        if(dynamic_cast<T>(msg)==NULL) {
-            throw std::bad_cast();
-        }
-        // call callback function
-        (*context.*funct)(dynamic_cast<T>(msg));
-
-    }
-
-    void call(const void* const msg) {
-        (*context.*funct)(static_cast<T>(msg));
+    void call(const msp::Request &req) {
+        (*context.*funct)( dynamic_cast<const T&>(req) );
     }
 
 private:
@@ -58,17 +38,26 @@ public:
 
     ~FlightController();
 
-    void populate_all();
+    template<typename T>
+    void populate(T* req) {
+        database[req->id()] = req;
+    }
 
-    template<typename T, typename C>
+    void populate_database();
+
     /**
-     * @brief subscribe register message type with callback function
-     * @param id message type ID
+     * @brief subscribe register callback function that is called when type is received
      * @param callback pointer to callback function (method of class)
      * @param context class of callback method
      */
-    void subscribe(msp::ID id, void (C::*callback)(T), C *context) {
-        subscriptions[id] = new Subscription<T,C>(id, callback, context);
+    template<typename T, typename C>
+    void subscribe(void (C::*callback)(T&), C *context) {
+        if(std::is_base_of<msp::Request, T>::value) {
+            subscriptions[T().id()] = new Subscription<T,C>(callback, context);
+        }
+        else {
+            throw std::runtime_error("Callback parameter needs to be of Request type!");
+        }
     }
 
     /**
@@ -115,8 +104,6 @@ public:
     bool arm(const bool arm);
 
 private:
-    void populate(msp::Request *req);
-
     msp::Request* getRequestById(const msp::ID id) {
         return database[id];
     }

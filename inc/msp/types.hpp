@@ -18,6 +18,8 @@ typedef std::vector<uint8_t> ByteVector;
 
 struct Message {
     virtual ID id() const = 0;
+
+    virtual ~Message() { }
 };
 
 // send to FC

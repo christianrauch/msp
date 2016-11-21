@@ -12,13 +12,15 @@ FlightController::FlightController(const std::string &device) : msp(device) {
 //    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
 }
 
-FlightController::~FlightController() { }
+FlightController::~FlightController() {
+    for(const std::pair<msp::ID, msp::Request*> d : database)
+        delete d.second;
 
-void FlightController::populate(msp::Request *req) {
-    database[req->id()] = req;
+    for(const std::pair<msp::ID, SubscriptionBase*> s : subscriptions)
+        delete s.second;
 }
 
-void FlightController::populate_all() {
+void FlightController::populate_database() {
     populate(new msp::Ident);   // 100
     populate(new msp::Status);
     populate(new msp::Imu(acc_1g, gyro_unit, magn_gain, standard_gravity));
@@ -54,17 +56,9 @@ void FlightController::handle() {
         SubscriptionBase* const sub = s.second;
 
         // request data
-        msp.request(*req);
-
-        // callback
-        try {
-            s.second->call(req);
-        }
-        catch(const std::bad_cast &e) {
-            switch(id) {
-            default:
-                throw std::runtime_error("message ID not handeled");
-            } // switch ID
+        if(msp.request(*req)) {
+            // callback
+            sub->call(*req);
         }
     }
 }
@@ -107,24 +101,14 @@ void FlightController::handleRequests() {
         }
 
         // search for correct subscribtion
-        for(auto s : subscriptions) {
-            if(s.first==id) {
-                // get correct request type and decode message
-                msp::Request *const req = getRequestById(id);
-                req->decode(data);
+        if(subscriptions.count(id)) {
+            // get correct request type and decode message
+            msp::Request *const req = getRequestById(id);
+            req->decode(data);
 
-                SubscriptionBase* const sub = s.second;
-                try {
-                    sub->call(req);
-                }
-                catch(const std::bad_cast &e) {
-                    switch(id) {
-                    default:
-                        throw std::runtime_error("message ID not handeled");
-                    } // switch ID
-                }
-            } // check ID
-        } // subscriptions
+            SubscriptionBase* const sub = subscriptions.at(id);
+            sub->call(*req);
+        } // check ID in subscriptions
     } // while there is still data
 }
 

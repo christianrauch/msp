@@ -19,7 +19,6 @@ namespace msp {
 const static uint N_SERVO = 8;
 const static uint N_MOTOR = 8;
 const static uint RC_CHANS = 8;
-const static uint PIDITEMS = 10;
 
 enum class MultiType : uint8_t {
     TRI,    // 1
