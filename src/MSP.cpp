@@ -39,6 +39,7 @@ bool MSP::request(msp::Request &request) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
+    catch(msp::NoData) { return false; }
     catch(boost::system::system_error) { return false; }
 }
 
@@ -69,6 +70,7 @@ bool MSP::request_block(msp::Request &request) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }
+        catch(msp::NoData) { success = false; }
         catch(boost::system::system_error) { success = false; }
     }
 
@@ -105,6 +107,7 @@ bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }
+        catch(msp::NoData) { success = false; }
         catch(boost::system::system_error) { success = false; }
     }
 
@@ -168,6 +171,10 @@ bool MSP::sendData(const ID id, const ByteVector &data) {
 
 DataID MSP::receiveData() {
     // wait for correct preamble start
+    if(sp.poll()==0) {
+        throw NoData();
+    }
+
     while( (char)sp.read() != '$');
 
     if( (char)sp.read() != 'M')

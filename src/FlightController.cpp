@@ -95,8 +95,7 @@ void FlightController::handleRequests() {
             std::cerr<<e.what()<<std::endl;
             break;
         }
-        catch(boost::system::system_error &e) {
-            // no more data
+        catch(msp::NoData) {
             break;
         }
 
