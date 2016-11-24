@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <poll.h>
+
 using namespace boost::asio;
 
 SerialPort::SerialPort(const std::string &device) : port(io) {
@@ -38,4 +40,11 @@ std::vector<uint8_t> SerialPort::read(std::size_t n_bytes) {
 
 uint8_t SerialPort::read() {
     return read(1).front();
+}
+
+int SerialPort::poll(int timeout) {
+    pollfd fd = {.fd = port.native_handle(),
+                 .events = POLLIN,
+                 .revents = 0};
+    return ::poll(&fd, 1, timeout);
 }

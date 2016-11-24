@@ -41,6 +41,15 @@ public:
      */
     uint8_t read();
 
+    /**
+     * @brief poll check if data is available
+     * @param timeout timeout in milliseconds (<0: infinite timeout, 0: return immediately)
+     * @return >0 on success
+     * @return 0 on timeout
+     * @return -1 on error (check errno)
+     */
+    int poll(int timeout=0);
+
 private:
     boost::asio::io_service io;     ///<! io service
     boost::asio::serial_port port;  ///<! port for serial device
