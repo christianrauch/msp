@@ -15,15 +15,13 @@ int main(int argc, char *argv[]) {
     msp::MSP msp(device);
     msp.setWait(1);
 
-    sleep(5);
-
     // wait for flight controller to become ready
-//    {
-//    std::cout<<"Connecting FCU..."<<std::endl;
-//    msp::Ident ident;
-//    msp.request_timeout(ident, 10);
-//    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
-//    }
+    {
+    std::cout<<"Connecting FCU..."<<std::endl;
+    msp::Ident ident;
+    msp.request_timeout(ident, 10);
+    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
+    }
 
     std::cout<<"ready"<<std::endl;
 

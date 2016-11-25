@@ -38,6 +38,8 @@ public:
 
     ~FlightController();
 
+    void waitForConnection();
+
     template<typename T>
     void populate(T* req) {
         database[req->id()] = req;

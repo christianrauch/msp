@@ -112,7 +112,8 @@ int main(int argc, char *argv[]) {
     fcu.setStandardGravity(9.80665);
     fcu.populate_database();
 
-    sleep(8);
+    // wait for connection
+    fcu.waitForConnection();
     std::cout<<"MSP ready"<<std::endl;
 
 

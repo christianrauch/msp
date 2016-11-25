@@ -5,12 +5,7 @@
 
 namespace fcu {
 
-FlightController::FlightController(const std::string &device) : msp(device) {
-//    std::cout<<"Wait for FC..."<<std::endl;
-//    msp::Ident ident;
-//    msp.request_timeout(ident, 10);
-//    std::cout<<"MSP version "<<(int)ident.version<<" ready"<<std::endl;
-}
+FlightController::FlightController(const std::string &device) : msp(device) { }
 
 FlightController::~FlightController() {
     for(const std::pair<msp::ID, msp::Request*> d : database)
@@ -18,6 +13,13 @@ FlightController::~FlightController() {
 
     for(const std::pair<msp::ID, SubscriptionBase*> s : subscriptions)
         delete s.second;
+}
+
+void FlightController::waitForConnection() {
+    std::cout<<"Wait for FC..."<<std::endl;
+    msp::Ident ident;
+    msp.request_timeout(ident, 10);
+    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
 }
 
 void FlightController::populate_database() {

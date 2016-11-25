@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
     std::cout<<"Waiting for flight controller to become ready..."<<std::endl;
     auto start = std::chrono::steady_clock::now();
     msp::Ident ident;
-    //msp.request_block(ident);
     msp.request_timeout(ident, 10);
     auto end = std::chrono::steady_clock::now();
 

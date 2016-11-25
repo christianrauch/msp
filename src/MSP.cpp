@@ -87,8 +87,11 @@ bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
             std::future<DataID> proc = std::async(std::launch::async, &MSP::receiveData, this);
 
             // write ID while waiting for data
-            while(proc.wait_for(timeout)==std::future_status::timeout)
+            while(true) {
                 while(sendData(request.id())!=true);
+                const auto status = proc.wait_for(timeout);
+                if(status==std::future_status::ready) { break; }
+            }
 
             DataID pkg = proc.get();
             success = (pkg.id==request.id());
