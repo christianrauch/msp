@@ -85,7 +85,7 @@ struct Ident : public Request {
 
         msp_version = data[2];
 
-        const uint32_t capability = deser32(data, 3);
+        const uint32_t capability = deserialise_uint32(data, 3);
 
         if(capability & (1 << 0))
             capabilities.insert(Capability::BIND);
@@ -115,12 +115,12 @@ struct Status : public Request {
     std::set<uint> active_box_id;
 
     void decode(const std::vector<uint8_t> &data) {
-        time = deser16(data, 0);
+        time = deserialise_uint16(data, 0);
 
-        errors = deser16(data, 2);
+        errors = deserialise_uint16(data, 2);
 
         // get sensors
-        const uint16_t sensor = deser16(data, 4);
+        const uint16_t sensor = deserialise_uint16(data, 4);
         if(sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
         if(sensor & (1 << 1))
@@ -133,7 +133,7 @@ struct Status : public Request {
             sensors.insert(Sensor::Sonar);
 
         // check active boxes
-        const uint32_t flag = deser32(data, 6);
+        const uint32_t flag = deserialise_uint32(data, 6);
         for(uint ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
                 active_box_id.insert(ibox);
@@ -172,17 +172,17 @@ struct Imu : public Request {
     { }
 
     void decode(const std::vector<uint8_t> &data) {
-        acc = {{deser_int16(data, 0)/acc_1g*si_unit_1g,
-                deser_int16(data, 2)/acc_1g*si_unit_1g,
-                deser_int16(data, 4)/acc_1g*si_unit_1g}};
+        acc = {{deserialise_int16(data, 0)/acc_1g*si_unit_1g,
+                deserialise_int16(data, 2)/acc_1g*si_unit_1g,
+                deserialise_int16(data, 4)/acc_1g*si_unit_1g}};
 
-        gyro = {{deser_int16(data, 6)*gyro_unit,
-                 deser_int16(data, 8)*gyro_unit,
-                 deser_int16(data, 10)*gyro_unit}};
+        gyro = {{deserialise_int16(data, 6)*gyro_unit,
+                 deserialise_int16(data, 8)*gyro_unit,
+                 deserialise_int16(data, 10)*gyro_unit}};
 
-        magn = {{deser_int16(data, 12)*magn_gain,
-                 deser_int16(data, 14)*magn_gain,
-                 deser_int16(data, 16)*magn_gain}};
+        magn = {{deserialise_int16(data, 12)*magn_gain,
+                 deserialise_int16(data, 14)*magn_gain,
+                 deserialise_int16(data, 16)*magn_gain}};
     }
 };
 
@@ -194,7 +194,7 @@ struct Servo : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         for(unsigned int i=0; i<N_SERVO; i++)
-            servo[i] = deser16(data, 2*i);
+            servo[i] = deserialise_uint16(data, 2*i);
     }
 };
 
@@ -206,7 +206,7 @@ struct Motor : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         for(unsigned int i=0; i<N_MOTOR; i++)
-            motor[i] = deser16(data, 2*i);
+            motor[i] = deserialise_uint16(data, 2*i);
     }
 };
 
@@ -224,15 +224,15 @@ struct Rc : public Request {
     uint16_t aux4;
 
     void decode(const std::vector<uint8_t> &data) {
-        roll        = deser16(data, 0);
-        pitch       = deser16(data, 2);
-        yaw         = deser16(data, 4);
-        throttle    = deser16(data, 6);
+        roll        = deserialise_uint16(data, 0);
+        pitch       = deserialise_uint16(data, 2);
+        yaw         = deserialise_uint16(data, 4);
+        throttle    = deserialise_uint16(data, 6);
 
-        aux1        = deser16(data, 8);
-        aux2        = deser16(data, 10);
-        aux3        = deser16(data, 12);
-        aux4        = deser16(data, 14);
+        aux1        = deserialise_uint16(data, 8);
+        aux2        = deserialise_uint16(data, 10);
+        aux3        = deserialise_uint16(data, 12);
+        aux4        = deserialise_uint16(data, 14);
     }
 };
 
@@ -251,11 +251,11 @@ struct RawGPS : public Request {
     void decode(const std::vector<uint8_t> &data) {
         fix             = data[0];
         numSat          = data[1];
-        lat             = deser32(data, 2);
-        lon             = deser32(data, 6);
-        altitude        = deser16(data, 10);
-        speed           = deser16(data, 12);
-        ground_course   = deser16(data, 14);
+        lat             = deserialise_uint32(data, 2);
+        lon             = deserialise_uint32(data, 6);
+        altitude        = deserialise_uint16(data, 10);
+        speed           = deserialise_uint16(data, 12);
+        ground_course   = deserialise_uint16(data, 14);
     }
 };
 
@@ -268,8 +268,8 @@ struct CompGPS : public Request {
     uint8_t update;
 
     void decode(const std::vector<uint8_t> &data) {
-        distanceToHome  = deser16(data, 0);
-        directionToHome = deser16(data, 2);
+        distanceToHome  = deserialise_uint16(data, 0);
+        directionToHome = deserialise_uint16(data, 2);
         update          = data[4];
     }
 };
@@ -283,9 +283,9 @@ struct Attitude : public Request {
     int16_t heading;    // degree
 
     void decode(const std::vector<uint8_t> &data) {
-        ang_x   = deser_int16(data, 0)/10.0f;
-        ang_y   = deser_int16(data, 2)/10.0f;
-        heading = deser_int16(data, 4);
+        ang_x   = deserialise_int16(data, 0)/10.0f;
+        ang_y   = deserialise_int16(data, 2)/10.0f;
+        heading = deserialise_int16(data, 4);
     }
 };
 
@@ -297,8 +297,8 @@ struct Altitude : public Request {
     float vario;    // m/s
 
     void decode(const std::vector<uint8_t> &data) {
-        altitude = deser32(data, 0)/100.0f;
-        vario    = deser16(data, 4)/100.0f;
+        altitude = deserialise_uint32(data, 0)/100.0f;
+        vario    = deserialise_uint16(data, 4)/100.0f;
     }
 };
 
@@ -313,9 +313,9 @@ struct Analog : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         vbat          = data[0]/10.0f;
-        powerMeterSum = deser16(data, 1)/1000.0f;
-        rssi          = deser16(data, 3);
-        amperage      = deser16(data, 5)/10.0f;
+        powerMeterSum = deserialise_uint16(data, 1)/1000.0f;
+        rssi          = deserialise_uint16(data, 3);
+        amperage      = deserialise_uint16(data, 5)/10.0f;
     }
 };
 
@@ -386,7 +386,7 @@ struct Box : public Request {
     void decode(const std::vector<uint8_t> &data) {
         box_pattern.clear();
         for(uint i(0); i<data.size(); i+=2) {
-            const uint16_t box_conf = deser16(data, i);
+            const uint16_t box_conf = deserialise_uint16(data, i);
             //box_conf.push_back(deser16(data, i));
 
             std::array<std::set<SwitchPosition>,NAUX> aux_sp;
@@ -413,15 +413,15 @@ struct Misc : public Request {
     float vbatScale, vbatLevelWarn1, vbatLevelWarn2, vbatLevelCrit;
 
     void decode(const std::vector<uint8_t> &data) {
-        powerTrigger     = deser16(data, 0);
-        minThrottle         = deser16(data, 2);
-        maxThrottle         = deser16(data, 4);
-        minCommand          = deser16(data, 6);
+        powerTrigger     = deserialise_uint16(data, 0);
+        minThrottle         = deserialise_uint16(data, 2);
+        maxThrottle         = deserialise_uint16(data, 4);
+        minCommand          = deserialise_uint16(data, 6);
 
-        failsafeThrottle    = deser16(data, 8);
-        arm                 = deser16(data, 10);
-        lifetime            = deser32(data, 12);
-        mag_declination     = deser16(data, 16) / 10.0f;
+        failsafeThrottle    = deserialise_uint16(data, 8);
+        arm                 = deserialise_uint16(data, 10);
+        lifetime            = deserialise_uint32(data, 12);
+        mag_declination     = deserialise_uint16(data, 16) / 10.0f;
 
         vbatScale           = data[18] / 10.0f;
         vbatLevelWarn1      = data[19] / 10.0f;
@@ -490,11 +490,11 @@ struct WayPoint : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         wp_no = data[0];
-        lat = deser32(data, 1);
-        lon = deser32(data, 5);
-        altHold = deser32(data, 9);
-        heading = deser16(data, 13);
-        staytime = deser16(data, 15);
+        lat = deserialise_uint32(data, 1);
+        lon = deserialise_uint32(data, 5);
+        altHold = deserialise_uint32(data, 9);
+        heading = deserialise_uint16(data, 13);
+        staytime = deserialise_uint16(data, 15);
         navflag = data[18];
     }
 };
@@ -528,10 +528,10 @@ struct ServoConf : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         for(uint i(0); i<N_SERVO; i++) {
-            servo_conf[i].min = deser16(data, 7*i);
-            servo_conf[i].max = deser16(data, 7*i+2);
-            servo_conf[i].middle = deser16(data, 7*i+4);
-            servo_conf[i].rate = deser16(data, 7*i+6);
+            servo_conf[i].min = deserialise_uint16(data, 7*i);
+            servo_conf[i].max = deserialise_uint16(data, 7*i+2);
+            servo_conf[i].middle = deserialise_uint16(data, 7*i+4);
+            servo_conf[i].rate = deserialise_uint16(data, 7*i+6);
         }
     }
 };
@@ -553,7 +553,7 @@ struct NavStatus: public Request {
         mission_action = data[2];
         mission_number = data[3];
         NAV_error = data[4];
-        target_bearing = deser_int16(data, 5);
+        target_bearing = deserialise_int16(data, 5);
     }
 };
 
@@ -609,17 +609,17 @@ struct NavConfig: public Request {
         gps_conf.ignore_throttle = data[8];
         gps_conf.takeover_baro = data[9];
 
-        gps_conf.wp_radius = deser16(data, 10);
-        gps_conf.safe_wp_distance = deser16(data, 12);
-        gps_conf.nav_max_altitude = deser16(data, 14);
-        gps_conf.nav_speed_max = deser16(data, 16);
-        gps_conf.nav_speed_min = deser16(data, 18);
+        gps_conf.wp_radius = deserialise_uint16(data, 10);
+        gps_conf.safe_wp_distance = deserialise_uint16(data, 12);
+        gps_conf.nav_max_altitude = deserialise_uint16(data, 14);
+        gps_conf.nav_speed_max = deserialise_uint16(data, 16);
+        gps_conf.nav_speed_min = deserialise_uint16(data, 18);
 
         gps_conf.crosstrack_gain = data[20];
-        gps_conf.nav_bank_max = deser16(data, 21);
-        gps_conf.rth_altitude = deser16(data, 23);
+        gps_conf.nav_bank_max = deserialise_uint16(data, 21);
+        gps_conf.rth_altitude = deserialise_uint16(data, 23);
         gps_conf.land_speed = data[25];
-        gps_conf.fence = deser16(data, 26);
+        gps_conf.fence = deserialise_uint16(data, 26);
 
         gps_conf.max_wp_number = data[28];
 
@@ -648,10 +648,10 @@ struct Debug : public Request {
     uint16_t debug4;
 
     void decode(const std::vector<uint8_t> &data) {
-        debug1 = deser16(data, 0);
-        debug2 = deser16(data, 2);
-        debug3 = deser16(data, 4);
-        debug4 = deser16(data, 6);
+        debug1 = deserialise_uint16(data, 0);
+        debug2 = deserialise_uint16(data, 2);
+        debug3 = deserialise_uint16(data, 4);
+        debug4 = deserialise_uint16(data, 6);
     }
 };
 
@@ -677,7 +677,7 @@ struct SetRc : public Response {
         for(auto channel : {roll, pitch, yaw, throttle,
                             aux1, aux2, aux3, aux4})
         {
-            ser16(channel, data);
+            serialise_uint16(channel, data);
         }
         return data;
     }
@@ -698,10 +698,10 @@ struct SetRawGPS : public Request {
         std::vector<uint8_t> data(14);
         data[0] = fix;
         data[1] = numSat;
-        ser32(lat, data);
-        ser32(lon, data);
-        ser16(altitude, data);
-        ser16(speed, data);
+        serialise_uint32(lat, data);
+        serialise_uint32(lon, data);
+        serialise_uint16(altitude, data);
+        serialise_uint16(speed, data);
         return data;
     }
 };
@@ -778,7 +778,7 @@ struct SetMotor : public Response {
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(N_MOTOR*2);
         for(unsigned int i=0; i<N_MOTOR; i++)
-            ser16(motor[i], data);
+            serialise_uint16(motor[i], data);
         return data;
     }
 };
