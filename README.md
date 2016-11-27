@@ -10,7 +10,7 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 - check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..`
 - run the example program given the path to the serial device, e.g.: `./get_msp_info /dev/ttyUSB0`
 
-## How to use the library
+## How to use the library (low-level API)
 
 You first need to instantiate the driver with the path to the device:
 ```
@@ -84,3 +84,72 @@ When the call to `request_block` returns, the values of structure `ident` will b
 ```
 std::cout<<"MSP version "<<(int)ident.version<<std::endl;
 ```
+
+## High-level API
+
+The high-level API allows to periodically request messages from the FCU.
+
+### Instantiation
+Instantiate and setup the `FlightController` class:
+```
+#include <FlightController.hpp>
+
+fcu::FlightController fcu("/dev/ttyUSB0");
+
+// set conversion units for Imu measurements
+fcu.setAcc1G(512.0);
+fcu.setGyroUnit(1.0/4096);
+fcu.setMagnGain(1090.0/100.0);
+fcu.setStandardGravity(9.80665);
+
+// create default messages
+fcu.populate_database();
+
+// wait for connection
+fcu.waitForConnection();
+```
+
+### Periodic request for messages
+
+Define a class that holds callback functions to process information of received message:
+```
+class App {
+public:
+    void onStatus(const msp::Status& status) {
+        std::cout<<status;
+    }
+
+    void onImu(const msp::Imu& imu) {
+        std::cout<<imu;
+    }
+}
+```
+
+#### Register callbacks
+Instantiate class with callbacks and register them to the FCU:
+```
+App app;
+
+fcu.subscribe(&App::onStatus, &app);
+fcu.subscribe(&App::onImu, &app);
+```
+
+Messages can now be requested and handled in a loop:
+```
+while(true) {
+    fcu.sendRequests();
+    fcu.handleRequests();
+}
+```
+
+Requests are sent to and processed by the flight controller as fast as possible. It is important to note that the MultiWii FCU only processed a single message per cycle. All subscribed messages therefore share the effective bandwidth of 1/(2800 us) = 357 messages per second.
+
+#### Register callbacks with different priorities
+It is possible to provide a target update rate to the subscribe method that allows to use more frequent updates of important messages (such as Imu) and less frequent updates of less important messages (such as the battery voltage).
+
+If a target period (in seconds) is provided:
+```
+fcu.subscribe(&App::onStatus, &app, 1);
+fcu.subscribe(&App::onImu, &app, 0.01);
+```
+the subscribed Request will periodically be sent by a background thread. In this case it is not required to call `sendRequests()` as this method will only send request of callbacks that have not been registered with a period time.
