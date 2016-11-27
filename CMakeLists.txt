@@ -50,11 +50,11 @@ add_library(msp_msg_print SHARED ${MSP_SOURCE_DIR}/msg_print.cpp
                                  ${MSP_INCLUDE_DIR}/msg_print.hpp)
 
 # test reading speed
-add_executable(get_msp_info main.cpp)
+add_executable(get_msp_info examples/msp_connection_test.cpp)
 target_link_libraries(get_msp_info msp)
 
 # test and print all requests
-add_executable(msp_read_test msp_read_test.cpp)
+add_executable(msp_read_test examples/msp_read_test.cpp)
 target_link_libraries(msp_read_test msp msp_msg_print)
 
 # high-level API
@@ -65,8 +65,8 @@ add_library(msp_fcu SHARED ${MSP_SOURCE_DIR}/FlightController.cpp
 target_link_libraries(msp_fcu msp)
 
 # testing publish/subscribe
-add_executable(fc_test fc_test.cpp)
-target_link_libraries(fc_test msp_fcu msp_msg_print)
+add_executable(fcu_test examples/fcu_test.cpp)
+target_link_libraries(fcu_test msp_fcu msp_msg_print)
 
 # installation
 install(TARGETS msp LIBRARY DESTINATION lib)
