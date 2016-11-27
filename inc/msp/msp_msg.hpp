@@ -120,6 +120,7 @@ struct Status : public Request {
         errors = deserialise_uint16(data, 2);
 
         // get sensors
+        sensors.clear();
         const uint16_t sensor = deserialise_uint16(data, 4);
         if(sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
@@ -133,6 +134,7 @@ struct Status : public Request {
             sensors.insert(Sensor::Sonar);
 
         // check active boxes
+        active_box_id.clear();
         const uint32_t flag = deserialise_uint32(data, 6);
         for(uint ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
