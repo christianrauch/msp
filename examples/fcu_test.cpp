@@ -1,10 +1,8 @@
 #include <FlightController.hpp>
 #include <msp_msg.hpp>
-#include <msp_msg.hpp>
+#include <msg_print.hpp>
 
 #include <iostream>
-
-#include <msg_print.hpp>
 
 class App {
 public:
