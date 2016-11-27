@@ -9,6 +9,7 @@
 #include <sstream>
 #include <set>
 #include <climits>
+#include <cassert>
 
 #include "types.hpp"
 
@@ -675,12 +676,13 @@ struct SetRc : public Response {
     uint16_t aux4;
 
     std::vector<uint8_t> encode() const {
-        std::vector<uint8_t> data(RC_CHANS*2);
+        std::vector<uint8_t> data;
         for(auto channel : {roll, pitch, yaw, throttle,
                             aux1, aux2, aux3, aux4})
         {
             serialise_uint16(channel, data);
         }
+        assert(data.size()==RC_CHANS*2);
         return data;
     }
 };
@@ -697,13 +699,14 @@ struct SetRawGPS : public Request {
     uint16_t speed;
 
     std::vector<uint8_t> encode() const {
-        std::vector<uint8_t> data(14);
-        data[0] = fix;
-        data[1] = numSat;
+        std::vector<uint8_t> data;
+        data.push_back(fix);
+        data.push_back(numSat);
         serialise_uint32(lat, data);
         serialise_uint32(lon, data);
         serialise_uint16(altitude, data);
         serialise_uint16(speed, data);
+        assert(data.size()==14);
         return data;
     }
 };
@@ -778,9 +781,10 @@ struct SetMotor : public Response {
     uint16_t motor[N_MOTOR];
 
     std::vector<uint8_t> encode() const {
-        std::vector<uint8_t> data(N_MOTOR*2);
+        std::vector<uint8_t> data;
         for(unsigned int i=0; i<N_MOTOR; i++)
             serialise_uint16(motor[i], data);
+        assert(data.size()==N_MOTOR*2);
         return data;
     }
 };
