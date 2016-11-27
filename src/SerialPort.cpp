@@ -24,11 +24,14 @@ SerialPort::~SerialPort() {
 }
 
 bool SerialPort::write(const std::vector<uint8_t> &data) {
+    lock_write.lock();
     const std::size_t bytes_written = boost::asio::write(port, boost::asio::buffer(data.data(), data.size()));
+    lock_write.unlock();
     return (bytes_written==data.size());
 }
 
 size_t SerialPort::read(std::vector<uint8_t> &data) {
+    std::lock_guard<std::mutex> lock(lock_read);
     return boost::asio::read(port, boost::asio::buffer(data.data(), data.size()));
 }
 

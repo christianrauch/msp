@@ -2,6 +2,7 @@
 #define SERIALPORT_HPP
 
 #include <boost/asio.hpp>
+#include <mutex>
 
 class SerialPort {
 public:
@@ -53,6 +54,8 @@ public:
 private:
     boost::asio::io_service io;     ///<! io service
     boost::asio::serial_port port;  ///<! port for serial device
+    std::mutex lock_write;
+    std::mutex lock_read;
 };
 
 #endif // SERIALPORT_HPP

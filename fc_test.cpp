@@ -118,34 +118,37 @@ int main(int argc, char *argv[]) {
 
 
     App app("MultiWii");
-    fcu.subscribe(&App::onIdent, &app);
-    fcu.subscribe(&App::onIdent, &app);
-    fcu.subscribe(&App::onStatus, &app);
+    // define subscriptions with specific period
+    fcu.subscribe(&App::onIdent, &app, 10);
+    fcu.subscribe(&App::onStatus, &app, 1);
+    // no period => requested Imu each time callbacks are checked
     fcu.subscribe(&App::onImu, &app);
-    fcu.subscribe(&App::onServo, &app);
-    fcu.subscribe(&App::onMotor, &app);
-    fcu.subscribe(&App::onRc, &app);
+    fcu.subscribe(&App::onServo, &app, 0.1);
+    fcu.subscribe(&App::onMotor, &app, 0.1);
+    fcu.subscribe(&App::onRc, &app, 0.1);
     // TODO: RawGPS
     // TODO: CompGPS
     fcu.subscribe(&App::onAttitude, &app);
     fcu.subscribe(&App::onAltitude, &app);
-    fcu.subscribe(&App::onAnalog, &app);
-    fcu.subscribe(&App::onRcTuning, &app);
-    fcu.subscribe(&App::onPID, &app);
-    fcu.subscribe(&App::onBox, &app);
-    fcu.subscribe(&App::onMisc, &app);
-    fcu.subscribe(&App::onMotorPins, &app);
-    fcu.subscribe(&App::onBoxNames, &app);
-    fcu.subscribe(&App::onPidNames, &app);
+    fcu.subscribe(&App::onAnalog, &app, 10);
+    fcu.subscribe(&App::onRcTuning, &app, 20);
+    fcu.subscribe(&App::onPID, &app, 20);
+    fcu.subscribe(&App::onBox, &app, 1);
+    fcu.subscribe(&App::onMisc, &app, 1);
+    fcu.subscribe(&App::onMotorPins, &app, 20);
+    fcu.subscribe(&App::onBoxNames, &app, 20);
+    fcu.subscribe(&App::onPidNames, &app, 20);
     // TODO: WayPoint
-    fcu.subscribe(&App::onBoxIds, &app);
-    fcu.subscribe(&App::onServoConf, &app);
+    fcu.subscribe(&App::onBoxIds, &app, 20);
+    fcu.subscribe(&App::onServoConf, &app, 20);
     // TODO: NavStatus
     // TODO: NavConfig
-    fcu.subscribe(&App::onDebugMessage, &app);
-    fcu.subscribe(&App::onDebug, &app);
+    fcu.subscribe(&App::onDebugMessage, &app,1);
+    fcu.subscribe(&App::onDebug, &app, 1);
 
     while(true) {
-        fcu.handle();
+        //fcu.handle();
+        fcu.sendRequests();
+        fcu.handleRequests();
     }
 }

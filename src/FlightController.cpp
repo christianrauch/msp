@@ -67,7 +67,8 @@ void FlightController::handle() {
 
 void FlightController::sendRequests() {
     for(auto s : subscriptions) {
-        msp.sendData(s.first);
+        // send requests only if there is no periodic timer already sending the same requests
+        if(!s.second->hasTimer()) { msp.sendData(s.first); }
     }
 }
 

@@ -4,15 +4,27 @@
 #include "MSP.hpp"
 #include "msp_id.hpp"
 
+#include "PeriodicTimer.hpp"
 #include <map>
 
 namespace fcu {
 
 class SubscriptionBase {
 public:
+    SubscriptionBase(PeriodicTimer *timer=NULL) : timer(timer) { }
+
+    virtual ~SubscriptionBase() {
+        if(timer!=NULL) { delete timer; }
+    }
+
     virtual void call(const msp::Request &req) = 0;
 
-    virtual ~SubscriptionBase() { }
+    bool hasTimer() {
+        return timer!=NULL;
+    }
+
+protected:
+    PeriodicTimer *timer;
 };
 
 template<typename T, typename C>
@@ -20,7 +32,14 @@ class Subscription : public SubscriptionBase {
 public:
     typedef void(C::*Callback)(T&);
 
-    Subscription(const Callback caller, C *const context_class) : funct(caller), context(context_class) {
+    Subscription(const Callback caller, C *const context_class)
+        : funct(caller), context(context_class) {
+    }
+
+    Subscription(const Callback caller, C *const context_class, PeriodicTimer *timer)
+        : SubscriptionBase(timer), funct(caller), context(context_class)
+    {
+        this->timer->start();
     }
 
     void call(const msp::Request &req) {
@@ -53,9 +72,21 @@ public:
      * @param context class of callback method
      */
     template<typename T, typename C>
-    void subscribe(void (C::*callback)(T&), C *context) {
+    void subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
         if(std::is_base_of<msp::Request, T>::value) {
-            subscriptions[T().id()] = new Subscription<T,C>(callback, context);
+            if(tp>0.0) {
+                // subscription with periodic sending of requests
+                subscriptions[T().id()] = new Subscription<T,C>(callback, context,
+                    new PeriodicTimer(
+                        std::bind(&FlightController::sendRequest, this, T().id()),
+                        tp
+                    )
+                );
+            }
+            else {
+                // subscription with manual sending of requests
+                subscriptions[T().id()] = new Subscription<T,C>(callback, context);
+            }
         }
         else {
             throw std::runtime_error("Callback parameter needs to be of Request type!");
