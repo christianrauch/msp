@@ -1,6 +1,6 @@
 # MultiWii Communication Library (C++)
 
-This library implements the MultiWii Serial Protocoll ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii flight controller (FC) over a serial device.
+This library implements the MultiWii Serial Protocol ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii flight controller (FC) over a serial device.
 It currently implements the sending and reading from a serial device and defines some of the messages and encoding/decoding functions for raw data.
 
 The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 300Hz (for a FC cycle time of 2.8ms / 357Hz).
@@ -8,7 +8,7 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 ## Installation and Test
 - install boost: `sudo apt install libboost-system-dev`
 - check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..`
-- run the example programm given the path to the serial device, e.g.: `./get_msp_info /dev/ttyUSB0`
+- run the example program given the path to the serial device, e.g.: `./get_msp_info /dev/ttyUSB0`
 
 ## How to use the library
 
@@ -43,7 +43,7 @@ Instantiate any message that inherits from `Request` and pass it to:
 ```
 bool request(msp::Request &request)
 ```
-This method returns after the forst try to read and encode any MSP message. Therefore, there exist alternative implementations of this communication pattern, for example to block until a valid package with correct id has been received:
+This method returns after the first try to read and encode any MSP message. Therefore, there exist alternative implementations of this communication pattern, for example to block until a valid package with correct id has been received:
 ```
 bool request_block(msp::Request &request)
 ```
@@ -53,7 +53,7 @@ bool request_timeout(msp::Request &request, unsigned int timeout_ms)
 ```
 which can be useful to block until the FC is available.
 
-E.g. the Arduino Nano 3.0 is reset when openning the serial device and needs some time to boot until it will respond to messages. `request_timeout` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to wait for data.
+E.g. the Arduino Nano 3.0 is reset when opening the serial device and needs some time to boot until it will respond to messages. `request_timeout` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to wait for data.
 
 #### Respond with data to FC
 For sending data to the FC (→ FC) a message containing the id and the payload is send to the FC and confirmed by a acknowledge message which only contains the id with no data.
@@ -84,7 +84,3 @@ When the call to `request_block` returns, the values of structure `ident` will b
 ```
 std::cout<<"MSP version "<<(int)ident.version<<std::endl;
 ```
-
-## TODO
-- implement remaining request and response messages
-- create high-level API that uses the message to extract further information (e.g. hasBaro(), arm(), disarm()) and reports SI units instead of sensor depending values
