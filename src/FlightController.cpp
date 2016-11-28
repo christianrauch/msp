@@ -117,6 +117,35 @@ void FlightController::handleRequests() {
     } // while there is still data
 }
 
+void FlightController::initBoxes() {
+    msp::BoxNames box_names;
+    msp.request_block(box_names);
+
+    msp::BoxIds box_ids;
+    msp.request_block(box_ids);
+
+    assert(box_names.box_names.size()==box_ids.box_ids.size());
+
+    box_name_ids.clear();
+
+    for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
+        box_name_ids[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
+    }
+}
+
+bool FlightController::isArmed() {
+    if(box_name_ids.count("ARM")==0) {
+        // box ids have not been initialised
+        throw std::runtime_error("Box ID of 'ARM' is unknown! You need to call 'initBoxes()' first.");
+    }
+
+    msp::Status status;
+    msp.request_block(status);
+
+    // check if ARM box id is amongst active box IDs
+    return status.active_box_id.count(box_name_ids.at("ARM"));
+}
+
 bool FlightController::setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle) {
     msp::SetRc rc;
     rc.roll = roll;
@@ -136,7 +165,23 @@ bool FlightController::arm(const bool arm) {
 
     const uint yaw = arm ? 2000 : 1000;
 
-    return setRc(0,0,yaw,1000);
+    return setRc(1500,1500,yaw,1000);
+}
+
+bool FlightController::arm_block() {
+    // attempt to arm while FC is disarmed
+    while(isArmed()==false) {
+        arm(true);
+    }
+    return true;
+}
+
+bool FlightController::disarm_block() {
+    // attempt to disarm while FC is armed
+    while(isArmed()==true) {
+        arm(false);
+    }
+    return true;
 }
 
 } // namespace msp

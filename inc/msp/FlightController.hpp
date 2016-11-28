@@ -138,9 +138,22 @@ public:
 
     void setStandardGravity(const float gravity) { standard_gravity=gravity; }
 
+    void initBoxes();
+
+    bool isArmed();
+
     bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
 
+    /**
+     * @brief arm arm or disarm FC
+     * @param arm true: will arm FC, false: will disarm FC
+     * @return true on success
+     */
     bool arm(const bool arm);
+
+    bool arm_block();
+
+    bool disarm_block();
 
 private:
     msp::Request* getRequestById(const msp::ID id) {
@@ -161,6 +174,8 @@ private:
     float magn_gain;    // scale magnetic value to uT (micro Tesla)
 
     float standard_gravity; // standard gravity for 1g in m/s^2
+
+    std::map<std::string, uint> box_name_ids;
 };
 
 } // namespace msp
