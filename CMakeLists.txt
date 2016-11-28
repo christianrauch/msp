@@ -68,6 +68,10 @@ target_link_libraries(msp_fcu msp)
 add_executable(fcu_test examples/fcu_test.cpp)
 target_link_libraries(fcu_test msp_fcu msp_msg_print)
 
+# test arming and disarming
+add_executable(fcu_arm examples/fcu_arm_test.cpp)
+target_link_libraries(fcu_arm msp_fcu)
+
 # installation
 install(TARGETS msp LIBRARY DESTINATION lib)
 install(TARGETS msp_msg_print LIBRARY DESTINATION lib)
