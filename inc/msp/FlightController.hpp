@@ -57,6 +57,12 @@ public:
 
     ~FlightController();
 
+    /**
+     * @brief getMSP expose underlying MSP instance for low-level access
+     * @return reference to MSP instance
+     */
+    msp::MSP &getMSP() { return msp; }
+
     void waitForConnection();
 
     template<typename T>
