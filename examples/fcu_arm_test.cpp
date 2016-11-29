@@ -16,13 +16,11 @@ int main(int argc, char *argv[]) {
     fcu::FlightController fcu(device);
 
     // wait until connection is established
+    // get unique box IDs
     start = std::chrono::high_resolution_clock::now();
-    fcu.waitForConnection();
+    fcu.initialise();
     end = std::chrono::high_resolution_clock::now();
     std::cout<<"ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
-
-    // get unique box IDs
-    fcu.initBoxes();
 
     std::cout<<"Armed? "<<fcu.isArmed()<<std::endl;
 

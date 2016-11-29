@@ -72,6 +72,10 @@ target_link_libraries(fcu_test msp_fcu msp_msg_print)
 add_executable(fcu_arm examples/fcu_arm_test.cpp)
 target_link_libraries(fcu_arm msp_fcu)
 
+# test setting motors directly
+add_executable(fcu_motors examples/fcu_motor_test.cpp)
+target_link_libraries(fcu_motors msp_fcu)
+
 # installation
 install(TARGETS msp LIBRARY DESTINATION lib)
 install(TARGETS msp_msg_print LIBRARY DESTINATION lib)

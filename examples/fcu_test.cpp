@@ -108,7 +108,6 @@ int main(int argc, char *argv[]) {
     fcu.setGyroUnit(1.0/4096);
     fcu.setMagnGain(1090.0/100.0);
     fcu.setStandardGravity(9.80665);
-    fcu.populate_database();
 
     // wait for connection
     fcu.initialise();

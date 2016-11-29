@@ -47,7 +47,9 @@ enum class MultiType : uint8_t {
 enum class Capability {
     BIND,
     DYNBAL,
-    FLAP
+    FLAP,
+    NAVCAP,
+    EXTAUX
 };
 
 enum class Sensor {
@@ -87,13 +89,16 @@ struct Ident : public Request {
         msp_version = data[2];
 
         const uint32_t capability = deserialise_uint32(data, 3);
-
         if(capability & (1 << 0))
             capabilities.insert(Capability::BIND);
-        if(capability & (1 << 1))
-            capabilities.insert(Capability::DYNBAL);
         if(capability & (1 << 2))
+            capabilities.insert(Capability::DYNBAL);
+        if(capability & (1 << 3))
             capabilities.insert(Capability::FLAP);
+        if(capability & (1 << 4))
+            capabilities.insert(Capability::NAVCAP);
+        if(capability & (1 << 5))
+            capabilities.insert(Capability::EXTAUX);
     }
 
     bool has(const Capability &cap) const { return capabilities.count(cap); }
@@ -778,11 +783,11 @@ struct ResetConfig : public Response {
 struct SetMotor : public Response {
     ID id() const { return ID::MSP_SET_MOTOR; }
 
-    uint16_t motor[N_MOTOR];
+    std::array<uint16_t,N_MOTOR> motor;
 
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data;
-        for(unsigned int i=0; i<N_MOTOR; i++)
+        for(uint i(0); i<N_MOTOR; i++)
             serialise_uint16(motor[i], data);
         assert(data.size()==N_MOTOR*2);
         return data;

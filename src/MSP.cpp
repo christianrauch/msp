@@ -148,6 +148,7 @@ bool MSP::respond_block(const msp::Response &response) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
+        catch(msp::NoData) { success = false; }
         catch(boost::system::system_error) { success = false; }
     }
 

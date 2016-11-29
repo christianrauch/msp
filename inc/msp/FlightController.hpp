@@ -186,6 +186,8 @@ public:
 
     bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
 
+    bool setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values);
+
     /**
      * @brief arm arm or disarm FC
      * @param arm true: will arm FC, false: will disarm FC
@@ -193,8 +195,16 @@ public:
      */
     bool arm(const bool arm);
 
+    /**
+     * @brief arm_block attempt to arm and wait for status feedback, e.g. this method will block until the FC is able to aim
+     * @return
+     */
     bool arm_block();
 
+    /**
+     * @brief disarm_block attempt to disarm and wait for status feedback
+     * @return
+     */
     bool disarm_block();
 
 private:

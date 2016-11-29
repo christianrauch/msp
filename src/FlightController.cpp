@@ -174,6 +174,18 @@ bool FlightController::setRc(const uint roll, const uint pitch, const uint yaw, 
     return msp.send(rc);
 }
 
+bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values) {
+    if(!hasDynBal()) {
+        throw std::runtime_error(
+            "DYNBALANCE is not active!\n"
+            "Set '#define DYNBALANCE' in your MultiWii 'config.h'");
+    }
+
+    msp::SetMotor motor;
+    motor.motor = motor_values;
+    return msp.respond_block(motor);
+}
+
 bool FlightController::arm(const bool arm) {
     // arm:
     // throttle: 1000 (bottom), yaw: 2000 (right)
