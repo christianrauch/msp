@@ -163,12 +163,20 @@ bool FlightController::isArmed() {
     return status.active_box_id.count(box_name_ids.at("ARM"));
 }
 
-bool FlightController::setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle) {
+bool FlightController::setRc(const uint roll, const uint pitch,
+                             const uint yaw, const uint throttle,
+                             const uint aux1, const uint aux2,
+                             const uint aux3, const uint aux4)
+{
     msp::SetRc rc;
     rc.roll = roll;
     rc.pitch = pitch;
     rc.yaw = yaw;
     rc.throttle = throttle;
+    rc.aux1 = aux1;
+    rc.aux2 = aux2;
+    rc.aux3 = aux3;
+    rc.aux4 = aux4;
 
     // send MSP_SET_RAW_RC without waiting for ACK
     return msp.send(rc);
@@ -194,7 +202,8 @@ bool FlightController::arm(const bool arm) {
 
     const uint yaw = arm ? 2000 : 1000;
 
-    return setRc(1500,1500,yaw,1000);
+    return setRc(1500, 1500, yaw, 1000,
+                 1000, 1000, 1000, 1000);
 }
 
 bool FlightController::arm_block() {

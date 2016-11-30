@@ -184,7 +184,10 @@ public:
 
     bool isArmed();
 
-    bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
+    bool setRc(const uint roll, const uint pitch,
+               const uint yaw, const uint throttle,
+               const uint aux1 = 1000, const uint aux2 = 1000,
+               const uint aux3 = 1000, const uint aux4 = 1000);
 
     bool setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values);
 
