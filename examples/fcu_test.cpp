@@ -111,13 +111,7 @@ int main(int argc, char *argv[]) {
     fcu.populate_database();
 
     // wait for connection
-    //fcu.waitForConnection();
-    {
-    msp::Ident ident;
-    fcu.getMSP().request_timeout(ident, 10);
-    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
-    }
-
+    fcu.initialise();
 
     App app("MultiWii");
     // define subscriptions with specific period

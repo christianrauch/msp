@@ -109,12 +109,12 @@ public:
     bool request_block(msp::Request &request);
 
     /**
-     * @brief request_timeout wait for data while continuously sending command
+     * @brief request_wait wait for data while continuously sending command
      * @param request request message
-     * @param timeout_ms timeout in milliseconds until resending request
+     * @param wait_ms waiting time in between sending request and receiving response
      * @return true when data has been received
      */
-    bool request_timeout(msp::Request &request, unsigned int timeout_ms);
+    bool request_wait(msp::Request &request, uint wait_ms);
 
     /**
      * @brief respond send data to FC and read acknowledge

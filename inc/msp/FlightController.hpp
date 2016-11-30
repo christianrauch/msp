@@ -2,7 +2,7 @@
 #define FLIGHTCONTROLLER_HPP
 
 #include "MSP.hpp"
-#include "msp_id.hpp"
+#include "msp_msg.hpp"
 
 #include "PeriodicTimer.hpp"
 #include <map>
@@ -64,6 +64,8 @@ public:
     msp::MSP &getMSP() { return msp; }
 
     void waitForConnection();
+
+    void initialise();
 
     template<typename T>
     void populate(T* req) {
@@ -140,6 +142,46 @@ public:
 
     void initBoxes();
 
+    bool hasCapability(const msp::Capability &cap) const {
+        return ident.capabilities.count(cap);
+    }
+
+    bool hasBind() const {
+        return hasCapability(msp::Capability::BIND);
+    }
+
+    bool hasDynBal() const {
+        return hasCapability(msp::Capability::DYNBAL);
+    }
+
+    bool hasFlap() const {
+        return hasCapability(msp::Capability::FLAP);
+    }
+
+    bool hasSensor(const msp::Sensor &sensor) const {
+        return sensors.count(sensor);
+    }
+
+    bool hasAccelerometer() const {
+        return hasSensor(msp::Sensor::Accelerometer);
+    }
+
+    bool hasBarometer() const {
+        return hasSensor(msp::Sensor::Barometer);
+    }
+
+    bool hasMagnetometer() const {
+        return hasSensor(msp::Sensor::Magnetometer);
+    }
+
+    bool hasGPS() const {
+        return hasSensor(msp::Sensor::GPS);
+    }
+
+    bool hasSonar() const {
+        return hasSensor(msp::Sensor::Sonar);
+    }
+
     bool isArmed();
 
     bool setRc(const uint roll, const uint pitch, const uint yaw, const uint throttle);
@@ -176,6 +218,10 @@ private:
     float standard_gravity; // standard gravity for 1g in m/s^2
 
     std::map<std::string, uint> box_name_ids;
+
+    msp::Ident ident;
+
+    std::set<msp::Sensor> sensors;
 };
 
 } // namespace msp

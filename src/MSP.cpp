@@ -52,6 +52,8 @@ bool MSP::request_block(msp::Request &request) {
             continue;
         }
 
+        usleep(wait);
+
         try {
             const DataID pkg = receiveData();
             success = (pkg.id==request.id());
@@ -77,23 +79,18 @@ bool MSP::request_block(msp::Request &request) {
     return true;
 }
 
-bool MSP::request_timeout(msp::Request &request, unsigned int timeout_ms) {
-
-    const std::chrono::milliseconds timeout(timeout_ms);
+bool MSP::request_wait(msp::Request &request, uint wait_ms) {
+    const std::chrono::milliseconds wait(wait_ms);
 
     bool success = false;
     while(success==false) {
+        // send ID
+        while(sendData(request.id())!=true);
+
+        std::this_thread::sleep_for(wait);
+
         try {
-            std::future<DataID> proc = std::async(std::launch::async, &MSP::receiveData, this);
-
-            // write ID while waiting for data
-            while(true) {
-                while(sendData(request.id())!=true);
-                const auto status = proc.wait_for(timeout);
-                if(status==std::future_status::ready) { break; }
-            }
-
-            DataID pkg = proc.get();
+            DataID pkg = receiveData();
             success = (pkg.id==request.id());
             if(success)
                 request.decode(pkg.data);

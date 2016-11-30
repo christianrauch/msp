@@ -1,5 +1,4 @@
 #include "FlightController.hpp"
-#include "msp_msg.hpp"
 
 #include <iostream>
 
@@ -18,8 +17,25 @@ FlightController::~FlightController() {
 void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::Ident ident;
-    msp.request_timeout(ident, 10);
+    msp.request_wait(ident, 100);
     std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
+}
+
+void FlightController::initialise() {
+    populate_database();
+
+    // wait for connection to be established
+    //msp.request_timeout(ident, 1000);
+    msp.request_wait(ident, 100);
+    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
+
+    // get sensors
+    msp::Status status;
+    msp.request_block(status);
+    sensors = status.sensors;
+
+    // get boxes
+    initBoxes();
 }
 
 void FlightController::populate_database() {
@@ -118,16 +134,17 @@ void FlightController::handleRequests() {
 }
 
 void FlightController::initBoxes() {
+    // get box names
     msp::BoxNames box_names;
     msp.request_block(box_names);
 
+    // get box IDs
     msp::BoxIds box_ids;
     msp.request_block(box_ids);
 
     assert(box_names.box_names.size()==box_ids.box_ids.size());
 
     box_name_ids.clear();
-
     for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
         box_name_ids[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
     }

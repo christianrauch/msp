@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     {
     std::cout<<"Connecting FCU..."<<std::endl;
     msp::Ident ident;
-    msp.request_timeout(ident, 10);
+    msp.request_wait(ident, 10);
     std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
     }
 
