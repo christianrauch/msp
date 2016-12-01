@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     msp.request_block(status);
     std::cout<<status;
 
-    msp::Imu imu(512.0, 1.0/4096.0, 1090.0/100.0, 9.80665);
+    msp::Imu imu(512.0, 1.0/4.096, 0.92/10.0, 9.80665);
     msp.request_block(imu);
     std::cout<<imu;
 

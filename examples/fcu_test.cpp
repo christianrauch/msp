@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
 
     fcu::FlightController fcu(device);
     fcu.setAcc1G(512.0);
-    fcu.setGyroUnit(1.0/4096);
-    fcu.setMagnGain(1090.0/100.0);
+    fcu.setGyroUnit(1.0/4.096);
+    fcu.setMagnGain(0.92/10.0); // for HMC5883L in default configuration (0.92 Mg/LSb)
     fcu.setStandardGravity(9.80665);
 
     // wait for connection
