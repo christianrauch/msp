@@ -1,3 +1,19 @@
+/**
+  Example for demonstrating arming and disarming functionality.
+
+  REMOVE YOUR PROPELLERS BEFORE EXECUTING THIS PROGRAM!
+
+  DYNBALANCE needs to be deactivated to process RC commands from any source.
+  (comment "#define DYNBALANCE" in MultiWii's 'config.h')
+
+  Dis-/Arming is achieved by sending RC commands to the flight controller. The
+  arming and disarming methods will block until they receive the expected arming
+  status as feedback.
+  If the FC is armed and no other source of RC commands (physical remote control
+  or MSP_SET_RAW_RC packages) is provided, the FC will go into fail-safe mode and
+  motors will turn!
+**/
+
 #include <FlightController.hpp>
 
 #include <iostream>

@@ -168,6 +168,12 @@ bool FlightController::setRc(const uint roll, const uint pitch,
                              const uint aux1, const uint aux2,
                              const uint aux3, const uint aux4)
 {
+    if(hasDynBal()) {
+        throw std::runtime_error(
+            "DYNBALANCE is active!\n"
+            "RC commands will have no effect on motors.");
+    }
+
     msp::SetRc rc;
     rc.roll = roll;
     rc.pitch = pitch;

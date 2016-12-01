@@ -1,3 +1,17 @@
+/**
+  Example for demonstrating direct motor access.
+
+  REMOVE YOUR PROPELLERS BEFORE EXECUTING THIS PROGRAM!
+
+  DYNBALANCE needs to be activated to gain direct access.
+  (set "#define DYNBALANCE" in MultiWii's 'config.h')
+
+  The motor values are directly passed to the ESCs instead of computing them by
+  RC commands. Hence, there is no need to arm or disarm the flight controller.
+  In fact, it is not possible to control the motors by RC signals if DYNBALANCE
+  is active.
+**/
+
 #include <FlightController.hpp>
 
 int main(int argc, char *argv[]) {
