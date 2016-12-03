@@ -47,13 +47,13 @@ This method returns after the first try to read and encode any MSP message. Ther
 ```
 bool request_block(msp::Request &request)
 ```
-or to timeout while reading and resending the request:
+or to retry sending requests until a response is received:
 ```
-bool request_timeout(msp::Request &request, unsigned int timeout_ms)
+bool request_wait(msp::Request &request, uint wait_ms)
 ```
-which can be useful to block until the FC is available.
+which can be useful to block until the FC is available and responds to messages.
 
-E.g. the Arduino Nano 3.0 is reset when opening the serial device and needs some time to boot until it will respond to messages. `request_timeout` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to wait for data.
+E.g. the Arduino Nano 3.0 is reseted when opening the serial device and needs some time to boot until it will respond to messages. `request_wait` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to fetch data from the FC.
 
 #### Respond with data to FC
 For sending data to the FC (→ FC) a message containing the id and the payload is send to the FC and confirmed by a acknowledge message which only contains the id with no data.
