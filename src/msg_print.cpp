@@ -3,6 +3,41 @@
 
 typedef unsigned int uint;
 
+std::ostream& operator<<(std::ostream& s, const msp::ApiVersion& api_version) {
+    s << "#Api Version:" << std::endl;
+    s << "API: " << api_version.major << "." << api_version.minor << std::endl;
+    s << "Protocol: " << api_version.protocol << std::endl;
+    return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::FcVariant& fc_variant) {
+    s << "#FC variant:" << std::endl;
+    s << "Identifier: " << fc_variant.identifier << std::endl;
+    return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::FcVersion& fc_version) {
+    s << "#FC version:" << std::endl;
+    s << "Version: " << fc_version.major << "." << fc_version.minor << "." << fc_version.patch_level << std::endl;
+    return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info) {
+    s << "#Board Info:" << std::endl;
+    s << "Identifier: " << board_info.identifier << std::endl;
+    s << "Version: " << board_info.version << std::endl;
+    s << "Type: " << board_info.type << std::endl;
+    return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info) {
+    s << "#Build Info:" << std::endl;
+    s << "Date: " << build_info.buildDate << std::endl;
+    s << "Time: " << build_info.buildTime << std::endl;
+    s << "Git revision: " << build_info.shortGitRevision << std::endl;
+    return s;
+}
+
 void operator<<(std::ostream& s, const msp::Ident& ident) {
     std::string type;
     switch(ident.type) {

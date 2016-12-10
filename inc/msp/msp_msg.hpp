@@ -21,6 +21,12 @@ const static uint N_SERVO = 8;
 const static uint N_MOTOR = 8;
 const static uint RC_CHANS = 8;
 
+const static uint BOARD_IDENTIFIER_LENGTH = 4;
+
+const static uint BUILD_DATE_LENGTH = 11;
+const static uint BUILD_TIME_LENGTH = 8;
+const static uint GIT_SHORT_REVISION_LENGTH = 7;
+
 enum class MultiType : uint8_t {
     TRI,    // 1
     QUADP,  // 2
@@ -67,6 +73,81 @@ enum class SwitchPosition : uint {
     MID  = 1,
     HIGH = 2,
 };
+
+/////////////////////////////////////////////////////////////////////
+/// Cleanflight
+
+// MSP_API_VERSION: 1
+struct ApiVersion : public Request {
+    ID id() const { return ID::MSP_API_VERSION; }
+
+    uint protocol;
+    uint major;
+    uint minor;
+
+    void decode(const std::vector<uint8_t> &data) {
+        protocol = data[0];
+        major = data[1];
+        minor = data[2];
+    }
+};
+
+// MSP_FC_VARIANT: 2
+struct FcVariant : public Request {
+    ID id() const { return ID::MSP_FC_VARIANT; }
+
+    std::string identifier;
+
+    void decode(const std::vector<uint8_t> &data) {
+        identifier = std::string(data.begin(), data.end());
+    }
+};
+
+// MSP_FC_VERSION: 3
+struct FcVersion : public Request {
+    ID id() const { return ID::MSP_FC_VERSION; }
+
+    uint major;
+    uint minor;
+    uint patch_level;
+
+    void decode(const std::vector<uint8_t> &data) {
+        major = data[0];
+        minor = data[1];
+        patch_level = data[2];
+    }
+};
+
+// MSP_BOARD_INFO: 4
+struct BoardInfo : public Request {
+    ID id() const { return ID::MSP_BOARD_INFO; }
+
+    std::string identifier;
+    uint16_t version;
+    uint8_t type;
+
+    void decode(const std::vector<uint8_t> &data) {
+        identifier = std::string(data.begin(), data.begin()+BOARD_IDENTIFIER_LENGTH);
+        version = deserialise_uint16(data,BOARD_IDENTIFIER_LENGTH);
+        type = data[BOARD_IDENTIFIER_LENGTH+2];
+    }
+};
+
+// MSP_BUILD_INFO: 5
+struct BuildInfo : public Request {
+    ID id() const { return ID::MSP_BUILD_INFO; }
+
+    std::string buildDate;
+    std::string buildTime;
+    std::string shortGitRevision;
+
+    void decode(const std::vector<uint8_t> &data) {
+        buildDate = std::string(data[0], data[BUILD_DATE_LENGTH-1]);
+        buildTime = std::string(data[BUILD_DATE_LENGTH], data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH-1]);
+        shortGitRevision = std::string(data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH], data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH+GIT_SHORT_REVISION_LENGTH-1]);
+    }
+};
+
 
 /////////////////////////////////////////////////////////////////////
 /// Requests (1xx)
