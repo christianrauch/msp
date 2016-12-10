@@ -4,6 +4,16 @@
 #include "msp_msg.hpp"
 #include <ostream>
 
+std::ostream& operator<<(std::ostream& s, const msp::ApiVersion& api_version);
+
+std::ostream& operator<<(std::ostream& s, const msp::FcVariant& fc_variant);
+
+std::ostream& operator<<(std::ostream& s, const msp::FcVersion& fc_version);
+
+std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info);
+
+std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info);
+
 void operator<<(std::ostream& s, const msp::Ident& ident);
 
 void operator<<(std::ostream& s, const msp::Status& status);
