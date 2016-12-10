@@ -17,6 +17,9 @@ SerialPort::SerialPort(const std::string &device) : port(io) {
     port.set_option(serial_port::character_size(serial_port::character_size(8)));
     port.set_option(serial_port::stop_bits(serial_port::stop_bits::one));
 //    port.set_option(serial_port::flow_control(serial_port::flow_control::none));
+
+    // clear buffer for new session
+    clear();
 }
 
 SerialPort::~SerialPort() {
@@ -50,4 +53,8 @@ int SerialPort::poll(int timeout) {
                  .events = POLLIN,
                  .revents = 0};
     return ::poll(&fd, 1, timeout);
+}
+
+void SerialPort::clear() {
+    ::tcflush(port.native_handle(),TCIOFLUSH);
 }

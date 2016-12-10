@@ -51,6 +51,11 @@ public:
      */
     int poll(int timeout=0);
 
+    /**
+     * @brief clear flush the serial buffer to remove old data
+     */
+    void clear();
+
 private:
     boost::asio::io_service io;     ///<! io service
     boost::asio::serial_port port;  ///<! port for serial device
