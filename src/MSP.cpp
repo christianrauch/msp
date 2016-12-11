@@ -172,7 +172,7 @@ bool MSP::sendData(const ID id, const ByteVector &data) {
 
 DataID MSP::receiveData() {
     // wait for correct preamble start
-    if(sp.poll()==0) {
+    if(sp.hasData()<1) {
         throw NoData();
     }
 
