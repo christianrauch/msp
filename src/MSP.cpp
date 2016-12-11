@@ -19,7 +19,7 @@ bool MSP::request(msp::Request &request) {
     if(!sendData(request.id()))
         return false;
 
-    usleep(wait);
+    std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
     try {
         const DataID pkg = receiveData();
@@ -52,7 +52,7 @@ bool MSP::request_block(msp::Request &request) {
             continue;
         }
 
-        usleep(wait);
+        std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
         try {
             const DataID pkg = receiveData();
@@ -118,7 +118,7 @@ bool MSP::respond(const msp::Response &response) {
     if(!sendData(response.id(), response.encode()))
         return false;
 
-    usleep(wait);
+    std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
     try {
         const DataID pkg = receiveData();
