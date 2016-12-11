@@ -6,9 +6,29 @@ It currently implements the sending and reading from a serial device and defines
 The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 300Hz (for a FC cycle time of 2.8ms / 357Hz).
 
 ## Installation and Test
+### Linux (Ubuntu / Debian)
 - install boost: `sudo apt install libboost-system-dev`
 - check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..`
-- run the example program given the path to the serial device, e.g.: `./get_msp_info /dev/ttyUSB0`
+- run the example program given the path to the serial device, e.g.: `./msp_read_test /dev/ttyUSB0`
+
+### Windows
+#### Requirements
+- CMake
+- boost: install the 64bit binary libraries for Visual C++ 2015 [boost_1_62_0-msvc-14.0-64.exe](https://sourceforge.net/projects/boost/files/boost-binaries/1.62.0/boost_1_62_0-msvc-14.0-64.exe/download), they will be installed to `C:\local\boost_1_62_0\` by default
+- Visual C++ Build Tools: http://landinghub.visualstudio.com/visual-cpp-build-tools
+- Windows 10 SDK: https://support.microsoft.com/en-us/kb/2999226
+
+#### Build
+- open the Visual C++ 64bit command prompt
+- switch to 64bit architecture, call: `vcvarsall amd64` from `C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\`
+(or `"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64`)
+- `mkdir build && cd build`
+- `cmake .. -DBoost_INCLUDE_DIR=C:\local\boost_1_62_0\ -DBOOST_LIBRARYDIR=C:\local\boost_1_62_0\lib64-msvc-14.0\`
+- build: `nmake`
+
+#### Test
+- set path to boost libraries: `set PATH=%PATH%;C:\local\boost_1_62_0\lib64-msvc-14.0\`
+- `msp_read_test.exe COM3`
 
 ## How to use the library (low-level API)
 
