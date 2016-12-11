@@ -7,6 +7,16 @@ add_definitions(-Wall)
 find_package(Boost REQUIRED COMPONENTS system)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
+if(MSVC)
+    # disable autolinking in boost
+    add_definitions(-DBOOST_ALL_NO_LIB)
+    add_definitions(-DBOOST_ALL_DYN_LINK)
+endif()
+
+if(UNIX)
+    set(BUILD_SHARED_LIBS "ON")
+endif()
+
 find_package(Threads)
 
 find_package(catkin QUIET)
@@ -41,12 +51,12 @@ set(MSP_HDR
 )
 
 # low-level API
-add_library(msp SHARED ${MSP_SRC} ${MSP_HDR})
+add_library(msp ${MSP_SRC} ${MSP_HDR})
 target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 # printing message content
-add_library(msp_msg_print SHARED ${MSP_SOURCE_DIR}/msg_print.cpp
+add_library(msp_msg_print ${MSP_SOURCE_DIR}/msg_print.cpp
                                  ${MSP_INCLUDE_DIR}/msg_print.hpp)
 
 # test reading speed
@@ -58,7 +68,7 @@ add_executable(msp_read_test examples/msp_read_test.cpp)
 target_link_libraries(msp_read_test msp msp_msg_print)
 
 # high-level API
-add_library(msp_fcu SHARED ${MSP_SOURCE_DIR}/FlightController.cpp
+add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp
                            ${MSP_INCLUDE_DIR}/FlightController.hpp
                            ${MSP_SOURCE_DIR}/PeriodicTimer.cpp
                            ${MSP_INCLUDE_DIR}/PeriodicTimer.hpp)
