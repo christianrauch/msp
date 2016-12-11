@@ -6,6 +6,8 @@
 
 class PeriodicTimer {
 public:
+    typedef unsigned int uint;
+
     /**
      * @brief PeriodicTimer define a periodic timer
      * @param funct function that is called periodically
