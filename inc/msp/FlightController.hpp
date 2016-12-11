@@ -9,6 +9,8 @@
 
 namespace fcu {
 
+typedef unsigned int uint;
+
 class SubscriptionBase {
 public:
     SubscriptionBase(PeriodicTimer *timer=NULL) : timer(timer) { }

@@ -1,6 +1,8 @@
 #include "msg_print.hpp"
 #include <iomanip>
 
+typedef unsigned int uint;
+
 void operator<<(std::ostream& s, const msp::Ident& ident) {
     std::string type;
     switch(ident.type) {

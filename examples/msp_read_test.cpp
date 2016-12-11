@@ -5,6 +5,8 @@
 
 #include <msg_print.hpp>
 
+typedef unsigned int uint;
+
 int main(int argc, char *argv[]) {
     std::string device;
     if(argc>1)
