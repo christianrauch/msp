@@ -77,9 +77,15 @@ add_executable(fcu_motors examples/fcu_motor_test.cpp)
 target_link_libraries(fcu_motors msp_fcu)
 
 # installation
-install(TARGETS msp LIBRARY DESTINATION lib)
-install(TARGETS msp_msg_print LIBRARY DESTINATION lib)
-install(TARGETS msp_fcu LIBRARY DESTINATION lib)
+install(TARGETS msp
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
+install(TARGETS msp_msg_print
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
+install(TARGETS msp_fcu
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/msp FILES_MATCHING PATTERN "*.hpp")
 
 SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
