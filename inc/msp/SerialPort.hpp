@@ -43,13 +43,11 @@ public:
     uint8_t read();
 
     /**
-     * @brief poll check if data is available
-     * @param timeout timeout in milliseconds (<0: infinite timeout, 0: return immediately)
-     * @return >0 on success
-     * @return 0 on timeout
-     * @return -1 on error (check errno)
+     * @brief hasData check if data is available
+     * @return >0 amount of bytes ready to read
+     * @return -1 on error
      */
-    int poll(int timeout=0);
+    int hasData();
 
     /**
      * @brief clear flush the serial buffer to remove old data

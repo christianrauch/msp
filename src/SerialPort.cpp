@@ -5,7 +5,9 @@
 
 #include <iostream>
 
+#if __unix__
 #include <poll.h>
+#endif
 
 using namespace boost::asio;
 
@@ -48,13 +50,30 @@ uint8_t SerialPort::read() {
     return read(1).front();
 }
 
-int SerialPort::poll(int timeout) {
-    pollfd fd = {.fd = port.native_handle(),
-                 .events = POLLIN,
-                 .revents = 0};
-    return ::poll(&fd, 1, timeout);
+int SerialPort::hasData() {
+#if __unix__
+    int available_bytes;
+    if(ioctl(port.native_handle(), FIONREAD, &available_bytes)!=-1) {
+        return available_bytes;
+    }
+    else {
+        return -1;
+    }
+#elif _WIN32
+    COMSTAT comstat;
+    if (ClearCommError(port.native_handle(), NULL, &comstat) == true) {
+        return comstat.cbInQue;
+    }
+    else {
+        return -1;
+    }
+#endif
 }
 
 void SerialPort::clear() {
+#if __unix__
     ::tcflush(port.native_handle(),TCIOFLUSH);
+#elif _WIN32
+    PurgeComm(port.native_handle(), PURGE_TXCLEAR);
+#endif
 }
