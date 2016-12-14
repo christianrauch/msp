@@ -539,7 +539,7 @@ struct ServoConf : public Request {
             servo_conf[i].min = deserialise_uint16(data, 7*i);
             servo_conf[i].max = deserialise_uint16(data, 7*i+2);
             servo_conf[i].middle = deserialise_uint16(data, 7*i+4);
-            servo_conf[i].rate = deserialise_uint16(data, 7*i+6);
+            servo_conf[i].rate = data[7*i+6];
         }
     }
 };
