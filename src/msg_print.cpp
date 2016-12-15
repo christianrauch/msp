@@ -124,7 +124,7 @@ void operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
     s << "#Rc Tuning:" << std::endl;
     s << "Rc Rate: " << rc_tuning.RC_RATE << std::endl;
     s << "Rc Expo: " << rc_tuning.RC_EXPO << std::endl;
-    s << "Roll/Pitch Rate: " << (uint)rc_tuning.RollPitchRate << std::endl;
+    s << "Roll/Pitch Rate: " << rc_tuning.RollPitchRate << std::endl;
     s << "Yaw Rate: " << rc_tuning.YawRate << std::endl;
 
     s << "Dynamic Throttle PID: " << rc_tuning.DynThrPID << std::endl;

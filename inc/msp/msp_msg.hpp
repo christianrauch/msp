@@ -720,37 +720,37 @@ struct SetRawGPS : public Request {
 struct SetRcTuning : public Response {
     ID id() const { return ID::MSP_SET_RC_TUNING; }
 
-    uint8_t RC_RATE;
-    uint8_t RC_EXPO;
-    uint8_t RollPitchRate;
-    uint8_t YawRate;
-    uint8_t DynThrPID;
-    uint8_t Throttle_MID;
-    uint8_t Throttle_EXPO;
+    double RC_RATE;
+    double RC_EXPO;
+    double RollPitchRate;
+    double YawRate;
+    double DynThrPID;
+    double Throttle_MID;
+    double Throttle_EXPO;
 
     /**
      * @brief SetRcTuning construct a RC tuning response from a request
      * @param rc_tuning RcTuning response
      */
     SetRcTuning(const RcTuning &rc_tuning) {
-        RC_RATE = rc_tuning.RC_RATE;
-        RC_EXPO = rc_tuning.RC_EXPO;
-        RollPitchRate = rc_tuning.RollPitchRate;
-        YawRate = rc_tuning.YawRate;
-        DynThrPID = rc_tuning.DynThrPID;
-        Throttle_MID = rc_tuning.Throttle_MID;
-        Throttle_EXPO = rc_tuning.Throttle_EXPO;
+        RC_RATE         = rc_tuning.RC_RATE;
+        RC_EXPO         = rc_tuning.RC_EXPO;
+        RollPitchRate   = rc_tuning.RollPitchRate;
+        YawRate         = rc_tuning.YawRate;
+        DynThrPID       = rc_tuning.DynThrPID;
+        Throttle_MID    = rc_tuning.Throttle_MID;
+        Throttle_EXPO   = rc_tuning.Throttle_EXPO;
     }
 
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(7);
-        data[0] = RC_RATE;
-        data[1] = RC_EXPO;
-        data[2] = RollPitchRate;
-        data[3] = YawRate;
-        data[4] = DynThrPID;
-        data[5] = Throttle_MID;
-        data[6] = Throttle_EXPO;
+        data[0] = uint8_t(RC_RATE * 100);
+        data[1] = uint8_t(RC_EXPO * 100);
+        data[2] = uint8_t(RollPitchRate * 100);
+        data[3] = uint8_t(YawRate * 100);
+        data[4] = uint8_t(DynThrPID * 100);
+        data[5] = uint8_t(Throttle_MID * 100);
+        data[6] = uint8_t(Throttle_EXPO * 100);
         return data;
     }
 };
