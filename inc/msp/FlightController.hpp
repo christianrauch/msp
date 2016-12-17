@@ -11,6 +11,11 @@ namespace fcu {
 
 typedef unsigned int uint;
 
+enum class FirmwareType {
+    MULTIWII,
+    CLEANFLIGHT
+};
+
 class SubscriptionBase {
 public:
     SubscriptionBase(PeriodicTimer *timer=NULL) : timer(timer) { }
@@ -68,6 +73,18 @@ public:
     void waitForConnection();
 
     void initialise();
+
+    /**
+     * @brief isFirmware determine firmware type (e.g. to distiguish accepted messages)
+     * @param firmware_type type of firmware (enum FirmwareType)
+     * @return true if firmware is firmware_type
+     * @return false if firmware is not firmware_type
+     */
+    bool isFirmware(const FirmwareType firmware_type);
+
+    bool isFirmwareMultiWii() { return isFirmware(FirmwareType::MULTIWII); }
+
+    bool isFirmwareCleanflight() { return isFirmware(FirmwareType::CLEANFLIGHT); }
 
     template<typename T>
     void populate(T* req) {
@@ -237,6 +254,8 @@ private:
     msp::Ident ident;
 
     std::set<msp::Sensor> sensors;
+
+    FirmwareType firmware;
 };
 
 } // namespace msp
