@@ -5,10 +5,6 @@
 
 #include <iostream>
 
-#if __unix__
-#include <poll.h>
-#endif
-
 using namespace boost::asio;
 
 SerialPort::SerialPort(const std::string &device) : port(io) {
@@ -51,7 +47,7 @@ uint8_t SerialPort::read() {
 }
 
 int SerialPort::hasData() {
-#if __unix__
+#if __unix__ || __APPLE__
     int available_bytes;
     if(ioctl(port.native_handle(), FIONREAD, &available_bytes)!=-1) {
         return available_bytes;
@@ -67,13 +63,17 @@ int SerialPort::hasData() {
     else {
         return -1;
     }
+#else
+#warning "hasData() will be unimplemented"
 #endif
 }
 
 void SerialPort::clear() {
-#if __unix__
-    ::tcflush(port.native_handle(),TCIOFLUSH);
+#if __unix__ || __APPLE__
+    tcflush(port.native_handle(),TCIOFLUSH);
 #elif _WIN32
     PurgeComm(port.native_handle(), PURGE_TXCLEAR);
+#else
+#warning "clear() will be unimplemented"
 #endif
 }
