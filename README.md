@@ -1,9 +1,9 @@
-# MultiWii Communication Library (C++)
+# MultiWii / Cleanflight Communication Library (C++)
 
-This library implements the MultiWii Serial Protocol ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii flight controller (FC) over a serial device.
-It currently implements the sending and reading from a serial device and defines some of the messages and encoding/decoding functions for raw data.
+This library implements the MultiWii Serial Protocol ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii or Cleanflight flight controller (FC) over a serial device.
+It defines a **low-level API** for sending+encoding and receiving+decoding MSP messages, and a **high-level API** with a subscriber pattern to periodically request data from the FC and call callback functions as soon as a message is received.
 
-The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 300Hz (for a FC cycle time of 2.8ms / 357Hz).
+The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 340Hz (for a FC cycle time of 2.8ms / 357Hz).
 
 ## Installation and Test
 ### Linux (Ubuntu / Debian)
