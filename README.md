@@ -23,11 +23,10 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 - switch to 64bit architecture, call: `vcvarsall amd64` from `C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\`
 (or `"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64`)
 - `mkdir build && cd build`
-- `cmake .. -DBoost_INCLUDE_DIR=C:\local\boost_1_62_0\ -DBOOST_LIBRARYDIR=C:\local\boost_1_62_0\lib64-msvc-14.0\`
+- `cmake -G"NMake Makefiles" .. -DBoost_INCLUDE_DIR=C:\local\boost_1_62_0\ -DBOOST_LIBRARYDIR=C:\local\boost_1_62_0\lib64-msvc-14.0\`
 - build: `nmake`
 
 #### Test
-- set path to boost libraries: `set PATH=%PATH%;C:\local\boost_1_62_0\lib64-msvc-14.0\`
 - `msp_read_test.exe COM3`
 
 ## How to use the library (low-level API)
