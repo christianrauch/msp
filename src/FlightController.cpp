@@ -18,7 +18,7 @@ void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::Ident ident;
     msp.request_wait(ident, 100);
-    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
+    std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
 }
 
 void FlightController::initialise() {
@@ -27,7 +27,18 @@ void FlightController::initialise() {
     // wait for connection to be established
     //msp.request_timeout(ident, 1000);
     msp.request_wait(ident, 100);
-    std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
+
+    msp::ApiVersion api;
+    if(msp.request_block(api)) {
+        // this is Cleanflight
+        firmware = FirmwareType::CLEANFLIGHT;
+        std::cout<<"Cleanflight API "<<api.major<<"."<<api.minor<<"."<<api.protocol<<" ready"<<std::endl;
+    }
+    else {
+        // this is MultiWii
+        firmware = FirmwareType::MULTIWII;
+        std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
+    }
 
     // get sensors
     msp::Status status;
@@ -36,6 +47,10 @@ void FlightController::initialise() {
 
     // get boxes
     initBoxes();
+}
+
+bool FlightController::isFirmware(const FirmwareType firmware_type) {
+    return firmware == firmware_type;
 }
 
 void FlightController::populate_database() {

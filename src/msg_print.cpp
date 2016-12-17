@@ -60,7 +60,7 @@ void operator<<(std::ostream& s, const msp::Ident& ident) {
 
     s << "#Ident:" << std::endl;
 
-    s << "Version: "<<ident.version << std::endl
+    s << "MultiWii Version: "<<ident.version << std::endl
       << "MSP Version: "<<ident.msp_version << std::endl
       << "Type: " << type << std::endl
       << "Capabilities:" << std::endl;
