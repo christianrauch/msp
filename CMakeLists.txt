@@ -4,13 +4,17 @@ project(msp)
 add_definitions(-std=c++11)
 add_definitions(-Wall)
 
+# use static boost libraries on Windows
+if(WIN32)
+    set(Boost_USE_STATIC_LIBS "ON")
+endif()
+
 find_package(Boost REQUIRED COMPONENTS system)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
 if(MSVC)
     # disable autolinking in boost
     add_definitions(-DBOOST_ALL_NO_LIB)
-    add_definitions(-DBOOST_ALL_DYN_LINK)
 endif()
 
 if(UNIX)
