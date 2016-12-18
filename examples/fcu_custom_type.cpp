@@ -38,6 +38,6 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&Callbacks::onIdent, &cbs);
 
     while(true) {
-        fcu.handle_batch();
+        fcu.handle();
     }
 }

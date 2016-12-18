@@ -140,12 +140,7 @@ public:
     /**
      * @brief handle listen for messages and call callback functions
      */
-    void handle();
-
-    /**
-     * @brief handle listen for messages and call callback functions
-     */
-    void handle_batch() {
+    void handle() {
         sendRequests();
         handleRequests();
     }

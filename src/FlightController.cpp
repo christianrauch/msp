@@ -50,21 +50,6 @@ bool FlightController::isFirmware(const FirmwareType firmware_type) {
     return firmware == firmware_type;
 }
 
-void FlightController::handle() {
-    for(auto s : subscriptions) {
-        // pointer to request
-        const msp::ID id = s.first;
-        msp::Request* const req = getRequestById(id);
-        SubscriptionBase* const sub = s.second;
-
-        // request data
-        if(msp.request(*req)) {
-            // callback
-            sub->call(*req);
-        }
-    }
-}
-
 void FlightController::sendRequests() {
     for(auto s : subscriptions) {
         // send requests only if there is no periodic timer already sending the same requests
