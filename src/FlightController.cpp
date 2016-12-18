@@ -22,10 +22,7 @@ void FlightController::waitForConnection() {
 }
 
 void FlightController::initialise() {
-    populate_database();
-
     // wait for connection to be established
-    //msp.request_timeout(ident, 1000);
     msp.request_wait(ident, 100);
 
     msp::ApiVersion api;
@@ -51,34 +48,6 @@ void FlightController::initialise() {
 
 bool FlightController::isFirmware(const FirmwareType firmware_type) {
     return firmware == firmware_type;
-}
-
-void FlightController::populate_database() {
-    populate(new msp::Ident);   // 100
-    populate(new msp::Status);
-    populate(new msp::Imu(acc_1g, gyro_unit, magn_gain, standard_gravity));
-    populate(new msp::Servo);
-    populate(new msp::Motor);
-    populate(new msp::Rc);
-    populate(new msp::RawGPS);
-    populate(new msp::CompGPS);
-    populate(new msp::Attitude);
-    populate(new msp::Altitude);
-    populate(new msp::Analog);  // 110
-    populate(new msp::RcTuning);
-    populate(new msp::Pid);
-    populate(new msp::Box);
-    populate(new msp::Misc);
-    populate(new msp::MotorPins);
-    populate(new msp::BoxNames);
-    populate(new msp::PidNames);
-    populate(new msp::WayPoint);
-    populate(new msp::BoxIds);
-    populate(new msp::ServoConf);
-    populate(new msp::NavStatus);
-    populate(new msp::NavConfig);   // 122
-    populate(new msp::DebugMessage);// 253
-    populate(new msp::Debug);       // 254
 }
 
 void FlightController::handle() {

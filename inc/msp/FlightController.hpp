@@ -37,7 +37,7 @@ protected:
 template<typename T, typename C>
 class Subscription : public SubscriptionBase {
 public:
-    typedef void(C::*Callback)(T&);
+    typedef void(C::*Callback)(const T&);
 
     Subscription(const Callback caller, C *const context_class)
         : funct(caller), context(context_class) {
@@ -87,11 +87,26 @@ public:
     bool isFirmwareCleanflight() { return isFirmware(FirmwareType::CLEANFLIGHT); }
 
     template<typename T>
-    void populate(T* req) {
-        database[req->id()] = req;
-    }
+    /**
+     * @brief registerMessage register a message and its ID
+     * @param id ID of message
+     */
+    void registerMessage(const msp::ID &id) {
+        // delete old message
+        if(database.count(id)==1)
+            delete database[id];
 
-    void populate_database();
+        // create message
+        switch(id) {
+        case msp::ID::MSP_RAW_IMU:
+            database[id] = new msp::Imu(acc_1g, gyro_unit, magn_gain, standard_gravity);
+            break;
+        default:
+            // use default constructor
+            database[id] = new T();
+            break;
+        }
+    }
 
     /**
      * @brief subscribe register callback function that is called when type is received
@@ -99,11 +114,13 @@ public:
      * @param context class of callback method
      */
     template<typename T, typename C>
-    void subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
+    void subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
+        const msp::ID id = T().id();
+        registerMessage<T>(id);
         if(std::is_base_of<msp::Request, T>::value) {
             if(tp>0.0) {
                 // subscription with periodic sending of requests
-                subscriptions[T().id()] = new Subscription<T,C>(callback, context,
+                subscriptions[id] = new Subscription<T,C>(callback, context,
                     new PeriodicTimer(
                         std::bind(&FlightController::sendRequest, this, T().id()),
                         tp
