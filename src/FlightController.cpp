@@ -147,10 +147,10 @@ bool FlightController::isArmed() {
     return status.active_box_id.count(box_name_ids.at("ARM"));
 }
 
-bool FlightController::setRc(const uint roll, const uint pitch,
-                             const uint yaw, const uint throttle,
-                             const uint aux1, const uint aux2,
-                             const uint aux3, const uint aux4)
+bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
+                             const uint16_t yaw, const uint16_t throttle,
+                             const uint16_t aux1, const uint16_t aux2,
+                             const uint16_t aux3, const uint16_t aux4)
 {
     if(hasDynBal()) {
         throw std::runtime_error(
@@ -190,7 +190,7 @@ bool FlightController::arm(const bool arm) {
     // disarm:
     // throttle: 1000 (bottom), yaw: 1000 (left)
 
-    const uint yaw = arm ? 2000 : 1000;
+    const uint16_t yaw = arm ? 2000 : 1000;
 
     return setRc(1500, 1500, yaw, 1000,
                  1000, 1000, 1000, 1000);
