@@ -90,6 +90,10 @@ target_link_libraries(fcu_arm msp_fcu)
 add_executable(fcu_motors examples/fcu_motor_test.cpp)
 target_link_libraries(fcu_motors msp_fcu)
 
+# subscribing with custom type
+add_executable(fcu_custom_type examples/fcu_custom_type.cpp)
+target_link_libraries(fcu_custom_type msp_fcu)
+
 # cleanflight requests
 add_executable(cleanflight_read_test examples/cleanflight_read_test.cpp)
 target_link_libraries(cleanflight_read_test msp msp_msg_print)
