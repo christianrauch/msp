@@ -31,11 +31,11 @@ bool MSP::request(msp::Request &request) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
-    catch(WrongCRC &e) {
+    catch(const WrongCRC &e) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
-    catch(UnknownMsgId &e) {
+    catch(const UnknownMsgId &e) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
@@ -64,11 +64,11 @@ bool MSP::request_block(msp::Request &request) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
-        catch(WrongCRC &e) {
+        catch(const WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
-        catch(UnknownMsgId &e) {
+        catch(const UnknownMsgId &e) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }
@@ -99,11 +99,11 @@ bool MSP::request_wait(msp::Request &request, uint wait_ms) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
-        catch(WrongCRC &e) {
+        catch(const WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
-        catch(UnknownMsgId &e) {
+        catch(const UnknownMsgId &e) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }

@@ -75,11 +75,11 @@ void FlightController::handleRequests() {
             std::cerr<<e.what()<<std::endl;
             break;
         }
-        catch(msp::WrongCRC &e) {
+        catch(const msp::WrongCRC &e) {
             std::cerr<<e.what()<<std::endl;
             break;
         }
-        catch(msp::UnknownMsgId &e) {
+        catch(const msp::UnknownMsgId &e) {
             std::cerr<<e.what()<<std::endl;
             break;
         }

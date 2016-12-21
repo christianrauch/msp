@@ -17,49 +17,21 @@ public:
 
 class UnknownMsgId : public std::runtime_error {
 public:
-    UnknownMsgId(uint8_t id)
-        : runtime_error("Unknown MSP id!"),
-          id(id)
+    UnknownMsgId(uint8_t id) : runtime_error(
+        "Unknown MSP id! FC refused to process message with id: "+std::to_string(id))
     { }
-
-    virtual const char* what() throw() {
-        std::stringstream ss_msg;
-        ss_msg << runtime_error::what() << ": ";
-        ss_msg << "FC refused to process message with id: "<<(uint)id;
-
-        msg = ss_msg.str();
-        return msg.c_str();
-    }
-private:
-    uint8_t id;
-    std::string msg;        ///<! error message
 };
 
 // exception to throw if reported CRC does not match with computed
 class WrongCRC : public std::runtime_error {
 public:
     WrongCRC(const msp::ID msg_id, const uint8_t exp, const uint8_t rcv)
-        : std::runtime_error("CRC not matching"),
-          msg_id(msg_id),
-          expected(exp),
-          received(rcv)
+        : std::runtime_error(
+              "CRC not matching: "
+              "Message "+std::to_string(uint(msg_id))+", "
+              "expected CRC "+std::to_string(exp)+", "
+              "received CRC "+std::to_string(rcv))
     { }
-
-    virtual const char* what() throw() {
-        std::stringstream ss_msg;
-        ss_msg << runtime_error::what() << ": ";
-        ss_msg << "Message " << (uint)msg_id << " ";
-        ss_msg << "expected CRC " << (int)expected << ", ";
-        ss_msg << "received CRC " << (int)received;
-
-        msg = ss_msg.str();
-        return msg.c_str();
-    }
-private:
-    const msp::ID msg_id;   ///<! ID of message
-    const uint8_t expected; ///<! expected CRC
-    const uint8_t received; ///<! received CRC
-    std::string msg;        ///<! error message
 };
 
 class NoData : public std::runtime_error {
