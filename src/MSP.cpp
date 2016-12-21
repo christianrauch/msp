@@ -6,13 +6,6 @@
 
 namespace msp {
 
-void printData(const ByteVector &data) {
-    std::cout<<"data("<<data.size()<<") START>>>"<<std::endl;
-    for(auto d : data)
-        std::cout<<(int)d<<std::endl;
-    std::cout<<"<<<data("<<data.size()<<") END"<<std::endl;
-}
-
 MSP::MSP(const std::string &device) : sp(device), wait(10) { }
 
 bool MSP::request(msp::Request &request) {
