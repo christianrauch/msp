@@ -155,8 +155,8 @@ bool MSP::sendData(const ID id, const ByteVector &data) {
     msg.push_back('$');
     msg.push_back('M');
     msg.push_back('<');
-    msg.push_back(data.size());                         // data size
-    msg.push_back((std::underlying_type<ID>::type)id);  // message_id
+    msg.push_back(uint8_t(data.size()));                // data size
+    msg.push_back(std::underlying_type<ID>::type(id));  // message_id
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crc(id, data) );                     // crc
 
@@ -169,13 +169,13 @@ DataID MSP::receiveData() {
         throw NoData();
     }
 
-    while( (char)sp.read() != '$');
+    while( char(sp.read()) != '$');
 
-    if( (char)sp.read() != 'M')
+    if( char(sp.read()) != 'M')
         throw MalformedHeader();
 
     const uint8_t com_state = sp.read();
-    switch((char)com_state) {
+    switch(char(com_state)) {
     case '>':
         // expected char
         break;
@@ -184,14 +184,12 @@ DataID MSP::receiveData() {
         sp.read(); // ignore data size
         const uint8_t id = sp.read(); // get faulty ID
         throw UnknownMsgId(id);
-        break;
     }
     default:
         throw MalformedHeader();
-        break;
     }
 
-    if( (char)com_state != '>') {
+    if( char(com_state) != '>') {
         throw MalformedHeader();
     }
 
@@ -199,7 +197,7 @@ DataID MSP::receiveData() {
     const uint8_t data_size = sp.read();
 
     // get ID of msg
-    const ID id = (ID)sp.read();
+    const ID id = ID(sp.read());
 
     // read payload data
     const ByteVector data = sp.read(data_size);
@@ -215,7 +213,7 @@ DataID MSP::receiveData() {
 }
 
 uint8_t MSP::crc(const ID id, const ByteVector &data) {
-    uint8_t crc = data.size()^(std::underlying_type<ID>::type)id;
+    uint8_t crc = uint8_t(data.size())^std::underlying_type<ID>::type(id);
 
     for(uint8_t d : data)
         crc = crc^d;
