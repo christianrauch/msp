@@ -4,6 +4,13 @@
 #include <boost/asio.hpp>
 #include <mutex>
 
+class NoDevice : public std::runtime_error {
+public:
+    NoDevice(const std::string &device)
+        : runtime_error("Device not available: "+device)
+    { }
+};
+
 class SerialPort {
 public:
     /**

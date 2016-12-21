@@ -8,7 +8,12 @@
 using namespace boost::asio;
 
 SerialPort::SerialPort(const std::string &device) : port(io) {
-    port.open(device);
+    try {
+        port.open(device);
+    }
+    catch(boost::system::system_error) {
+        throw NoDevice(device);
+    }
 
     port.set_option(serial_port::baud_rate(115200));
     port.set_option(serial_port::parity(serial_port::parity::none));
