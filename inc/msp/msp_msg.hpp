@@ -386,8 +386,8 @@ struct Altitude : public Request {
     float vario;    // m/s
 
     void decode(const std::vector<uint8_t> &data) {
-        altitude = deserialise_uint32(data, 0)/100.0f;
-        vario    = deserialise_uint16(data, 4)/100.0f;
+        altitude = deserialise_int32(data, 0)/100.0f;
+        vario    = deserialise_int16(data, 4)/100.0f;
     }
 };
 

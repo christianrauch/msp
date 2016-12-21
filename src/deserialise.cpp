@@ -15,6 +15,10 @@ int16_t deserialise_int16(const ByteVector &data, const size_t start) {
     return (data[start]<<0) | (data[start+1]<<8);
 }
 
+int32_t deserialise_int32(const ByteVector &data, const size_t start) {
+    return (data[start]<<0) | (data[start+1]<<8) | (data[start+2]<<16) | (data[start+3]<<24);
+}
+
 void serialise_uint32(const uint32_t val, ByteVector &data) {
     data.push_back(val>>0);
     data.push_back(val>>8);

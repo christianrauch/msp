@@ -15,6 +15,8 @@ uint16_t deserialise_uint16(const ByteVector &data, const size_t start);
 
 int16_t deserialise_int16(const ByteVector &data, const size_t start);
 
+int32_t deserialise_int32(const ByteVector &data, const size_t start);
+
 void serialise_uint32(const uint32_t val, ByteVector &data);
 
 uint32_t deserialise_uint32(const ByteVector &data, const size_t start);
