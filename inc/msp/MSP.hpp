@@ -12,7 +12,11 @@ namespace msp {
 // exception to throw when header contains wrong data
 class MalformedHeader : public std::runtime_error {
 public:
-    MalformedHeader() : std::runtime_error("Malformed header") {}
+    MalformedHeader(const uint8_t exp, const uint8_t rcv)
+        : std::runtime_error(
+              "Malformed header: "
+              "expected "+std::to_string(exp)+" ("+std::string(1,char(exp))+"), "
+              "received "+std::to_string(rcv)+" ("+std::string(1,char(rcv))+")") {}
 };
 
 class UnknownMsgId : public std::runtime_error {
