@@ -99,30 +99,6 @@ add_executable(cleanflight_read_test examples/cleanflight_read_test.cpp)
 target_link_libraries(cleanflight_read_test msp msp_msg_print)
 
 # installation
-install(TARGETS msp
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
-install(TARGETS msp_msg_print
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
-install(TARGETS msp_fcu
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
-install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/msp FILES_MATCHING PATTERN "*.hpp")
-
-SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
-SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/msp" )
-SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lboost_system -lmsp_msg_print" )
-SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
-
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
-)
-
-INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
-        DESTINATION lib/pkgconfig)
-
 if(catkin_FOUND)
     install(TARGETS msp msp_fcu msp_msg_print
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -130,10 +106,34 @@ if(catkin_FOUND)
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
     )
 
-    install(DIRECTORY include/${PROJECT_NAME}/
+    install(DIRECTORY inc/${PROJECT_NAME}/
        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
        FILES_MATCHING PATTERN "*.hpp"
     )
+else()
+    install(TARGETS msp
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+    install(TARGETS msp_msg_print
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+    install(TARGETS msp_fcu
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+    install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
+
+    SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
+    SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/msp" )
+    SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lboost_system -lmsp_msg_print" )
+    SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
+
+    CONFIGURE_FILE(
+      "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
+    )
+
+    INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
+            DESTINATION lib/pkgconfig)
 endif()
 
 #get_cmake_property(_variableNames VARIABLES)
