@@ -4,7 +4,9 @@
 
 namespace fcu {
 
-FlightController::FlightController(const std::string &device) : msp(device) { }
+FlightController::FlightController(const std::string &device) {
+    msp.connect(device);
+}
 
 FlightController::~FlightController() {
     for(const std::pair<msp::ID, msp::Request*> d : database)

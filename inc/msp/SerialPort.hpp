@@ -4,22 +4,38 @@
 #include <boost/asio.hpp>
 #include <mutex>
 
-class NoDevice : public std::runtime_error {
+class NoConnection : public std::runtime_error {
 public:
-    NoDevice(const std::string &device)
+    NoConnection(const std::string &device)
         : runtime_error("Device not available: "+device)
     { }
 };
 
 class SerialPort {
 public:
-    /**
-     * @brief SerialPort
-     * @param device path to serial device
-     */
-    SerialPort(const std::string &device);
+    SerialPort();
 
     ~SerialPort();
+
+    /**
+     * @brief connect establish connection to serial device
+     * @param device path or name of serial device
+     * @return true on success
+     */
+    bool connect(const std::string &device);
+
+    /**
+     * @brief getDevice obtain serial device
+     * @return path or name of serial device
+     */
+    const std::string &getDevice() const;
+
+    /**
+     * @brief isOpen
+     * @return true if device is open
+     * @return false if device is not open
+     */
+    bool isOpen();
 
     /**
      * @brief write write data vector to device
@@ -62,6 +78,7 @@ public:
     void clear();
 
 private:
+    std::string device;
     boost::asio::io_service io;     ///<! io service
     boost::asio::serial_port port;  ///<! port for serial device
     std::mutex lock_write;

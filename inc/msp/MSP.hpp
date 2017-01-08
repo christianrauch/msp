@@ -63,11 +63,24 @@ struct DataID {
  */
 class MSP {
 public:
+
     /**
-     * @brief MSP constructor msp communication
+     * @brief MSP construct MSP communication without establishing a connection
+     */
+    MSP();
+
+    /**
+     * @brief MSP constructor for MSP communication
      * @param device device path
      */
     MSP(const std::string &device);
+
+    /**
+     * @brief connect establish connection to serial device
+     * @param device path or name of serial device
+     * @return true on success
+     */
+    bool connect(const std::string &device);
 
     /**
      * @brief request send command and request data from FC once

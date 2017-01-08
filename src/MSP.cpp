@@ -6,7 +6,17 @@
 
 namespace msp {
 
-MSP::MSP(const std::string &device) : sp(device), wait(10) { }
+MSP::MSP() : wait(10) { }
+
+MSP::MSP(const std::string &device) : wait(10) {
+    connect(device);
+}
+
+bool MSP::connect(const std::string &device) {
+    sp.connect(device);
+    std::cout<<"Connected to: "<<device<<std::endl;
+    return true;
+}
 
 bool MSP::request(msp::Request &request) {
     if(!sendData(request.id()))
