@@ -13,6 +13,8 @@ void serialise_uint16(const uint16_t val, ByteVector &data);
 
 uint16_t deserialise_uint16(const ByteVector &data, const size_t start);
 
+void serialise_int16(const int16_t val, ByteVector &data);
+
 int16_t deserialise_int16(const ByteVector &data, const size_t start);
 
 int32_t deserialise_int32(const ByteVector &data, const size_t start);

@@ -860,6 +860,33 @@ struct ResetConfig : public Response {
     }
 };
 
+// MSP_SELECT_SETTING: 210
+struct SelectSetting : public Response {
+    ID id() const { return ID::MSP_SELECT_SETTING; }
+
+    uint current_setting;
+
+    std::vector<uint8_t> encode() const {
+        std::vector<uint8_t> data(1);
+        data[0] = uint8_t(current_setting);
+        return data;
+    }
+};
+
+// MSP_SET_HEAD: 211
+struct SetHeading : public Response {
+    ID id() const { return ID::MSP_SET_HEAD; }
+
+    int heading;
+
+    std::vector<uint8_t> encode() const {
+        std::vector<uint8_t> data;
+        serialise_int16(int16_t(heading), data);
+        assert(data.size()==2);
+        return data;
+    }
+};
+
 // MSP_SET_MOTOR: 214
 struct SetMotor : public Response {
     ID id() const { return ID::MSP_SET_MOTOR; }
