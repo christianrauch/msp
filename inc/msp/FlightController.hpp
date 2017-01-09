@@ -60,7 +60,7 @@ private:
 
 class FlightController {
 public:
-    FlightController(const std::string &device);
+    FlightController(const std::string &device, const uint baudrate=115200);
 
     ~FlightController();
 

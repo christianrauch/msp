@@ -20,9 +20,10 @@ public:
     /**
      * @brief connect establish connection to serial device
      * @param device path or name of serial device
+     * @param baudrate serial baudrate
      * @return true on success
      */
-    bool connect(const std::string &device);
+    bool connect(const std::string &device, const uint baudrate);
 
     /**
      * @brief getDevice obtain serial device

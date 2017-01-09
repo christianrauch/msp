@@ -4,8 +4,8 @@
 
 namespace fcu {
 
-FlightController::FlightController(const std::string &device) {
-    msp.connect(device);
+FlightController::FlightController(const std::string &device, const uint baudrate) {
+    msp.connect(device, baudrate);
 }
 
 FlightController::~FlightController() {

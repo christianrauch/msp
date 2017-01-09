@@ -8,12 +8,12 @@ namespace msp {
 
 MSP::MSP() : wait(10) { }
 
-MSP::MSP(const std::string &device) : wait(10) {
-    connect(device);
+MSP::MSP(const std::string &device, const uint baudrate) : wait(10) {
+    connect(device, baudrate);
 }
 
-bool MSP::connect(const std::string &device) {
-    sp.connect(device);
+bool MSP::connect(const std::string &device, const uint baudrate) {
+    sp.connect(device, baudrate);
     std::cout<<"Connected to: "<<device<<std::endl;
     return true;
 }

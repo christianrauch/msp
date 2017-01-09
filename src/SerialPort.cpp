@@ -13,7 +13,7 @@ SerialPort::~SerialPort() {
     port.close();
 }
 
-bool SerialPort::connect(const std::string &device) {
+bool SerialPort::connect(const std::string &device, const uint baudrate) {
     this->device = device;
     try {
         port.open(device);
@@ -22,7 +22,7 @@ bool SerialPort::connect(const std::string &device) {
         throw NoConnection(device);
     }
 
-    port.set_option(serial_port::baud_rate(115200));
+    port.set_option(serial_port::baud_rate(baudrate));
     port.set_option(serial_port::parity(serial_port::parity::none));
     port.set_option(serial_port::character_size(serial_port::character_size(8)));
     port.set_option(serial_port::stop_bits(serial_port::stop_bits::one));
