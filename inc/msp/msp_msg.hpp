@@ -142,9 +142,9 @@ struct BuildInfo : public Request {
     std::string shortGitRevision;
 
     void decode(const std::vector<uint8_t> &data) {
-        buildDate = std::string(data[0], data[BUILD_DATE_LENGTH-1]);
-        buildTime = std::string(data[BUILD_DATE_LENGTH], data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH-1]);
-        shortGitRevision = std::string(data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH], data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH+GIT_SHORT_REVISION_LENGTH-1]);
+        buildDate = std::string((const char*)&data[0], BUILD_DATE_LENGTH);
+        buildTime = std::string((const char*)&data[BUILD_DATE_LENGTH], BUILD_TIME_LENGTH);
+        shortGitRevision = std::string((const char*)&data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH], GIT_SHORT_REVISION_LENGTH);
     }
 };
 
