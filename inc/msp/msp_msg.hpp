@@ -28,26 +28,26 @@ const static uint BUILD_TIME_LENGTH = 8;
 const static uint GIT_SHORT_REVISION_LENGTH = 7;
 
 enum class MultiType : uint8_t {
-    TRI,    // 1
-    QUADP,  // 2
-    QUADX,  // 3
-    BI,     // 4
-    GIMBAL, // 5
-    Y6,     // 6
-    HEX6,   // 7
-    FLYING_WING, // 8
-    Y4,     // 9
-    HEX6X,  // 10
-    OCTOX8, // 11
-    OCTOFLATP,  // 12
-    OCTOFLATX,  // 13
-    AIRPLANE,   // 14
+    TRI             = 1,
+    QUADP,  		// 2
+    QUADX,  		// 3
+    BI,     		// 4
+    GIMBAL, 		// 5
+    Y6,     		// 6
+    HEX6,   		// 7
+    FLYING_WING,	// 8
+    Y4,     		// 9
+    HEX6X,  		// 10
+    OCTOX8, 		// 11
+    OCTOFLATP,  	// 12
+    OCTOFLATX,  	// 13
+    AIRPLANE,   	// 14
     HELI_120_CCPM,  // 15
-    HELI_90_DEG,    //16
-    VTAIL4,     // 17
-    HEX6H,      // 18
+    HELI_90_DEG,    // 16
+    VTAIL4,     	// 17
+    HEX6H,      	// 18
+    DUALCOPTER      = 20,
     SINGLECOPTER,   // 21
-    DUALCOPTER, // 20
 };
 
 enum class Capability {
