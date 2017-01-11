@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info) {
     s << "#Board Info:" << std::endl;
     s << "Identifier: " << board_info.identifier << std::endl;
     s << "Version: " << board_info.version << std::endl;
-    s << "Type: " << board_info.type << std::endl;
+    s << "Type: " << uint(board_info.type) << std::endl;
     return s;
 }
 
