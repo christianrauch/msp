@@ -21,15 +21,12 @@
 
 
 int main(int argc, char *argv[]) {
-    std::string device;
-    if(argc>1)
-        device = std::string(argv[1]);
-    else
-        device = "/dev/ttyUSB0";
+    const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
+    const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     std::chrono::high_resolution_clock::time_point start, end;
 
-    fcu::FlightController fcu(device);
+    fcu::FlightController fcu(device, baudrate);
 
     // wait until connection is established
     // get unique box IDs

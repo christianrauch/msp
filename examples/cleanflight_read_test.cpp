@@ -6,13 +6,10 @@
 #include <msg_print.hpp>
 
 int main(int argc, char *argv[]) {
-    std::string device;
-    if(argc>1)
-        device = std::string(argv[1]);
-    else
-        device = "/dev/ttyUSB0";
+    const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
+    const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-    msp::MSP msp(device);
+    msp::MSP msp(device, baudrate);
 
     // wait for established connection
     {
