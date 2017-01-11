@@ -18,8 +18,8 @@ bool SerialPort::connect(const std::string &device, const uint baudrate) {
     try {
         port.open(device);
     }
-    catch(boost::system::system_error) {
-        throw NoConnection(device);
+    catch(const boost::system::system_error &e) {
+        throw NoConnection(device, e.what());
     }
 
     port.set_option(serial_port::baud_rate(baudrate));
@@ -48,8 +48,8 @@ bool SerialPort::write(const std::vector<uint8_t> &data) {
         const std::size_t bytes_written = boost::asio::write(port, boost::asio::buffer(data.data(), data.size()));
         return (bytes_written==data.size());
     }
-    catch(boost::system::system_error) {
-        throw NoConnection(device);
+    catch(const boost::system::system_error &e) {
+        throw NoConnection(device, e.what());
     }
 }
 
@@ -58,8 +58,8 @@ size_t SerialPort::read(std::vector<uint8_t> &data) {
     try {
         return boost::asio::read(port, boost::asio::buffer(data.data(), data.size()));
     }
-    catch(boost::system::system_error) {
-        throw NoConnection(device);
+    catch(const boost::system::system_error &e) {
+        throw NoConnection(device, e.what());
     }
 }
 

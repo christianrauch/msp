@@ -6,8 +6,8 @@
 
 class NoConnection : public std::runtime_error {
 public:
-    NoConnection(const std::string &device)
-        : runtime_error("Device not available: "+device)
+    NoConnection(const std::string &device, const std::string &msg)
+        : runtime_error("Device not available: "+device+" ("+msg+")")
     { }
 };
 
