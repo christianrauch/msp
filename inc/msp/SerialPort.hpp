@@ -4,6 +4,8 @@
 #include <boost/asio.hpp>
 #include <mutex>
 
+typedef unsigned int uint;
+
 class NoConnection : public std::runtime_error {
 public:
     NoConnection(const std::string &device, const std::string &msg)
