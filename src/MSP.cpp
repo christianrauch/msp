@@ -45,16 +45,12 @@ bool MSP::request(msp::Request &request) {
 }
 
 bool MSP::request_block(msp::Request &request) {
+    // write ID once
+    if(!sendData(request.id()))
+        return false;
+
     bool success = false;
     while(success==false) {
-        // write ID
-        if(!sendData(request.id())) {
-            success = false;
-            continue;
-        }
-
-        std::this_thread::sleep_for(std::chrono::microseconds(wait));
-
         try {
             const DataID pkg = receiveData();
             success = (pkg.id==request.id());
