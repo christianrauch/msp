@@ -38,6 +38,11 @@ public:
     { }
 };
 
+class NoData : public std::runtime_error {
+public:
+    NoData() : std::runtime_error("No data available!") { }
+};
+
 /**
  * @brief The DataID struct
  */

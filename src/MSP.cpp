@@ -42,15 +42,21 @@ bool MSP::request(msp::Request &request) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
+    catch(msp::NoData) { return false; }
+    catch(boost::system::system_error) { return false; }
 }
 
 bool MSP::request_block(msp::Request &request) {
-    // write ID once
-    if(!sendData(request.id()))
-        return false;
-
     bool success = false;
     while(success==false) {
+        // write ID
+        if(!sendData(request.id())) {
+            success = false;
+            continue;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(wait));
+
         try {
             const DataID pkg = receiveData();
             success = (pkg.id==request.id());
@@ -69,6 +75,8 @@ bool MSP::request_block(msp::Request &request) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }
+        catch(msp::NoData) { success = false; }
+        catch(boost::system::system_error) { success = false; }
     }
 
     return true;
@@ -85,12 +93,10 @@ bool MSP::request_wait(msp::Request &request, uint wait_ms) {
         std::this_thread::sleep_for(wait);
 
         try {
-            if(sp.hasData()>0) {
-                DataID pkg = receiveData();
-                success = (pkg.id==request.id());
-                if(success)
-                    request.decode(pkg.data);
-            }
+            DataID pkg = receiveData();
+            success = (pkg.id==request.id());
+            if(success)
+                request.decode(pkg.data);
         }
         catch(const MalformedHeader &e) {
             std::cerr<<e.what()<<std::endl;
@@ -104,6 +110,8 @@ bool MSP::request_wait(msp::Request &request, uint wait_ms) {
             std::cerr<<e.what()<<std::endl;
             return false;
         }
+        catch(msp::NoData) { success = false; }
+        catch(boost::system::system_error) { success = false; }
     }
 
     return true;
@@ -143,6 +151,8 @@ bool MSP::respond_block(const msp::Response &response) {
             std::cerr<<e.what()<<std::endl;
             success = false;
         }
+        catch(msp::NoData) { success = false; }
+        catch(boost::system::system_error) { success = false; }
     }
 
     return true;
@@ -165,35 +175,35 @@ bool MSP::sendData(const ID id, const ByteVector &data) {
 
 DataID MSP::receiveData() {
     // wait for correct preamble start
+    if(sp.hasData()<1) {
+        throw NoData();
+    }
+
     while( char(sp.read()) != '$');
 
-    // read remaining header
-    // 0. header: 'M'
-    // 1. direction: '>', '<' or '!'
-    // 2. payload size
-    // 3. command id
-    const std::vector<uint8_t> hdr = sp.read(4);
+    const char hdr = char(sp.read());
+    if(hdr != 'M')
+        throw MalformedHeader('M', uint8_t(hdr));
 
-    if(char(hdr[0]) != 'M')
-        throw MalformedHeader('M', uint8_t(hdr[0]));
-
-    // get ID of msg
-    const ID id = ID(hdr[3]);
-
-    if(char(hdr[1]) != '>') {
-        switch(char(hdr[1])) {
+    const char com_state = char(sp.read());
+    if(com_state != '>') {
+        switch(com_state) {
         case '!': {
             // the sent message ID is unknown to the FC
-            // report faulty ID
-            throw UnknownMsgId(hdr[3]);
+            sp.read(); // ignore data size
+            const uint8_t id = sp.read(); // get faulty ID
+            throw UnknownMsgId(id);
         }
         default:
-            throw MalformedHeader('>', uint8_t(char(hdr[1])));
+            throw MalformedHeader('>', uint8_t(com_state));
         }
     }
 
     // read data size
-    const uint8_t data_size = hdr[2];
+    const uint8_t data_size = sp.read();
+
+    // get ID of msg
+    const ID id = ID(sp.read());
 
     // read payload data
     const ByteVector data = sp.read(data_size);

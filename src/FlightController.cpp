@@ -85,6 +85,12 @@ void FlightController::handleRequests() {
             std::cerr<<e.what()<<std::endl;
             break;
         }
+        catch(msp::NoData) {
+            break;
+        }
+        catch(boost::system::system_error) {
+            break;
+        }
 
         // search for correct subscribtion
         if(subscriptions.count(id)) {

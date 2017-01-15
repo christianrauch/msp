@@ -55,15 +55,7 @@ bool SerialPort::write(const std::vector<uint8_t> &data) {
 
 size_t SerialPort::read(std::vector<uint8_t> &data) {
     std::lock_guard<std::mutex> lock(lock_read);
-    // wait for enough data to becomes available
-    while(hasData()<data.size());
-
-    try {
-        return boost::asio::read(port, boost::asio::buffer(data.data(), data.size()));
-    }
-    catch(const boost::system::system_error &e) {
-        throw NoConnection(device, e.what());
-    }
+    return boost::asio::read(port, boost::asio::buffer(data.data(), data.size()));
 }
 
 std::vector<uint8_t> SerialPort::read(std::size_t n_bytes) {
