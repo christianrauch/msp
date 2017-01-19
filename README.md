@@ -29,6 +29,23 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 #### Test
 - `msp_read_test.exe COM3`
 
+## Hardware Setup
+
+You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-to-Serial connector or (2) by direct serial connection (RX->TX, TX->RX, GND->GND, VCC->VCC). The first option is preferable for high transfer rates, as the direct connection is more exposed to transmission errors.
+
+### Baseflight / Cleanflight until 1.11:
+- the MSP update rate is determined by the looptime
+- change the looptime in the CLI to e.g. 1000us (1000Hz): `set looptime=1000`, then `save`
+
+### Cleanflight from 1.12 / Betaflight until 3.0.1
+- the MSP update rate is fixed to 100Hz
+
+### Betaflight 3.1
+- change the update rate for the serial task in the range 100 ... 2000Hz
+    - e.g. to 2000Hz: `set serial_update_rate_hz=2000`, then `save`
+- it might be necessary to increase the serial baudrate in the Ports configuration tab
+- test communication with higher baudrate: `./get_msp_info /dev/ttyUSB0 1000000`
+
 ## How to use the library (low-level API)
 
 You first need to instantiate the driver with the path to the device:
