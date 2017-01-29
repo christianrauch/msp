@@ -139,7 +139,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
                              const uint16_t aux1, const uint16_t aux2,
                              const uint16_t aux3, const uint16_t aux4)
 {
-    if(hasDynBal()) {
+    if(isFirmwareMultiWii() && hasDynBal()) {
         throw std::runtime_error(
             "DYNBALANCE is active!\n"
             "RC commands will have no effect on motors.");
@@ -160,7 +160,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
 }
 
 bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values) {
-    if(!hasDynBal()) {
+    if(isFirmwareMultiWii() && !hasDynBal()) {
         throw std::runtime_error(
             "DYNBALANCE is not active!\n"
             "Set '#define DYNBALANCE' in your MultiWii 'config.h'");
