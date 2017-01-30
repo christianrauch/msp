@@ -313,6 +313,11 @@ struct Rc : public Request {
     uint16_t aux4;
 
     void decode(const std::vector<uint8_t> &data) {
+        // if feature 'RX_MSP' is active (cleanflight), no RC data is provided
+        // return 0 for all RC channels
+        if(data.size()==0)
+            return;
+
         roll        = deserialise_uint16(data, 0);
         pitch       = deserialise_uint16(data, 2);
         yaw         = deserialise_uint16(data, 4);
