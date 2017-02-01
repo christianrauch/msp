@@ -40,4 +40,13 @@ int main(int argc, char *argv[]) {
     msp::BuildInfo build_info;
     if(msp.request_block(build_info))
         std::cout << build_info << std::endl;
+
+    msp::RxConfig rx_config;
+    msp.request_block(rx_config);
+
+    msp::Feature feature;
+    if(msp.request_block(feature))
+        std::cout<<feature<<std::endl;
+
+    return 0;
 }

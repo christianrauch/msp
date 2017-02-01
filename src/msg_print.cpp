@@ -38,6 +38,14 @@ std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info) {
     return s;
 }
 
+std::ostream& operator<<(std::ostream& s, const msp::Feature& feature) {
+    s << "#Features:" << std::endl;
+    for(const std::string &f : feature.features) {
+        s << f << std::endl;
+    }
+    return s;
+}
+
 std::ostream& operator<<(std::ostream& s, const msp::Ident& ident) {
     std::string type;
     switch(ident.type) {
