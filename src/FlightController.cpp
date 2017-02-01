@@ -25,7 +25,7 @@ void FlightController::waitForConnection() {
 
 void FlightController::initialise() {
     // wait for connection to be established
-    msp.request_wait(ident, 100);
+    msp.request_wait(ident, 100, 7); // 7 byte payload for MSP_IDENT
 
     msp::ApiVersion api;
     if(msp.request_block(api)) {

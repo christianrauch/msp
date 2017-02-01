@@ -9,6 +9,10 @@
 
 namespace msp {
 
+// size of header+crc, e.g. amount of bytes in MSP message that do not belong to payload
+// preamble (2) + direction (1) + size (1) + command (1) + crc (1) = 6
+static const uint FRAME_SIZE = 6;
+
 // exception to throw when header contains wrong data
 class MalformedHeader : public std::runtime_error {
 public:
@@ -103,9 +107,10 @@ public:
      * @brief request_wait wait for data while continuously sending command
      * @param request request message
      * @param wait_ms waiting time in between sending request and receiving response
+     * @param min_payload_size minimum amount of payload (bytes) that needs to be available before reading and decoding of a message starts
      * @return true when data has been received
      */
-    bool request_wait(msp::Request &request, uint wait_ms);
+    bool request_wait(msp::Request &request, const uint wait_ms, const uint min_payload_size = 0);
 
     /**
      * @brief respond send data to FC and read acknowledge

@@ -82,7 +82,7 @@ bool MSP::request_block(msp::Request &request) {
     return true;
 }
 
-bool MSP::request_wait(msp::Request &request, uint wait_ms) {
+bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min_payload_size) {
     const std::chrono::milliseconds wait(wait_ms);
 
     bool success = false;
@@ -93,10 +93,12 @@ bool MSP::request_wait(msp::Request &request, uint wait_ms) {
         std::this_thread::sleep_for(wait);
 
         try {
-            DataID pkg = receiveData();
-            success = (pkg.id==request.id());
-            if(success)
-                request.decode(pkg.data);
+            if(sp.hasData()>=int(FRAME_SIZE+min_payload_size)) {
+                DataID pkg = receiveData();
+                success = (pkg.id==request.id());
+                if(success)
+                    request.decode(pkg.data);
+            }
         }
         catch(const MalformedHeader &e) {
             std::cerr<<e.what()<<std::endl;
