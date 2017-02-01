@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     std::chrono::high_resolution_clock::time_point start, end;
+    bool feature_changed = false;
 start:
     fcu::FlightController fcu(device, baudrate);
 
@@ -39,7 +40,13 @@ start:
     if(fcu.isFirmwareCleanflight()) {
         if(fcu.enableRxMSP()==1) {
             std::cout<<"RX_MSP enabled, restart"<<std::endl;
+            feature_changed = true;
             goto start;
+        }
+
+        if(feature_changed) {
+            // if we rebooted after updating the RX_MSP feature, we need to sleep for a while
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
     }
 
