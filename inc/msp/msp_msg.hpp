@@ -74,6 +74,14 @@ enum class SwitchPosition : uint {
     HIGH = 2,
 };
 
+static const std::vector<std::string> FEATURES = {
+    "RX_PPM", "VBAT", "INFLIGHT_ACC_CAL", "RX_SERIAL", "MOTOR_STOP",
+    "SERVO_TILT", "SOFTSERIAL", "GPS", "FAILSAFE",
+    "SONAR", "TELEMETRY", "AMPERAGE_METER", "3D", "RX_PARALLEL_PWM",
+    "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "ONESHOT125",
+    "BLACKBOX", "CHANNEL_FORWARDING", "TRANSPONDER", "OSD"
+};
+
 /////////////////////////////////////////////////////////////////////
 /// Cleanflight
 
@@ -145,6 +153,70 @@ struct BuildInfo : public Request {
         buildDate = std::string((const char*)&data[0], BUILD_DATE_LENGTH);
         buildTime = std::string((const char*)&data[BUILD_DATE_LENGTH], BUILD_TIME_LENGTH);
         shortGitRevision = std::string((const char*)&data[BUILD_DATE_LENGTH+BUILD_TIME_LENGTH], GIT_SHORT_REVISION_LENGTH);
+    }
+};
+
+// MSP_FEATURE: 36
+struct Feature : public Request {
+    ID id() const { return ID::MSP_FEATURE; }
+
+    std::set<std::string> features;
+
+    void decode(const std::vector<uint8_t> &data) {
+        const uint32_t mask = deserialise_uint32(data,0);
+        for(uint ifeat(0); ifeat<FEATURES.size(); ifeat++) {
+            if(mask & (1<<ifeat))
+                features.insert(FEATURES[ifeat]);
+        }
+    }
+};
+
+// MSP_SET_FEATURE: 37
+struct SetFeature : public Response {
+    ID id() const { return ID::MSP_SET_FEATURE; }
+
+    std::set<std::string> features;
+
+    std::vector<uint8_t> encode() const {
+        std::vector<uint8_t> data;
+        uint32_t mask = 0;
+        for(uint ifeat(0); ifeat<FEATURES.size(); ifeat++) {
+            if(features.count(FEATURES[ifeat]))
+                mask |= 1<<ifeat;
+        }
+        serialise_uint32(mask, data);
+        return data;
+    }
+};
+
+// MSP_RX_CONFIG: 44
+struct RxConfig : public Request {
+    ID id() const { return ID::MSP_RX_CONFIG; }
+
+    uint8_t serialrx_provider;
+    uint16_t maxcheck;
+    uint16_t midrc;
+    uint16_t mincheck;
+    uint8_t spektrum_sat_bind;
+    uint16_t rx_min_usec;
+    uint16_t rx_max_usec;
+
+    void decode(const std::vector<uint8_t> &data) {
+        serialrx_provider = data[0];
+        maxcheck = deserialise_uint16(data, 1);
+        midrc = deserialise_uint16(data, 3);
+        mincheck = deserialise_uint16(data, 5);
+        spektrum_sat_bind = data[7];
+        rx_min_usec = deserialise_uint16(data, 8);
+        rx_max_usec = deserialise_uint16(data, 10);
+    }
+};
+
+// MSP_REBOOT: 68
+struct Reboot : public Response {
+    ID id() const { return ID::MSP_REBOOT; }
+    std::vector<uint8_t> encode() const {
+        return std::vector<uint8_t>();
     }
 };
 
@@ -904,6 +976,14 @@ struct SetMotor : public Response {
             serialise_uint16(motor[i], data);
         assert(data.size()==N_MOTOR*2);
         return data;
+    }
+};
+
+// MSP_EEPROM_WRITE: 250
+struct WriteEEPROM : public Response {
+    ID id() const { return ID::MSP_EEPROM_WRITE; }
+    std::vector<uint8_t> encode() const {
+        return std::vector<uint8_t>();
     }
 };
 

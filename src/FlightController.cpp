@@ -179,8 +179,10 @@ bool FlightController::arm(const bool arm) {
 
     const uint16_t yaw = arm ? 2000 : 1000;
 
-    return setRc(1500, 1500, yaw, 1000,
-                 1000, 1000, 1000, 1000);
+    if(isFirmwareMultiWii())
+        return setRc(1500, 1500, yaw, 1000, 1000, 1000, 1000, 1000);
+    else
+        return setRc(1500, 1500, 1000, yaw, 1000, 1000, 1000, 1000);
 }
 
 bool FlightController::arm_block() {
@@ -197,6 +199,50 @@ bool FlightController::disarm_block() {
         arm(false);
     }
     return true;
+}
+
+int FlightController::updateFeatures(const std::set<std::string> &add,
+                                     const std::set<std::string> &remove)
+{
+    // get original feature configuration
+    msp::Feature feature_in;
+    if(!msp.request_block(feature_in))
+        return -1;
+
+    // update feature configuration
+    msp::SetFeature feature_out;
+    feature_out.features = feature_in.features;
+    // enable features
+    for(const std::string &a : add) {
+        feature_out.features.insert(a);
+    }
+    // disable features
+    for(const std::string &rem : remove) {
+        feature_out.features.erase(rem);
+    }
+
+    // check if feature configuration changed
+    if(feature_out.features==feature_in.features)
+        return 0;
+
+    if(!msp.respond_block(feature_out))
+        return -1;
+
+    // make settings permanent and reboot
+    if(!writeEEPROM())
+        return -1;
+    if(!reboot())
+        return -1;
+
+    return 1;
+}
+
+bool FlightController::reboot() {
+    return msp.respond_block(msp::Reboot());
+}
+
+bool FlightController::writeEEPROM() {
+    return msp.respond_block(msp::WriteEEPROM());
 }
 
 } // namespace msp

@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     std::chrono::high_resolution_clock::time_point start, end;
-
+start:
     fcu::FlightController fcu(device, baudrate);
 
     // wait until connection is established
@@ -34,6 +34,14 @@ int main(int argc, char *argv[]) {
     fcu.initialise();
     end = std::chrono::high_resolution_clock::now();
     std::cout<<"ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
+
+    // on cleanflight, we need to enable the "RX_MSP" feature
+    if(fcu.isFirmwareCleanflight()) {
+        if(fcu.enableRxMSP()==1) {
+            std::cout<<"RX_MSP enabled, restart"<<std::endl;
+            goto start;
+        }
+    }
 
     std::cout<<"Armed? "<<fcu.isArmed()<<std::endl;
 

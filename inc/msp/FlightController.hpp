@@ -241,6 +241,36 @@ public:
      */
     bool disarm_block();
 
+    /**
+     * @brief updateFeatures enable and disable features on the FC
+     * To apply updates, changes will be written to the EEPROM and the FC will reboot.
+     * @param add set of features to enable
+     * @param remove set of features to disable
+     * @return 1 if features have been changed
+     * @return 0 if no changes have been applied
+     * @return -1 on failure
+     */
+    int updateFeatures(const std::set<std::string> &add = std::set<std::string>(),
+                       const std::set<std::string> &remove = std::set<std::string>());
+
+    /**
+     * @brief enableRxMSP enable the "RX_MSP" feature
+     * The features "RX_MSP", "RX_PARALLEL_PWM", "RX_PPM" and "RX_SERIAL" are
+     * mutually exclusive. Hence one of the features "RX_PARALLEL_PWM", "RX_PPM"
+     * or "RX_SERIAL" will be disabled if active.
+     * @return true on success
+     */
+    bool enableRxMSP() {
+        return updateFeatures(
+            {"RX_MSP"}, // add
+            {"RX_PARALLEL_PWM", "RX_PPM", "RX_SERIAL"} // remove
+        );
+    }
+
+    bool reboot();
+
+    bool writeEEPROM();
+
 private:
     msp::Request* getRequestById(const msp::ID id) {
         return database[id];
