@@ -385,10 +385,12 @@ struct Rc : public Request {
     uint16_t aux4;
 
     void decode(const std::vector<uint8_t> &data) {
-        // if feature 'RX_MSP' is active (cleanflight), no RC data is provided
-        // return 0 for all RC channels
-        if(data.size()==0)
+        // If feature 'RX_MSP' is active but "USE_RX_MSP" is undefined for the target,
+        // no RC data is provided as feedback. See also description at 'MSP_SET_RAW_RC'.
+        // In this case, return 0 for all RC channels.
+        if(data.size()==0) {
             return;
+        }
 
         roll        = deserialise_uint16(data, 0);
         pitch       = deserialise_uint16(data, 2);
@@ -826,6 +828,9 @@ struct Debug : public Request {
 /// Response (2xx)
 
 // MSP_SET_RAW_RC: 200
+// This message is accepted but ignored on betaflight 3.0.1 onwards
+// if "USE_RX_MSP" is not defined for the target. In this case, you can manually
+// add "#define USE_RX_MSP" to your 'target.h'.
 struct SetRc : public Response {
     ID id() const { return ID::MSP_SET_RAW_RC; }
 
