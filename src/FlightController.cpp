@@ -121,17 +121,17 @@ void FlightController::initBoxes() {
     }
 }
 
-bool FlightController::isArmed() {
-    if(box_name_ids.count("ARM")==0) {
-        // box ids have not been initialised
-        throw std::runtime_error("Box ID of 'ARM' is unknown! You need to call 'initBoxes()' first.");
+bool FlightController::isStatusActive(const std::string& status_name) {
+    if(box_name_ids.count(status_name)==0) {
+        // box ids have not been initialised or requested status is unsupported by FC
+        throw std::runtime_error("Box ID of "+status_name+" is unknown! You need to call 'initBoxes()' first.");
     }
 
     msp::Status status;
     msp.request_block(status);
 
     // check if ARM box id is amongst active box IDs
-    return status.active_box_id.count(box_name_ids.at("ARM"));
+    return status.active_box_id.count(box_name_ids.at(status_name));
 }
 
 bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,

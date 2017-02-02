@@ -173,6 +173,10 @@ public:
 
     void initBoxes();
 
+    std::map<std::string, uint> &getBoxNames() {
+        return box_name_ids;
+    }
+
     bool hasCapability(const msp::Capability &cap) const {
         return ident.capabilities.count(cap);
     }
@@ -213,7 +217,11 @@ public:
         return hasSensor(msp::Sensor::Sonar);
     }
 
-    bool isArmed();
+    bool isStatusActive(const std::string& status_name);
+
+    bool isArmed() { return isStatusActive("ARM"); }
+
+    bool isStatusFailsafe() { return isStatusActive("FAILSAFE"); }
 
     bool setRc(const uint16_t roll, const uint16_t pitch,
                const uint16_t yaw, const uint16_t throttle,
