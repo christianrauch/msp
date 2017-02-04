@@ -117,7 +117,15 @@ void FlightController::initBoxes() {
 
     box_name_ids.clear();
     for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
-        box_name_ids[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
+        if(isFirmwareCleanflight()) {
+            // workaround for wrong box ids in cleanflight
+            // cleanflight's box ids are in order of the box names
+            // https://github.com/cleanflight/cleanflight/issues/2606
+            box_name_ids[box_names.box_names[ibox]] = ibox;
+        }
+        else {
+            box_name_ids[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
+        }
     }
 }
 
@@ -148,8 +156,16 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
     msp::SetRc rc;
     rc.roll = roll;
     rc.pitch = pitch;
-    rc.yaw = yaw;
-    rc.throttle = throttle;
+    if(isFirmwareCleanflight()) {
+        // workaround for swapped yaw and throttle channels in cleanflight
+        // https://github.com/cleanflight/cleanflight/issues/2603
+        rc.yaw = throttle;
+        rc.throttle = yaw;
+    }
+    else {
+        rc.yaw = yaw;
+        rc.throttle = throttle;
+    }
     rc.aux1 = aux1;
     rc.aux2 = aux2;
     rc.aux3 = aux3;
@@ -179,10 +195,7 @@ bool FlightController::arm(const bool arm) {
 
     const uint16_t yaw = arm ? 2000 : 1000;
 
-    if(isFirmwareMultiWii())
-        return setRc(1500, 1500, yaw, 1000, 1000, 1000, 1000, 1000);
-    else
-        return setRc(1500, 1500, 1000, yaw, 1000, 1000, 1000, 1000);
+    return setRc(1500, 1500, yaw, 1000, 1000, 1000, 1000, 1000);
 }
 
 bool FlightController::arm_block() {
