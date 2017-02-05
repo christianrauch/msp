@@ -46,6 +46,21 @@ void FlightController::initialise() {
 
     // get boxes
     initBoxes();
+
+    // determine channel mapping
+    if(isFirmwareMultiWii()) {
+        // default mapping
+        channel_map.clear();
+        for(uint i(0); i<MAX_MAPPABLE_RX_INPUTS; i++) {
+            channel_map[i] = i;
+        }
+    }
+    else {
+        // get channel mapping from MSP_RX_MAP
+        msp::RxMap rx_map;
+        msp.request_block(rx_map);
+        channel_map = rx_map.map;
+    }
 }
 
 bool FlightController::isFirmware(const FirmwareType firmware_type) {
@@ -153,23 +168,18 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
             "RC commands will have no effect on motors.");
     }
 
+    const std::array<uint16_t, MAX_MAPPABLE_RX_INPUTS> rc_order =
+        {{roll, pitch, yaw, throttle, aux1, aux2, aux3, aux4}};
+
     msp::SetRc rc;
-    rc.roll = roll;
-    rc.pitch = pitch;
-    if(isFirmwareCleanflight()) {
-        // workaround for swapped yaw and throttle channels in cleanflight
-        // https://github.com/cleanflight/cleanflight/issues/2603
-        rc.yaw = throttle;
-        rc.throttle = yaw;
-    }
-    else {
-        rc.yaw = yaw;
-        rc.throttle = throttle;
-    }
-    rc.aux1 = aux1;
-    rc.aux2 = aux2;
-    rc.aux3 = aux3;
-    rc.aux4 = aux4;
+    rc.roll = rc_order[channel_map[0]];
+    rc.pitch = rc_order[channel_map[1]];
+    rc.yaw = rc_order[channel_map[2]];
+    rc.throttle = rc_order[channel_map[3]];
+    rc.aux1 = rc_order[channel_map[4]];
+    rc.aux2 = rc_order[channel_map[5]];
+    rc.aux3 = rc_order[channel_map[6]];
+    rc.aux4 = rc_order[channel_map[7]];
 
     // send MSP_SET_RAW_RC without waiting for ACK
     return msp.send(rc);

@@ -280,6 +280,9 @@ public:
     bool writeEEPROM();
 
 private:
+
+    static const uint MAX_MAPPABLE_RX_INPUTS = 8;
+
     msp::Request* getRequestById(const msp::ID id) {
         return database[id];
     }
@@ -306,6 +309,8 @@ private:
     std::set<msp::Sensor> sensors;
 
     FirmwareType firmware;
+
+    std::vector<uint8_t> channel_map;
 };
 
 } // namespace msp

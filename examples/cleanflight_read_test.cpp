@@ -48,5 +48,9 @@ int main(int argc, char *argv[]) {
     if(msp.request_block(feature))
         std::cout<<feature<<std::endl;
 
+    msp::RxMap rx_map;
+    if(msp.request_block(rx_map))
+        std::cout<<rx_map<<std::endl;
+
     return 0;
 }

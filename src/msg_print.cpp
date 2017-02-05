@@ -46,6 +46,14 @@ std::ostream& operator<<(std::ostream& s, const msp::Feature& feature) {
     return s;
 }
 
+std::ostream& operator<<(std::ostream& s, const msp::RxMap& rx_map) {
+    s << "#Channel mapping:" << std::endl;
+    for(uint i(0); i<rx_map.map.size(); i++) {
+        s << i << ": " << uint(rx_map.map[i]) << std::endl;
+    }
+    return s;
+}
+
 std::ostream& operator<<(std::ostream& s, const msp::Ident& ident) {
     std::string type;
     switch(ident.type) {

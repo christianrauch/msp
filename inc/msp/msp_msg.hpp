@@ -212,6 +212,28 @@ struct RxConfig : public Request {
     }
 };
 
+// MSP_RX_MAP: 64
+struct RxMap : public Request {
+    ID id() const { return ID::MSP_RX_MAP; }
+
+    std::vector<uint8_t> map;
+
+    void decode(const std::vector<uint8_t> &data) {
+        map = data;
+    }
+};
+
+// MSP_SET_RX_MAP: 65
+struct SetRxMap : public Response {
+    ID id() const { return ID::MSP_SET_RX_MAP; }
+
+    std::vector<uint8_t> map;
+
+    std::vector<uint8_t> encode() const {
+        return map;
+    }
+};
+
 // MSP_REBOOT: 68
 struct Reboot : public Response {
     ID id() const { return ID::MSP_REBOOT; }

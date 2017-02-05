@@ -16,6 +16,8 @@ std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info);
 
 std::ostream& operator<<(std::ostream& s, const msp::Feature& feature);
 
+std::ostream& operator<<(std::ostream& s, const msp::RxMap& rx_map);
+
 std::ostream& operator<<(std::ostream& s, const msp::Ident& ident);
 
 std::ostream& operator<<(std::ostream& s, const msp::Status& status);
