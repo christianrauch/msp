@@ -39,7 +39,9 @@ bool MSP::request(msp::Request &request) {
         return false;
     }
     catch(const UnknownMsgId &e) {
-        std::cerr<<e.what()<<std::endl;
+        if(e.getInvalidID()==uint8_t(request.id())) {
+            std::cerr<<e.what()<<std::endl;
+        }
         return false;
     }
     catch(msp::NoData) { return false; }
@@ -72,8 +74,11 @@ bool MSP::request_block(msp::Request &request) {
             success = false;
         }
         catch(const UnknownMsgId &e) {
-            std::cerr<<e.what()<<std::endl;
-            return false;
+            if(e.getInvalidID()==uint8_t(request.id())) {
+                std::cerr<<e.what()<<std::endl;
+                return false;
+            }
+            success = false;
         }
         catch(msp::NoData) { success = false; }
         catch(boost::system::system_error) { success = false; }
@@ -109,8 +114,11 @@ bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min
             success = false;
         }
         catch(const UnknownMsgId &e) {
-            std::cerr<<e.what()<<std::endl;
-            return false;
+            if(e.getInvalidID()==uint8_t(request.id())) {
+                std::cerr<<e.what()<<std::endl;
+                return false;
+            }
+            success = false;
         }
         catch(msp::NoData) { success = false; }
         catch(boost::system::system_error) { success = false; }

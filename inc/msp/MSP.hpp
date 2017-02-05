@@ -24,10 +24,14 @@ public:
 };
 
 class UnknownMsgId : public std::runtime_error {
+private:
+    const uint8_t msg_id;
 public:
     UnknownMsgId(uint8_t id) : runtime_error(
-        "Unknown MSP id! FC refused to process message with id: "+std::to_string(id))
+        "Unknown MSP id! FC refused to process message with id: "+std::to_string(id)), msg_id(id)
     { }
+
+    const uint8_t &getInvalidID() const { return msg_id; }
 };
 
 // exception to throw if reported CRC does not match with computed
