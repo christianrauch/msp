@@ -25,6 +25,21 @@ public:
      */
     void stop();
 
+    /**
+     * @brief getPeriod get period in seconds
+     * @return period in seconds
+     */
+    double getPeriod() {
+        return period_us.count()/1.e6;
+    }
+
+    /**
+     * @brief setPeriod change the update period of timer thread
+     * This will stop and restart the thread.
+     * @param period_seconds period in seconds
+     */
+    void setPeriod(const double period_seconds);
+
 private:
     std::shared_ptr<std::thread> thread_ptr;
     std::function<void()> funct;

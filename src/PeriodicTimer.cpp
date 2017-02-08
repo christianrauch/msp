@@ -24,3 +24,9 @@ void PeriodicTimer::stop() {
     running = false;
     thread_ptr->join();
 }
+
+void PeriodicTimer::setPeriod(const double period_seconds) {
+    stop();
+    period_us = std::chrono::duration<uint, std::micro>(uint(period_seconds*1e6));
+    start();
+}

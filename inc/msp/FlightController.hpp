@@ -27,7 +27,24 @@ public:
     virtual void call(const msp::Request &req) = 0;
 
     bool hasTimer() {
-        return timer!=NULL;
+        // subscription with manual sending of requests
+        return !(timer->getPeriod()>0);
+    }
+
+    /**
+     * @brief setTimerPeriod change the period of the timer
+     * @param period_seconds period in seconds
+     */
+    void setTimerPeriod(const double period_seconds) {
+        timer->setPeriod(period_seconds);
+    }
+
+    /**
+     * @brief setTimerFrequency change the update rate of timer
+     * @param rate_hz frequency in Hz
+     */
+    void setTimerFrequency(const double rate_hz) {
+        timer->setPeriod(1.0/rate_hz);
     }
 
 protected:
@@ -114,11 +131,11 @@ public:
      * @param context class of callback method
      */
     template<typename T, typename C>
-    void subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
+    SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
         const msp::ID id = T().id();
         registerMessage<T>(id);
         if(std::is_base_of<msp::Request, T>::value) {
-            if(tp>0.0) {
+            if(tp>=0.0) {
                 // subscription with periodic sending of requests
                 subscriptions[id] = new Subscription<T,C>(callback, context,
                     new PeriodicTimer(
@@ -128,13 +145,18 @@ public:
                 );
             }
             else {
-                // subscription with manual sending of requests
-                subscriptions[T().id()] = new Subscription<T,C>(callback, context);
+                throw std::runtime_error("Period must be positive!");
             }
         }
         else {
             throw std::runtime_error("Callback parameter needs to be of Request type!");
         }
+
+        return subscriptions[id];
+    }
+
+    SubscriptionBase* getSubscription(const msp::ID& id) {
+        return subscriptions.at(id);
     }
 
     /**
