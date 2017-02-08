@@ -139,7 +139,7 @@ public:
                 // subscription with periodic sending of requests
                 subscriptions[id] = new Subscription<T,C>(callback, context,
                     new PeriodicTimer(
-                        std::bind(&FlightController::sendRequest, this, T().id()),
+                        std::bind(&FlightController::sendRequest, this, id),
                         tp
                     )
                 );

@@ -7,6 +7,10 @@ PeriodicTimer::PeriodicTimer(std::function<void()> funct, const double period_se
 }
 
 void PeriodicTimer::start() {
+    // only start thread if period is above 0
+    if(!(period_us.count()>0))
+        return;
+
     thread_ptr = std::shared_ptr<std::thread>(new std::thread(
     [this]{
         running = true;
@@ -22,7 +26,9 @@ void PeriodicTimer::start() {
 
 void PeriodicTimer::stop() {
     running = false;
-    thread_ptr->join();
+    if(thread_ptr!=nullptr && thread_ptr->joinable()) {
+        thread_ptr->join();
+    }
 }
 
 void PeriodicTimer::setPeriod(const double period_seconds) {
