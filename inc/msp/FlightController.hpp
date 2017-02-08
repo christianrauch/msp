@@ -155,6 +155,10 @@ public:
         return subscriptions[id];
     }
 
+    bool hasSubscription(const msp::ID& id) {
+        return (subscriptions.count(id)==1);
+    }
+
     SubscriptionBase* getSubscription(const msp::ID& id) {
         return subscriptions.at(id);
     }
