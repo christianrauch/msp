@@ -26,9 +26,9 @@ bool MSP::request(msp::Request &request) {
 
     try {
         const DataID pkg = receiveData();
-        if(pkg.id==request.id())
+        if(pkg.id==uint8_t(request.id()))
             request.decode(pkg.data);
-        return pkg.id==request.id();
+        return pkg.id==uint8_t(request.id());
     }
     catch(const MalformedHeader &e) {
         std::cerr<<e.what()<<std::endl;
@@ -61,7 +61,7 @@ bool MSP::request_block(msp::Request &request) {
 
         try {
             const DataID pkg = receiveData();
-            success = (pkg.id==request.id());
+            success = (pkg.id==uint8_t(request.id()));
             if(success)
                 request.decode(pkg.data);
         }
@@ -100,7 +100,7 @@ bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min
         try {
             if(sp.hasData()>=int(FRAME_SIZE+min_payload_size)) {
                 DataID pkg = receiveData();
-                success = (pkg.id==request.id());
+                success = (pkg.id==uint8_t(request.id()));
                 if(success)
                     request.decode(pkg.data);
             }
@@ -135,7 +135,7 @@ bool MSP::respond(const msp::Response &response) {
 
     try {
         const DataID pkg = receiveData();
-        return (pkg.id==response.id() && pkg.data.size()==0);
+        return (pkg.id==uint8_t(response.id()) && pkg.data.size()==0);
     }
     catch(const MalformedHeader &e) {
         std::cerr<<e.what()<<std::endl;
@@ -155,7 +155,7 @@ bool MSP::respond_block(const msp::Response &response) {
 
         try {
             const DataID pkg = receiveData();
-            success = (pkg.id==response.id() && pkg.data.size()==0);
+            success = (pkg.id==uint8_t(response.id()) && pkg.data.size()==0);
         }
         catch(const MalformedHeader &e) {
             std::cerr<<e.what()<<std::endl;
@@ -168,7 +168,7 @@ bool MSP::respond_block(const msp::Response &response) {
     return true;
 }
 
-bool MSP::sendData(const ID id, const ByteVector &data) {
+bool MSP::sendData(const uint8_t id, const ByteVector &data) {
     ByteVector msg;
     msg.reserve(6+data.size());
 
@@ -176,7 +176,7 @@ bool MSP::sendData(const ID id, const ByteVector &data) {
     msg.push_back('M');
     msg.push_back('<');
     msg.push_back(uint8_t(data.size()));                // data size
-    msg.push_back(std::underlying_type<ID>::type(id));  // message_id
+    msg.push_back(id);                                  // message_id
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crc(id, data) );                     // crc
 
@@ -213,7 +213,7 @@ DataID MSP::receiveData() {
     const uint8_t data_size = sp.read();
 
     // get ID of msg
-    const ID id = ID(sp.read());
+    const uint8_t id = sp.read();
 
     // read payload data
     const ByteVector data = sp.read(data_size);
@@ -228,8 +228,8 @@ DataID MSP::receiveData() {
     return DataID(data,id);
 }
 
-uint8_t MSP::crc(const ID id, const ByteVector &data) {
-    uint8_t crc = uint8_t(data.size())^std::underlying_type<ID>::type(id);
+uint8_t MSP::crc(const uint8_t id, const ByteVector &data) {
+    uint8_t crc = uint8_t(data.size())^id;
 
     for(uint8_t d : data)
         crc = crc^d;

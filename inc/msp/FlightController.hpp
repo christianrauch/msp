@@ -139,7 +139,7 @@ public:
                 // subscription with periodic sending of requests
                 subscriptions[id] = new Subscription<T,C>(callback, context,
                     new PeriodicTimer(
-                        std::bind(&FlightController::sendRequest, this, id),
+                        std::bind(static_cast<bool(FlightController::*)(msp::ID)>(&FlightController::sendRequest), this, id),
                         tp
                     )
                 );
@@ -183,6 +183,10 @@ public:
      * @return false on failure
      */
     bool sendRequest(const msp::ID id);
+
+    bool sendRequest(const uint8_t id) {
+        return sendRequest(msp::ID(id));
+    }
 
     /**
      * @brief handleRequests read incomming data and call corresponding callbacks

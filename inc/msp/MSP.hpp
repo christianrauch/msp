@@ -37,7 +37,7 @@ public:
 // exception to throw if reported CRC does not match with computed
 class WrongCRC : public std::runtime_error {
 public:
-    WrongCRC(const msp::ID msg_id, const uint8_t exp, const uint8_t rcv)
+    WrongCRC(const uint8_t msg_id, const uint8_t exp, const uint8_t rcv)
         : std::runtime_error(
               "CRC not matching: "
               "Message "+std::to_string(uint(msg_id))+", "
@@ -56,14 +56,14 @@ public:
  */
 struct DataID {
     ByteVector data;    //!< rawdata vector
-    ID id;              //!< message ID
+    uint8_t id;         //!< message ID
 
     /**
      * @brief DataID
      * @param data vector of raw data bytes
      * @param id message ID
      */
-    DataID(ByteVector data, ID id) : data(data), id(id) {}
+    DataID(const ByteVector data, const uint8_t id) : data(data), id(id) {}
 };
 
 /**
@@ -132,13 +132,24 @@ public:
     bool respond_block(const msp::Response &response);
 
     /**
-     * @brief sendData send raw data and ID to flight controller
+     * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
      * @param id message ID
      * @param data raw data
      * @return true on success
      * @return false on failure
      */
-    bool sendData(const ID id, const ByteVector &data = ByteVector(0));
+    bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
+
+    /**
+     * @brief sendData send raw data and ID to flight controller, only accepts registered message ID
+     * @param id message ID
+     * @param data raw data
+     * @return true on success
+     * @return false on failure
+     */
+    bool sendData(const msp::ID id, const ByteVector &data = ByteVector(0)) {
+        return sendData(uint8_t(id), data);
+    }
 
     /**
      * @brief send encode message and send payload
@@ -174,7 +185,7 @@ private:
      * @param data raw data vector
      * @return checksum
      */
-    uint8_t crc(const ID id, const ByteVector &data);
+    uint8_t crc(const uint8_t id, const ByteVector &data);
 
     SerialPort sp;      //!< serial port
     unsigned int wait;  //!< time (micro seconds) to wait before waiting for response

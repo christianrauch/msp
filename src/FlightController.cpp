@@ -85,7 +85,7 @@ void FlightController::handleRequests() {
 
         try {
             const msp::DataID data_id = msp.receiveData();
-            id = data_id.id;
+            id = msp::ID(data_id.id);
             data = data_id.data;
         }
         catch(const msp::MalformedHeader &e) {
