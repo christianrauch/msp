@@ -45,7 +45,7 @@ bool MSP::request(msp::Request &request) {
         return false;
     }
     catch(msp::NoData) { return false; }
-    catch(boost::system::system_error) { return false; }
+    catch(asio::system_error) { return false; }
 }
 
 bool MSP::request_block(msp::Request &request) {
@@ -81,7 +81,7 @@ bool MSP::request_block(msp::Request &request) {
             success = false;
         }
         catch(msp::NoData) { success = false; }
-        catch(boost::system::system_error) { success = false; }
+        catch(asio::system_error) { success = false; }
     }
 
     return true;
@@ -121,7 +121,7 @@ bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min
             success = false;
         }
         catch(msp::NoData) { success = false; }
-        catch(boost::system::system_error) { success = false; }
+        catch(asio::system_error) { success = false; }
     }
 
     return true;
@@ -141,7 +141,7 @@ bool MSP::respond(const msp::Response &response) {
         std::cerr<<e.what()<<std::endl;
         return false;
     }
-    catch(boost::system::system_error) { return false; }
+    catch(asio::system_error) { return false; }
 }
 
 bool MSP::respond_block(const msp::Response &response) {
@@ -162,7 +162,7 @@ bool MSP::respond_block(const msp::Response &response) {
             success = false;
         }
         catch(msp::NoData) { success = false; }
-        catch(boost::system::system_error) { success = false; }
+        catch(asio::system_error) { success = false; }
     }
 
     return true;

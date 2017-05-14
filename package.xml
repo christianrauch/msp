@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>Implementation of the MultiWii Serial Protocol (MSP)</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="Rauch.Christian@gmx.de">Christian Rauch</maintainer>
@@ -40,8 +40,7 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>boost</build_depend>
-  <run_depend>boost</run_depend>
+  <build_depend>asio</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -1,11 +1,10 @@
 #include <SerialPort.hpp>
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <asio.hpp>
 
 #include <iostream>
 
-using namespace boost::asio;
+using namespace asio;
 
 SerialPort::SerialPort() : port(io) { }
 
@@ -18,7 +17,7 @@ bool SerialPort::connect(const std::string &device, const uint baudrate) {
     try {
         port.open(device);
     }
-    catch(const boost::system::system_error &e) {
+    catch(const asio::system_error &e) {
         throw NoConnection(device, e.what());
     }
 
@@ -45,17 +44,17 @@ bool SerialPort::isOpen() {
 bool SerialPort::write(const std::vector<uint8_t> &data) {
     std::lock_guard<std::mutex> lock(lock_write);
     try {
-        const std::size_t bytes_written = boost::asio::write(port, boost::asio::buffer(data.data(), data.size()));
+        const std::size_t bytes_written = asio::write(port, asio::buffer(data.data(), data.size()));
         return (bytes_written==data.size());
     }
-    catch(const boost::system::system_error &e) {
+    catch(const asio::system_error &e) {
         throw NoConnection(device, e.what());
     }
 }
 
 size_t SerialPort::read(std::vector<uint8_t> &data) {
     std::lock_guard<std::mutex> lock(lock_read);
-    return boost::asio::read(port, boost::asio::buffer(data.data(), data.size()));
+    return asio::read(port, asio::buffer(data.data(), data.size()));
 }
 
 std::vector<uint8_t> SerialPort::read(std::size_t n_bytes) {

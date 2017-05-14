@@ -4,19 +4,6 @@ project(msp)
 add_definitions(-std=c++11)
 add_definitions(-Wall)
 
-# use static boost libraries on Windows
-if(WIN32)
-    set(Boost_USE_STATIC_LIBS "ON")
-endif()
-
-find_package(Boost REQUIRED COMPONENTS system)
-include_directories( ${Boost_INCLUDE_DIRS} )
-
-if(MSVC)
-    # disable autolinking in boost
-    add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
-
 if(UNIX)
     set(BUILD_SHARED_LIBS "ON")
 endif()
@@ -56,7 +43,6 @@ set(MSP_HDR
 
 # low-level API
 add_library(msp ${MSP_SRC} ${MSP_HDR})
-target_link_libraries(msp ${Boost_SYSTEM_LIBRARIES})
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 # printing message content
@@ -124,7 +110,7 @@ else()
 
     SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
     SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/msp" )
-    SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lboost_system -lmsp_msg_print" )
+    SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lmsp_msg_print" )
     SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
 
     CONFIGURE_FILE(

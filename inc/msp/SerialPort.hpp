@@ -1,7 +1,7 @@
 #ifndef SERIALPORT_HPP
 #define SERIALPORT_HPP
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 #include <mutex>
 
 typedef unsigned int uint;
@@ -82,8 +82,8 @@ public:
 
 private:
     std::string device;
-    boost::asio::io_service io;     ///<! io service
-    boost::asio::serial_port port;  ///<! port for serial device
+    asio::io_service io;     ///<! io service
+    asio::serial_port port;  ///<! port for serial device
     std::mutex lock_write;
     std::mutex lock_read;
 };
