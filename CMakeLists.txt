@@ -10,6 +10,10 @@ endif()
 
 add_definitions(-DASIO_STANDALONE)
 
+if(WIN32)
+	include_directories(${ASIO_HEADER_PATH})
+endif()
+
 find_package(Threads)
 
 find_package(catkin QUIET)
