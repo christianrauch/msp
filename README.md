@@ -7,7 +7,7 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 
 ## Installation and Test
 ### Linux (Ubuntu / Debian)
-- install boost: `sudo apt install libboost-system-dev`
+- install asio: `sudo apt install --no-install-recommends libasio-dev`
 - check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..`
 - run the example program given the path to the serial device, e.g.: `./msp_read_test /dev/ttyUSB0`
 
