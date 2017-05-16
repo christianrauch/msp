@@ -35,7 +35,6 @@ include_directories(${MSP_INCLUDE_DIR})
 set(MSP_SRC
     ${MSP_SOURCE_DIR}/SerialPort.cpp
     ${MSP_SOURCE_DIR}/MSP.cpp
-    ${MSP_SOURCE_DIR}/deserialise.cpp
 )
 
 set(MSP_HDR
