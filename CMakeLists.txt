@@ -8,6 +8,8 @@ if(UNIX)
     set(BUILD_SHARED_LIBS "ON")
 endif()
 
+add_definitions(-DASIO_STANDALONE)
+
 find_package(Threads)
 
 find_package(catkin QUIET)
