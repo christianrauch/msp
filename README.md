@@ -14,16 +14,14 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 ### Windows
 #### Requirements
 - CMake
-- boost: install the 64bit binary libraries for Visual C++ 2015 [boost_1_62_0-msvc-14.0-64.exe](https://sourceforge.net/projects/boost/files/boost-binaries/1.62.0/boost_1_62_0-msvc-14.0-64.exe/download), they will be installed to `C:\local\boost_1_62_0\` by default
+- asio: download [asio-1.10.8.zip](https://sourceforge.net/projects/asio/files/latest/download?source=files) and extract the header files, e.g. to `C:\asio-1.10.8`
 - Visual C++ Build Tools: http://landinghub.visualstudio.com/visual-cpp-build-tools
-- Windows 10 SDK: https://support.microsoft.com/en-us/kb/2999226
 
 #### Build
-- open the Visual C++ 64bit command prompt
-- switch to 64bit architecture, call: `vcvarsall amd64` from `C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\`
-(or `"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64`)
-- `mkdir build && cd build`
-- `cmake -G"NMake Makefiles" .. -DBoost_INCLUDE_DIR=C:\local\boost_1_62_0\ -DBOOST_LIBRARYDIR=C:\local\boost_1_62_0\lib64-msvc-14.0\`
+- open the Developer Command Prompt for Visual Studio
+- change to the directory where you checked out msp
+- `mkdir build`, `cd build`
+- `cmake -G"NMake Makefiles" -DASIO_HEADER_PATH=C:\asio-1.10.8\include ..`
 - build: `nmake`
 
 #### Test
