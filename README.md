@@ -44,6 +44,14 @@ You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-t
 - it might be necessary to increase the serial baudrate in the Ports configuration tab
 - test communication with higher baudrate: `./get_msp_info /dev/ttyUSB0 1000000`
 
+### Sending and Receiving RC commands
+- activate feature `RX_MSP`
+    - via GUI: `Configuration` -> `Receiver` -> `Receiver Mode` -> `MSP RX input`
+    - via CLI: execute `feature RX_MSP`
+    - via API: `FlightController::enableRxMSP()` and reboot
+
+Beginning with Cleanflight 2 and Betaflight 3, `MSP_SET_RAW_RC` messages are ignored on some targets with insufficient flash memory (like the naze32). You can verify this, if `MSP_RC` messages return an empty list of channels. To activate `MSP_SET_RAW_RC` messages on these targets, you need to add `#define USE_RX_MSP` to your `target.h`, e.g. `src/main/target/NAZE/target.h`.
+
 ## How to use the library (low-level API)
 
 You first need to instantiate the driver with the path to the device:
