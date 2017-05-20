@@ -19,7 +19,6 @@ namespace msp {
 
 const static uint N_SERVO = 8;
 const static uint N_MOTOR = 8;
-const static uint RC_CHANS = 8;
 
 const static uint BOARD_IDENTIFIER_LENGTH = 4;
 
@@ -397,32 +396,16 @@ struct Motor : public Request {
 struct Rc : public Request {
     ID id() const { return ID::MSP_RC; }
 
-    uint16_t roll;
-    uint16_t pitch;
-    uint16_t yaw;
-    uint16_t throttle;
-    uint16_t aux1;
-    uint16_t aux2;
-    uint16_t aux3;
-    uint16_t aux4;
+    std::vector<uint16_t> channels;
 
     void decode(const std::vector<uint8_t> &data) {
+        channels.clear();
         // If feature 'RX_MSP' is active but "USE_RX_MSP" is undefined for the target,
         // no RC data is provided as feedback. See also description at 'MSP_SET_RAW_RC'.
         // In this case, return 0 for all RC channels.
-        if(data.size()==0) {
-            return;
+        for(uint i(0); i<data.size(); i+=sizeof(uint16_t)) {
+            channels.push_back(deserialise_uint16(data, i));
         }
-
-        roll        = deserialise_uint16(data, 0);
-        pitch       = deserialise_uint16(data, 2);
-        yaw         = deserialise_uint16(data, 4);
-        throttle    = deserialise_uint16(data, 6);
-
-        aux1        = deserialise_uint16(data, 8);
-        aux2        = deserialise_uint16(data, 10);
-        aux3        = deserialise_uint16(data, 12);
-        aux4        = deserialise_uint16(data, 14);
     }
 };
 
@@ -856,23 +839,13 @@ struct Debug : public Request {
 struct SetRc : public Response {
     ID id() const { return ID::MSP_SET_RAW_RC; }
 
-    uint16_t roll;
-    uint16_t pitch;
-    uint16_t yaw;
-    uint16_t throttle;
-    uint16_t aux1;
-    uint16_t aux2;
-    uint16_t aux3;
-    uint16_t aux4;
+    std::vector<uint16_t> channels;
 
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data;
-        for(auto channel : {roll, pitch, yaw, throttle,
-                            aux1, aux2, aux3, aux4})
-        {
-            serialise_uint16(channel, data);
+        for(const uint16_t c : channels) {
+            serialise_uint16(c, data);
         }
-        assert(data.size()==RC_CHANS*2);
         return data;
     }
 };

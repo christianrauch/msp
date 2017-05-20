@@ -154,9 +154,9 @@ std::ostream& operator<<(std::ostream& s, const msp::Motor& motor) {
 }
 
 std::ostream& operator<<(std::ostream& s, const msp::Rc& rc) {
-    s << "#Rc:" << std::endl;
-    s << rc.roll << " " << rc.pitch << " " << rc.yaw << " " << rc.throttle << std::endl;
-    s << rc.aux1 << " " << rc.aux2 << " " << rc.aux3 << " " << rc.aux4 << std::endl;
+    s << "#Rc channels (" << rc.channels.size() << ") :" << std::endl;
+    for(const uint16_t c : rc.channels) { s << c << " "; }
+    s << std::endl;
     return s;
 }
 

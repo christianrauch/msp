@@ -160,7 +160,8 @@ bool FlightController::isStatusActive(const std::string& status_name) {
 bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
                              const uint16_t yaw, const uint16_t throttle,
                              const uint16_t aux1, const uint16_t aux2,
-                             const uint16_t aux3, const uint16_t aux4)
+                             const uint16_t aux3, const uint16_t aux4,
+                             const std::vector<uint16_t> auxs)
 {
     if(isFirmwareMultiWii() && hasDynBal()) {
         throw std::runtime_error(
@@ -168,18 +169,20 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
             "RC commands will have no effect on motors.");
     }
 
-    const std::array<uint16_t, MAX_MAPPABLE_RX_INPUTS> rc_order =
-        {{roll, pitch, yaw, throttle, aux1, aux2, aux3, aux4}};
-
     msp::SetRc rc;
-    rc.roll = rc_order[channel_map[0]];
-    rc.pitch = rc_order[channel_map[1]];
-    rc.yaw = rc_order[channel_map[2]];
-    rc.throttle = rc_order[channel_map[3]];
-    rc.aux1 = rc_order[channel_map[4]];
-    rc.aux2 = rc_order[channel_map[5]];
-    rc.aux3 = rc_order[channel_map[6]];
-    rc.aux4 = rc_order[channel_map[7]];
+    // insert mappable channels
+    rc.channels.resize(MAX_MAPPABLE_RX_INPUTS);
+    rc.channels[channel_map[0]] = roll;
+    rc.channels[channel_map[1]] = pitch;
+    rc.channels[channel_map[2]] = yaw;
+    rc.channels[channel_map[3]] = throttle;
+    rc.channels[channel_map[4]] = aux1;
+    rc.channels[channel_map[5]] = aux2;
+    rc.channels[channel_map[6]] = aux3;
+    rc.channels[channel_map[7]] = aux4;
+
+    // insert remaining aux channels
+    rc.channels.insert(std::end(rc.channels), std::begin(auxs), std::end(auxs));
 
     // send MSP_SET_RAW_RC without waiting for ACK
     return msp.send(rc);
