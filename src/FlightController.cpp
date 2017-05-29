@@ -5,30 +5,27 @@
 namespace fcu {
 
 FlightController::FlightController(const std::string &device, const uint baudrate) {
-    msp.connect(device, baudrate);
+    client.connect(device, baudrate);
+    client.start();
 }
 
 FlightController::~FlightController() {
-    for(const std::pair<msp::ID, msp::Request*> d : database)
-        delete d.second;
-
-    for(const std::pair<msp::ID, SubscriptionBase*> s : subscriptions)
-        delete s.second;
+    client.stop();
 }
 
 void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::Ident ident;
-    msp.request_wait(ident, 100);
+    client.request(ident);
     std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
 }
 
 void FlightController::initialise() {
     // wait for connection to be established
-    msp.request_wait(ident, 100, 7); // 7 byte payload for MSP_IDENT
+    client.request(ident);
 
     msp::ApiVersion api;
-    if(msp.request_block(api)) {
+    if(client.request(api)) {
         // this is Cleanflight
         firmware = FirmwareType::CLEANFLIGHT;
         std::cout<<"Cleanflight API "<<api.major<<"."<<api.minor<<"."<<api.protocol<<" ready"<<std::endl;
@@ -41,7 +38,7 @@ void FlightController::initialise() {
 
     // get sensors
     msp::Status status;
-    msp.request_block(status);
+    client.request(status);
     sensors = status.sensors;
 
     // get boxes
@@ -58,7 +55,7 @@ void FlightController::initialise() {
     else {
         // get channel mapping from MSP_RX_MAP
         msp::RxMap rx_map;
-        msp.request_block(rx_map);
+        client.request(rx_map);
         channel_map = rx_map.map;
     }
 }
@@ -67,66 +64,14 @@ bool FlightController::isFirmware(const FirmwareType firmware_type) {
     return firmware == firmware_type;
 }
 
-void FlightController::sendRequests() {
-    for(auto s : subscriptions) {
-        // send requests only if there is no periodic timer already sending the same requests
-        if(!s.second->hasTimer()) { msp.sendData(s.first); }
-    }
-}
-
-bool FlightController::sendRequest(const msp::ID id) {
-    return msp.sendData(id);
-}
-
-void FlightController::handleRequests() {
-    while(true) {
-        msp::ID id;
-        msp::ByteVector data;
-
-        try {
-            const msp::DataID data_id = msp.receiveData();
-            id = msp::ID(data_id.id);
-            data = data_id.data;
-        }
-        catch(const msp::MalformedHeader &e) {
-            std::cerr<<e.what()<<std::endl;
-            break;
-        }
-        catch(const msp::WrongCRC &e) {
-            std::cerr<<e.what()<<std::endl;
-            break;
-        }
-        catch(const msp::UnknownMsgId &e) {
-            std::cerr<<e.what()<<std::endl;
-            break;
-        }
-        catch(msp::NoData) {
-            break;
-        }
-        catch(asio::system_error) {
-            break;
-        }
-
-        // search for correct subscribtion
-        if(subscriptions.count(id)) {
-            // get correct request type and decode message
-            msp::Request *const req = getRequestById(id);
-            req->decode(data);
-
-            SubscriptionBase* const sub = subscriptions.at(id);
-            sub->call(*req);
-        } // check ID in subscriptions
-    } // while there is still data
-}
-
 void FlightController::initBoxes() {
     // get box names
     msp::BoxNames box_names;
-    msp.request_block(box_names);
+    client.request(box_names);
 
     // get box IDs
     msp::BoxIds box_ids;
-    msp.request_block(box_ids);
+    client.request(box_ids);
 
     assert(box_names.box_names.size()==box_ids.box_ids.size());
 
@@ -151,7 +96,7 @@ bool FlightController::isStatusActive(const std::string& status_name) {
     }
 
     msp::Status status;
-    msp.request_block(status);
+    client.request(status);
 
     // check if ARM box id is amongst active box IDs
     return status.active_box_id.count(box_name_ids.at(status_name));
@@ -185,7 +130,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
     rc.channels.insert(std::end(rc.channels), std::begin(auxs), std::end(auxs));
 
     // send MSP_SET_RAW_RC without waiting for ACK
-    return msp.send(rc);
+    return client.respond(rc, false);
 }
 
 bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values) {
@@ -197,7 +142,7 @@ bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_
 
     msp::SetMotor motor;
     motor.motor = motor_values;
-    return msp.respond_block(motor);
+    return client.respond(motor);
 }
 
 bool FlightController::arm(const bool arm) {
@@ -232,7 +177,7 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
 {
     // get original feature configuration
     msp::Feature feature_in;
-    if(!msp.request_block(feature_in))
+    if(!client.request(feature_in))
         return -1;
 
     // update feature configuration
@@ -251,7 +196,7 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
     if(feature_out.features==feature_in.features)
         return 0;
 
-    if(!msp.respond_block(feature_out))
+    if(!client.respond(feature_out))
         return -1;
 
     // make settings permanent and reboot
@@ -264,11 +209,11 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
 }
 
 bool FlightController::reboot() {
-    return msp.respond_block(msp::Reboot());
+    return client.respond(msp::Reboot());
 }
 
 bool FlightController::writeEEPROM() {
-    return msp.respond_block(msp::WriteEEPROM());
+    return client.respond(msp::WriteEEPROM());
 }
 
 } // namespace msp

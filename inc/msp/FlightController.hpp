@@ -1,11 +1,8 @@
 #ifndef FLIGHTCONTROLLER_HPP
 #define FLIGHTCONTROLLER_HPP
 
-#include "MSP.hpp"
+#include "Client.hpp"
 #include "msp_msg.hpp"
-
-#include "PeriodicTimer.hpp"
-#include <map>
 
 namespace fcu {
 
@@ -16,76 +13,11 @@ enum class FirmwareType {
     CLEANFLIGHT
 };
 
-class SubscriptionBase {
-public:
-    SubscriptionBase(PeriodicTimer *timer=NULL) : timer(timer) { }
-
-    virtual ~SubscriptionBase() {
-        if(timer!=NULL) { delete timer; }
-    }
-
-    virtual void call(const msp::Request &req) = 0;
-
-    bool hasTimer() {
-        // subscription with manual sending of requests
-        return !(timer->getPeriod()>0);
-    }
-
-    /**
-     * @brief setTimerPeriod change the period of the timer
-     * @param period_seconds period in seconds
-     */
-    void setTimerPeriod(const double period_seconds) {
-        timer->setPeriod(period_seconds);
-    }
-
-    /**
-     * @brief setTimerFrequency change the update rate of timer
-     * @param rate_hz frequency in Hz
-     */
-    void setTimerFrequency(const double rate_hz) {
-        timer->setPeriod(1.0/rate_hz);
-    }
-
-protected:
-    PeriodicTimer *timer;
-};
-
-template<typename T, typename C>
-class Subscription : public SubscriptionBase {
-public:
-    typedef void(C::*Callback)(const T&);
-
-    Subscription(const Callback caller, C *const context_class)
-        : funct(caller), context(context_class) {
-    }
-
-    Subscription(const Callback caller, C *const context_class, PeriodicTimer *timer)
-        : SubscriptionBase(timer), funct(caller), context(context_class)
-    {
-        this->timer->start();
-    }
-
-    void call(const msp::Request &req) {
-        (*context.*funct)( dynamic_cast<const T&>(req) );
-    }
-
-private:
-    Callback funct;
-    C *const context;
-};
-
 class FlightController {
 public:
     FlightController(const std::string &device, const uint baudrate=115200);
 
     ~FlightController();
-
-    /**
-     * @brief getMSP expose underlying MSP instance for low-level access
-     * @return reference to MSP instance
-     */
-    msp::MSP &getMSP() { return msp; }
 
     void waitForConnection();
 
@@ -103,78 +35,43 @@ public:
 
     bool isFirmwareCleanflight() { return isFirmware(FirmwareType::CLEANFLIGHT); }
 
-    template<typename T>
-    /**
-     * @brief registerMessage register a message and its ID
-     * @param id ID of message
-     */
-    void registerMessage(const msp::ID &id) {
-        // delete old message
-        if(database.count(id)==1)
-            delete database[id];
-
-        // create message
-        switch(id) {
-        case msp::ID::MSP_RAW_IMU:
-            database[id] = new msp::Imu(acc_1g, gyro_unit, magn_gain, standard_gravity);
-            break;
-        default:
-            // use default constructor
-            database[id] = new T();
-            break;
-        }
-    }
-
     /**
      * @brief subscribe register callback function that is called when type is received
-     * @param callback pointer to callback function (method of class)
-     * @param context class of callback method
+     * @param callback pointer to callback function (class method)
+     * @param context class with callback method
+     * @param tp period at a timer will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
+     * @return pointer to subscription that is added to internal list
      */
     template<typename T, typename C>
-    SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
-        const msp::ID id = T().id();
-        registerMessage<T>(id);
-        if(std::is_base_of<msp::Request, T>::value) {
-            if(tp>=0.0) {
-                // subscription with periodic sending of requests
-                subscriptions[id] = new Subscription<T,C>(callback, context,
-                    new PeriodicTimer(
-                        std::bind(static_cast<bool(FlightController::*)(msp::ID)>(&FlightController::sendRequest), this, id),
-                        tp
-                    )
-                );
-            }
-            else {
-                throw std::runtime_error("Period must be positive!");
-            }
-        }
-        else {
-            throw std::runtime_error("Callback parameter needs to be of Request type!");
-        }
-
-        return subscriptions[id];
+    msp::client::SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
+        return client.subscribe(callback, context, tp);
     }
 
+    /**
+     * @brief hasSubscription check if message ID is subscribed
+     * @param id message ID
+     * @return true if there is already a subscription
+     * @return false if ID is not subscribed
+     */
     bool hasSubscription(const msp::ID& id) {
-        return (subscriptions.count(id)==1);
+        return client.hasSubscription(id);
     }
 
-    SubscriptionBase* getSubscription(const msp::ID& id) {
-        return subscriptions.at(id);
+    /**
+     * @brief getSubscription get pointer to subscription
+     * @param id message ID
+     * @return pointer to subscription
+     */
+    msp::client::SubscriptionBase* getSubscription(const msp::ID& id) {
+        return client.getSubscription(id);
     }
 
     /**
      * @brief handle listen for messages and call callback functions
      */
     void handle() {
-        sendRequests();
-        handleRequests();
+        client.waitForOneMessage();
     }
-
-    /**
-     * @brief sendRequests send all subscribed requests
-     */
-    void sendRequests();
 
     /**
      * @brief sendRequest send request with ID
@@ -182,16 +79,25 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool sendRequest(const msp::ID id);
-
     bool sendRequest(const uint8_t id) {
-        return sendRequest(msp::ID(id));
+        return client.sendRequest(id);
     }
 
-    /**
-     * @brief handleRequests read incomming data and call corresponding callbacks
-     */
-    void handleRequests();
+    bool request(msp::Request &request) {
+        return client.request(request);
+    }
+
+    bool request_raw(const uint8_t id, msp::ByteVector &data) {
+        return client.request_raw(id, data);
+    }
+
+    bool respond(const msp::Response &response) {
+        return client.respond(response);
+    }
+
+    bool respond_raw(const uint8_t id, msp::ByteVector &data, const bool wait_ack=true) {
+        return client.respond_raw(id, data);
+    }
 
     void setAcc1G(const float acc1g) { acc_1g=acc1g; }
 
@@ -314,15 +220,7 @@ private:
 
     static const uint MAX_MAPPABLE_RX_INPUTS = 8;
 
-    msp::Request* getRequestById(const msp::ID id) {
-        return database[id];
-    }
-
-    msp::MSP msp;
-
-    std::map<msp::ID, msp::Request*> database;
-
-    std::map<msp::ID, SubscriptionBase*> subscriptions;
+    msp::client::Client client;
 
    // sensor specific units
     float acc_1g;       // reported acceleration value at 1G

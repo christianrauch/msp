@@ -67,7 +67,7 @@ add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp
                            ${MSP_INCLUDE_DIR}/FlightController.hpp
                            ${MSP_SOURCE_DIR}/PeriodicTimer.cpp
                            ${MSP_INCLUDE_DIR}/PeriodicTimer.hpp)
-target_link_libraries(msp_fcu msp)
+target_link_libraries(msp_fcu mspclient)
 
 # client library
 add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/PeriodicTimer.cpp)

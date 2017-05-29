@@ -139,7 +139,6 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&App::onDebug, &app, 1);
 
     while(true) {
-        fcu.sendRequests();
-        fcu.handleRequests();
+        fcu.handle();
     }
 }

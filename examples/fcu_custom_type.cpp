@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     fcu.initialise();
 
     // subscribe with costum type
-    fcu.subscribe(&Callbacks::onIdent, &cbs);
+    fcu.subscribe(&Callbacks::onIdent, &cbs, 1);
 
     while(true) {
         fcu.handle();
