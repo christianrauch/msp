@@ -11,7 +11,7 @@ endif()
 add_definitions(-DASIO_STANDALONE)
 
 if(WIN32)
-	include_directories(${ASIO_HEADER_PATH})
+    include_directories(${ASIO_HEADER_PATH})
 endif()
 
 find_package(Threads)
@@ -21,7 +21,7 @@ find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS inc
-        LIBRARIES msp msp_fcu msp_msg_print
+        LIBRARIES msp msp_fcu mspclient msp_msg_print
     #    DEPENDS Boost
     )
 endif()
@@ -69,6 +69,10 @@ add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp
                            ${MSP_INCLUDE_DIR}/PeriodicTimer.hpp)
 target_link_libraries(msp_fcu msp)
 
+# client library
+add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/PeriodicTimer.cpp)
+target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
+
 # testing publish/subscribe
 add_executable(fcu_test examples/fcu_test.cpp)
 target_link_libraries(fcu_test msp_fcu msp_msg_print)
@@ -88,6 +92,14 @@ target_link_libraries(fcu_custom_type msp_fcu)
 # cleanflight requests
 add_executable(cleanflight_read_test examples/cleanflight_read_test.cpp)
 target_link_libraries(cleanflight_read_test msp msp_msg_print)
+
+# client test for asynchronous callbacks
+add_executable(msp_async_test examples/client_async_test.cpp)
+target_link_libraries(msp_async_test mspclient msp_msg_print)
+
+# client test for blocking read
+add_executable(client_read_test examples/client_read_test.cpp)
+target_link_libraries(client_read_test mspclient msp_msg_print)
 
 # installation
 if(catkin_FOUND)
