@@ -8,7 +8,7 @@ class App {
 public:
     std::string name;
 
-    App(std::string name) {
+    App(const std::string name, const float acc_1g, const float gyro_unit, const float magn_gain, const float si_unit_1g) : acc_1g(acc_1g), gyro_unit(gyro_unit), magn_gain(magn_gain), si_unit_1g(si_unit_1g) {
         this->name = name;
     }
 
@@ -22,8 +22,8 @@ public:
         std::cout<<status;
     }
 
-    void onImu(const msp::Imu& imu) {
-        std::cout<<imu;
+    void onImu(const msp::ImuRaw& imu_raw) {
+        std::cout<<msp::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
     }
 
     void onServo(const msp::Servo& servo) {
@@ -94,6 +94,12 @@ public:
     void onDebug(const msp::Debug& debug) {
         std::cout<<debug;
     }
+
+private:
+    const float acc_1g;
+    const float gyro_unit;
+    const float magn_gain;
+    const float si_unit_1g;
 };
 
 int main(int argc, char *argv[]) {
@@ -101,20 +107,16 @@ int main(int argc, char *argv[]) {
     const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     fcu::FlightController fcu(device, baudrate);
-    fcu.setAcc1G(512.0);
-    fcu.setGyroUnit(1.0/4.096);
-    fcu.setMagnGain(0.92/10.0); // for HMC5883L in default configuration (0.92 Mg/LSb)
-    fcu.setStandardGravity(9.80665);
 
     // wait for connection
     fcu.initialise();
 
-    App app("MultiWii");
+    App app("MultiWii", 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     // define subscriptions with specific period
     fcu.subscribe(&App::onIdent, &app, 10);
     fcu.subscribe(&App::onStatus, &app, 1);
     // no period => requested Imu each time callbacks are checked
-    fcu.subscribe(&App::onImu, &app);
+    fcu.subscribe(&App::onImu, &app, 0.1);
     fcu.subscribe(&App::onServo, &app, 0.1);
     fcu.subscribe(&App::onMotor, &app, 0.1);
     fcu.subscribe(&App::onRc, &app, 0.1);

@@ -13,8 +13,8 @@ struct SubCallbacks {
         std::cout<<status;
     }
 
-    void onImu(const msp::Imu& imu) {
-        std::cout<<imu;
+    void onImu(const msp::ImuRaw& imu) {
+        std::cout<<msp::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     }
 
     void onServo(const msp::Servo& servo) {

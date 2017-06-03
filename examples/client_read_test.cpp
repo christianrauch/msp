@@ -23,9 +23,10 @@ int main(int argc, char *argv[]) {
     if(client.request(status))
         std::cout<<status;
 
-    msp::Imu imu(512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
-    if(client.request(imu))
-        std::cout<<imu;
+    msp::ImuRaw imu_raw;
+    if(client.request(imu_raw)) {
+        std::cout<<msp::ImuSI(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    }
 
     msp::Servo servo;
     if(client.request(servo))

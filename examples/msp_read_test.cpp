@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
     msp.request_block(status);
     std::cout<<status;
 
-    msp::Imu imu(512.0, 1.0/4.096, 0.92/10.0, 9.80665);
-    msp.request_block(imu);
-    std::cout<<imu;
+    msp::ImuRaw imu_raw;
+    msp.request_block(imu_raw);
+    std::cout<<msp::ImuSI(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
 
     msp::Servo servo;
     msp.request_block(servo);

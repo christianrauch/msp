@@ -336,35 +336,44 @@ struct Status : public Request {
 };
 
 // MSP_RAW_IMU: 102
-struct Imu : public Request {
+struct ImuRaw : public Request {
     ID id() const { return ID::MSP_RAW_IMU; }
 
+    std::array<int16_t, 3> acc;
+    std::array<int16_t, 3> gyro;
+    std::array<int16_t, 3> magn;
+
+    void decode(const std::vector<uint8_t> &data) {
+        acc = {{deserialise_int16(data, 0), deserialise_int16(data, 2), deserialise_int16(data, 4)}};
+        gyro = {{deserialise_int16(data, 6), deserialise_int16(data, 8), deserialise_int16(data, 10)}};
+        magn = {{deserialise_int16(data, 12), deserialise_int16(data, 14), deserialise_int16(data, 16)}};
+    }
+};
+
+// Imu in SI units
+struct ImuSI {
     std::array<float, 3> acc;   // m/s^2
     std::array<float, 3> gyro;  // deg/s
     std::array<float, 3> magn;  // uT
 
-    // conversion units
-    float acc_1g;       // sensor value at 1g
-    float gyro_unit;    // resolution in 1/(deg/s)
-    float magn_gain;    // scale magnetic value to uT (micro Tesla)
-    float si_unit_1g;   // acceleration at 1g (in m/s^2)
+    ImuSI(const msp::ImuRaw &imu_raw,
+          const float acc_1g,       // sensor value at 1g
+          const float gyro_unit,    // resolution in 1/(deg/s)
+          const float magn_gain,    // scale magnetic value to uT (micro Tesla)
+          const float si_unit_1g    // acceleration at 1g (in m/s^2)
+            )
+    {
+        acc = {{imu_raw.acc[0]/acc_1g*si_unit_1g,
+                imu_raw.acc[1]/acc_1g*si_unit_1g,
+                imu_raw.acc[2]/acc_1g*si_unit_1g}};
 
-    Imu(float acc_1g = 1.0, float gyro_unit = 1.0, float magn_gain = 1.0, float si_unit_1g = 1.0)
-        : acc_1g(acc_1g), gyro_unit(gyro_unit), magn_gain(magn_gain), si_unit_1g(si_unit_1g)
-    { }
+        gyro = {{imu_raw.gyro[0]*gyro_unit,
+                 imu_raw.gyro[1]*gyro_unit,
+                 imu_raw.gyro[2]*gyro_unit}};
 
-    void decode(const std::vector<uint8_t> &data) {
-        acc = {{deserialise_int16(data, 0)/acc_1g*si_unit_1g,
-                deserialise_int16(data, 2)/acc_1g*si_unit_1g,
-                deserialise_int16(data, 4)/acc_1g*si_unit_1g}};
-
-        gyro = {{deserialise_int16(data, 6)*gyro_unit,
-                 deserialise_int16(data, 8)*gyro_unit,
-                 deserialise_int16(data, 10)*gyro_unit}};
-
-        magn = {{deserialise_int16(data, 12)*magn_gain,
-                 deserialise_int16(data, 14)*magn_gain,
-                 deserialise_int16(data, 16)*magn_gain}};
+        magn = {{imu_raw.magn[0]*magn_gain,
+                 imu_raw.magn[1]*magn_gain,
+                 imu_raw.magn[2]*magn_gain}};
     }
 };
 

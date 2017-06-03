@@ -131,7 +131,15 @@ std::ostream& operator<<(std::ostream& s, const msp::Status& status) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Imu& imu) {
+std::ostream& operator<<(std::ostream& s, const msp::ImuRaw& imu) {
+    s << "#Imu:" << std::endl;
+    s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << std::endl;
+    s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << std::endl;
+    s << "Magnetometer: " << imu.magn[0] << ", " << imu.magn[1] << ", " << imu.magn[2] << std::endl;
+    return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const msp::ImuSI& imu) {
     s << "#Imu:" << std::endl;
     s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << " m/s²" << std::endl;
     s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << " deg/s" << std::endl;
