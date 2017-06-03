@@ -133,6 +133,12 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
     return client.respond(rc, false);
 }
 
+bool FlightController::setRc(const std::vector<uint16_t> channels) {
+    msp::SetRc rc;
+    rc.channels = channels;
+    return client.respond(rc, false);
+}
+
 bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values) {
     if(isFirmwareMultiWii() && !hasDynBal()) {
         throw std::runtime_error(

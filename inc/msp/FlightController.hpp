@@ -159,11 +159,31 @@ public:
 
     bool isStatusFailsafe() { return isStatusActive("FAILSAFE"); }
 
+    /**
+     * @brief setRc set RC channels in order: roll, pitch, yaw, throttle by using channel mapping
+     * @param roll
+     * @param pitch
+     * @param yaw
+     * @param throttle
+     * @param aux1
+     * @param aux2
+     * @param aux3
+     * @param aux4
+     * @param auxs
+     * @return
+     */
     bool setRc(const uint16_t roll, const uint16_t pitch,
                const uint16_t yaw, const uint16_t throttle,
                const uint16_t aux1 = 1000, const uint16_t aux2 = 1000,
                const uint16_t aux3 = 1000, const uint16_t aux4 = 1000,
                const std::vector<uint16_t> auxs = std::vector<uint16_t>());
+
+    /**
+     * @brief setRc set RC channels in raw order as it is interpreted by the FC
+     * @param channels list of channel values (1000-2000)
+     * @return
+     */
+    bool setRc(const std::vector<uint16_t> channels);
 
     bool setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values);
 
