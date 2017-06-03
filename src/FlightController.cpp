@@ -166,6 +166,7 @@ bool FlightController::arm_block() {
     // attempt to arm while FC is disarmed
     while(isArmed()==false) {
         arm(true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     return true;
 }
@@ -174,6 +175,7 @@ bool FlightController::disarm_block() {
     // attempt to disarm while FC is armed
     while(isArmed()==true) {
         arm(false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     return true;
 }
