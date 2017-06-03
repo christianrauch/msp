@@ -16,13 +16,13 @@ FlightController::~FlightController() {
 void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::Ident ident;
-    client.request(ident);
+    while(!client.request(ident, 0.5));
     std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
 }
 
 void FlightController::initialise() {
     // wait for connection to be established
-    while(!client.request(ident, 1.0));
+    while(!client.request(ident, 0.5));
 
     msp::ApiVersion api;
     if(client.request(api)) {
@@ -65,13 +65,16 @@ bool FlightController::isFirmware(const FirmwareType firmware_type) {
 }
 
 void FlightController::initBoxes() {
+    client.setPrintWarnings(true);
     // get box names
     msp::BoxNames box_names;
-    client.request(box_names);
+    if(!client.request(box_names))
+        throw std::runtime_error("Cannot get BoxNames!");
 
     // get box IDs
     msp::BoxIds box_ids;
-    client.request(box_ids);
+    if(!client.request(box_ids))
+        throw std::runtime_error("Cannot get BoxIds!");
 
     assert(box_names.box_names.size()==box_ids.box_ids.size());
 
@@ -87,6 +90,7 @@ void FlightController::initBoxes() {
             box_name_ids[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
         }
     }
+    client.setPrintWarnings(false);
 }
 
 bool FlightController::isStatusActive(const std::string& status_name) {
