@@ -26,10 +26,12 @@ void Client::connect(const std::string &device, const uint baudrate) {
 
 void Client::waitForOneMessage() {
     // register handler for incomming messages
+    mutex_buffer.lock();
     asio::async_read_until(port, buffer, "$M", std::bind(&Client::onHeaderStart, this, std::placeholders::_1, std::placeholders::_2));
     // wait for incomming data
     io.run();
     io.reset();
+    mutex_buffer.unlock();
 }
 
 void Client::start() {

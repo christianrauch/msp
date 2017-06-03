@@ -271,6 +271,7 @@ private:
     std::mutex mutex_request;
     std::mutex mutex_callbacks;
     std::mutex mutex_send;
+    std::mutex mutex_buffer;
     // message for request method
     std::unique_ptr<ReceivedMessage> request_received;
     // subscriptions
