@@ -83,12 +83,12 @@ public:
         return client.sendRequest(id);
     }
 
-    bool request(msp::Request &request) {
-        return client.request(request);
+    bool request(msp::Request &request, const double timeout = 0) {
+        return client.request(request, timeout);
     }
 
-    bool request_raw(const uint8_t id, msp::ByteVector &data) {
-        return client.request_raw(id, data);
+    bool request_raw(const uint8_t id, msp::ByteVector &data, const double timeout = 0) {
+        return client.request_raw(id, data, timeout);
     }
 
     bool respond(const msp::Response &response) {

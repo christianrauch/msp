@@ -63,26 +63,34 @@ bool Client::sendData(const uint8_t id, const ByteVector &data) {
     return (bytes_written==msg.size());
 }
 
-bool Client::request(msp::Request &request) {
+bool Client::request(msp::Request &request, const double timeout) {
     msp::ByteVector data;
-    const bool success = request_raw(uint8_t(request.id()), data);
+    const bool success = request_raw(uint8_t(request.id()), data, timeout);
     if(success) { request.decode(data); }
     return success;
 }
 
-bool Client::request_raw(const uint8_t id, ByteVector &data) {
+bool Client::request_raw(const uint8_t id, ByteVector &data, const double timeout) {
     // send request
     if(!sendRequest(id)) { return false; }
 
     // wait for thread to received message
     std::unique_lock<std::mutex> lock(mutex_cv_request);
-    cv_request.wait(lock, [&]{
+    const auto predicate = [&]{
         mutex_request.lock();
         const bool received = (request_received!=NULL) && (request_received->id==id);
         // unlock to wait for next message
         if(!received) { mutex_request.unlock(); }
         return received;
-    });
+    };
+
+    if(timeout>0) {
+        if(!cv_request.wait_for(lock, std::chrono::milliseconds(uint(timeout*1e3)), predicate))
+            return false;
+    }
+    else {
+        cv_request.wait(lock, predicate);
+    }
 
     // check message status and decode
     const bool success = request_received->status==OK;

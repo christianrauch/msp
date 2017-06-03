@@ -156,7 +156,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool request(msp::Request &request);
+    bool request(msp::Request &request, const double timeout = 0);
 
     /**
      * @brief request_raw request raw unstructured payload data
@@ -165,7 +165,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool request_raw(const uint8_t id, ByteVector &data);
+    bool request_raw(const uint8_t id, ByteVector &data, const double timeout = 0);
 
     /**
      * @brief respond send payload to FC and block until an ACK has been received

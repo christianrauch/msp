@@ -22,7 +22,7 @@ void FlightController::waitForConnection() {
 
 void FlightController::initialise() {
     // wait for connection to be established
-    client.request(ident);
+    while(!client.request(ident, 1.0));
 
     msp::ApiVersion api;
     if(client.request(api)) {
