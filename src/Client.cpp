@@ -142,7 +142,7 @@ void Client::onHeaderStart(const asio::error_code& error, const std::size_t byte
 
     // message direction
     const uint8_t dir = uint8_t(buffer.sbumpc());
-    if(dir=='!') { status = FAIL_ID; }
+    const bool ok_id = (dir!='!');
 
     // payload length
     const uint8_t len = uint8_t(buffer.sbumpc());
@@ -150,25 +150,25 @@ void Client::onHeaderStart(const asio::error_code& error, const std::size_t byte
     // message ID
     const uint8_t id = uint8_t(buffer.sbumpc());
 
+    if(print_warnings && !ok_id) {
+        std::cerr << "Message with ID " << uint(id) << " is not recognised!" << std::endl;
+    }
+
     // payload
     std::vector<uint8_t> data;
     for(uint i(0); i<len; i++) { data.push_back(uint8_t(buffer.sbumpc())); }
 
     // CRC
     const uint8_t rcv_crc = uint8_t(buffer.sbumpc());
-    if(rcv_crc!=crc(id,data)) { status = FAIL_CRC; }
+    const uint8_t exp_crc = crc(id,data);
+    const bool ok_crc = (rcv_crc==exp_crc);
 
-    if(print_warnings) {
-        switch (status) {
-        case OK: break;
-        case FAIL_ID:
-            std::cerr << "Message with ID " << uint(id) << " is not recognised!" << std::endl;
-            break;
-        case FAIL_CRC:
-            std::cerr << "Message with ID " << uint(id) << " has wrong CRC!" << std::endl;
-            break;
-        }
+    if(print_warnings && !ok_crc) {
+        std::cerr << "Message with ID " << uint(id) << " has wrong CRC! (expected: " << uint(exp_crc) << ", received: "<< uint(rcv_crc) << ")" << std::endl;
     }
+
+    if(!ok_id) { status = FAIL_ID; }
+    else if(!ok_crc) { status = FAIL_CRC; }
 
     mutex_request.lock();
     request_received.reset(new ReceivedMessage());
