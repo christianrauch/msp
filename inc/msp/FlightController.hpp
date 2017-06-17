@@ -70,7 +70,7 @@ public:
      * @brief handle listen for messages and call callback functions
      */
     void handle() {
-        client.waitForOneMessage();
+        client.processOneMessage();
     }
 
     /**

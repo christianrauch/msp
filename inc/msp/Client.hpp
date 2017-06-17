@@ -107,6 +107,8 @@ public:
      */
     void waitForOneMessage();
 
+    void waitForOneMessageBlock();
+
     /**
      * @brief start starts the receiver thread that handles incomming messages
      */
@@ -246,6 +248,8 @@ public:
         return subscriptions.at(id);
     }
 
+    void processOneMessage();
+
 private:
     /**
      * @brief crc compute checksum of data package
@@ -254,15 +258,6 @@ private:
      * @return checksum
      */
     uint8_t crc(const uint8_t id, const ByteVector &data);
-
-
-
-    /**
-     * @brief onHeaderStart callback for received data
-     * @param error
-     * @param bytes_transferred
-     */
-    void onHeaderStart(const asio::error_code& error, const std::size_t bytes_transferred);
 
 private:
     // I/O

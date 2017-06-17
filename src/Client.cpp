@@ -24,20 +24,10 @@ void Client::connect(const std::string &device, const uint baudrate) {
     port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
 }
 
-void Client::waitForOneMessage() {
-    // register handler for incomming messages
-    mutex_buffer.lock();
-    asio::async_read_until(port, buffer, "$M", std::bind(&Client::onHeaderStart, this, std::placeholders::_1, std::placeholders::_2));
-    // wait for incomming data
-    io.run();
-    io.reset();
-    mutex_buffer.unlock();
-}
-
 void Client::start() {
     thread = std::thread([this]{
         running = true;
-        while(running) { waitForOneMessage(); }
+        while(running) { processOneMessage(); }
     });
 }
 
@@ -143,8 +133,14 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
     return crc;
 }
 
-void Client::onHeaderStart(const asio::error_code& error, const std::size_t bytes_transferred) {
-    if(error) { return; }
+void Client::processOneMessage() {
+    std::lock_guard<std::mutex> lck(mutex_buffer);
+
+    asio::error_code ec;
+    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M", ec);
+
+    if(ec)
+        return;
 
     // ignore and remove header bytes
     buffer.consume(bytes_transferred);
