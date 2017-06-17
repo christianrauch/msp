@@ -96,7 +96,7 @@ public:
     }
 
     bool respond_raw(const uint8_t id, msp::ByteVector &data, const bool wait_ack=true) {
-        return client.respond_raw(id, data);
+        return client.respond_raw(id, data, wait_ack);
     }
 
     void initBoxes();
