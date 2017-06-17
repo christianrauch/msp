@@ -118,6 +118,12 @@ public:
     void stop();
 
     /**
+     * @brief read blocking read a single byte from either the buffer or the serial device
+     * @return byte from buffer or device
+     */
+    uint8_t read();
+
+    /**
      * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
      * @param id message ID
      * @param data raw data
@@ -248,6 +254,8 @@ private:
      * @return checksum
      */
     uint8_t crc(const uint8_t id, const ByteVector &data);
+
+
 
     /**
      * @brief onHeaderStart callback for received data

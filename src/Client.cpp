@@ -47,6 +47,17 @@ void Client::stop() {
     thread.join();
 }
 
+uint8_t Client::read() {
+    if(buffer.sgetc()==EOF) {
+        asio::error_code ec;
+        do{
+            asio::read(port, buffer, asio::transfer_exactly(1), ec);
+        }while(ec);
+    }
+
+    return uint8_t(buffer.sbumpc());
+}
+
 bool Client::sendData(const uint8_t id, const ByteVector &data) {
     std::lock_guard<std::mutex> lock(mutex_send);
     ByteVector msg;
@@ -141,14 +152,14 @@ void Client::onHeaderStart(const asio::error_code& error, const std::size_t byte
     MessageStatus status = OK;
 
     // message direction
-    const uint8_t dir = uint8_t(buffer.sbumpc());
+    const uint8_t dir = read();
     const bool ok_id = (dir!='!');
 
     // payload length
-    const uint8_t len = uint8_t(buffer.sbumpc());
+    const uint8_t len = read();
 
     // message ID
-    const uint8_t id = uint8_t(buffer.sbumpc());
+    const uint8_t id = read();
 
     if(print_warnings && !ok_id) {
         std::cerr << "Message with ID " << uint(id) << " is not recognised!" << std::endl;
@@ -156,10 +167,12 @@ void Client::onHeaderStart(const asio::error_code& error, const std::size_t byte
 
     // payload
     std::vector<uint8_t> data;
-    for(uint i(0); i<len; i++) { data.push_back(uint8_t(buffer.sbumpc())); }
+    for(uint i(0); i<len; i++) {
+        data.push_back(read());
+    }
 
     // CRC
-    const uint8_t rcv_crc = uint8_t(buffer.sbumpc());
+    const uint8_t rcv_crc = read();
     const uint8_t exp_crc = crc(id,data);
     const bool ok_crc = (rcv_crc==exp_crc);
 
