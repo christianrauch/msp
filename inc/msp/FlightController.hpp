@@ -230,7 +230,7 @@ public:
 
 private:
 
-    static const uint MAX_MAPPABLE_RX_INPUTS = 8;
+    static const uint8_t MAX_MAPPABLE_RX_INPUTS = 8;
 
     msp::client::Client client;
 

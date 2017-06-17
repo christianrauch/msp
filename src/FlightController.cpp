@@ -48,8 +48,8 @@ void FlightController::initialise() {
     if(isFirmwareMultiWii()) {
         // default mapping
         channel_map.clear();
-        for(uint i(0); i<MAX_MAPPABLE_RX_INPUTS; i++) {
-            channel_map[i] = i;
+        for(uint8_t i(0); i<MAX_MAPPABLE_RX_INPUTS; i++) {
+            channel_map.push_back(i);
         }
     }
     else {
