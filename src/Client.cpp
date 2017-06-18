@@ -42,6 +42,9 @@ uint8_t Client::read() {
         asio::error_code ec;
         do{
             asio::read(port, buffer, asio::transfer_exactly(1), ec);
+            if(ec==asio::error::eof) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }while(ec);
     }
 
@@ -139,8 +142,10 @@ void Client::processOneMessage() {
     asio::error_code ec;
     const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M", ec);
 
-    if(ec)
+    if(ec==asio::error::eof) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         return;
+    }
 
     // ignore and remove header bytes
     buffer.consume(bytes_transferred);
