@@ -39,13 +39,7 @@ void Client::stop() {
 
 uint8_t Client::read() {
     if(buffer.sgetc()==EOF) {
-        asio::error_code ec;
-        do{
-            asio::read(port, buffer, asio::transfer_exactly(1), ec);
-            if(ec==asio::error::eof) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-        }while(ec);
+        asio::read(port, buffer, asio::transfer_exactly(1));
     }
 
     return uint8_t(buffer.sbumpc());
@@ -139,13 +133,7 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
 void Client::processOneMessage() {
     std::lock_guard<std::mutex> lck(mutex_buffer);
 
-    asio::error_code ec;
-    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M", ec);
-
-    if(ec==asio::error::eof) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        return;
-    }
+    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M");
 
     // ignore and remove header bytes
     buffer.consume(bytes_transferred);
