@@ -136,19 +136,10 @@ Instantiate and setup the `FlightController` class:
 ```
 #include <FlightController.hpp>
 
-fcu::FlightController fcu("/dev/ttyUSB0");
+fcu::FlightController fcu("/dev/ttyUSB0", 115200);
 
-// set conversion units for Imu measurements
-fcu.setAcc1G(512.0);
-fcu.setGyroUnit(1.0/4096);
-fcu.setMagnGain(1090.0/100.0);
-fcu.setStandardGravity(9.80665);
-
-// create default messages
-fcu.populate_database();
-
-// wait for connection
-fcu.waitForConnection();
+// wait for connection and setup
+fcu.initialise();
 ```
 
 ### Periodic request for messages
@@ -167,31 +158,25 @@ public:
 }
 ```
 
-#### Register callbacks
-Instantiate class with callbacks and register them to the FCU:
+Instantiate class with callbacks and register them to the FCU with the desired update rate in seconds:
 ```
 App app;
 
-fcu.subscribe(&App::onStatus, &app);
-fcu.subscribe(&App::onImu, &app);
-```
-
-Messages can now be requested and handled in a loop:
-```
-while(true) {
-    fcu.sendRequests();
-    fcu.handleRequests();
-}
+fcu.subscribe(&App::onStatus, &app, 0.1);
+fcu.subscribe(&App::onImu, &app, 0.01);
 ```
 
 Requests are sent to and processed by the flight controller as fast as possible. It is important to note that the MultiWii FCU only processed a single message per cycle. All subscribed messages therefore share the effective bandwidth of 1/(2800 us) = 357 messages per second.
 
-#### Register callbacks with different priorities
-It is possible to provide a target update rate to the subscribe method that allows to use more frequent updates of important messages (such as Imu) and less frequent updates of less important messages (such as the battery voltage).
+### Request and Send Messages
+Additional messages that are not requested periodically can be requested by the method
+```
+bool request(msp::Request &request, const double timeout = 0)
+```
+You need to instantiate a message of type `msp::Request` and provide it to the method with an optional timeout.
 
-If a target period (in seconds) is provided:
+Response messages are sent by
 ```
-fcu.subscribe(&App::onStatus, &app, 1);
-fcu.subscribe(&App::onImu, &app, 0.01);
+bool respond(const msp::Response &response, const bool wait_ack=true)
 ```
-the subscribed Request will periodically be sent by a background thread. In this case it is not required to call `sendRequests()` as this method will only send request of callbacks that have not been registered with a period time.
+where the method will block until an acknowledge is received if `wait_ack=true` (default).
