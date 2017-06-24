@@ -84,8 +84,8 @@ public:
         return client.request_raw(id, data, timeout);
     }
 
-    bool respond(const msp::Response &response) {
-        return client.respond(response);
+    bool respond(const msp::Response &response, const bool wait_ack=true) {
+        return client.respond(response, wait_ack);
     }
 
     bool respond_raw(const uint8_t id, msp::ByteVector &data, const bool wait_ack=true) {
