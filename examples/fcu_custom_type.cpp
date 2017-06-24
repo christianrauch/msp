@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
     // subscribe with costum type
     fcu.subscribe(&Callbacks::onIdent, &cbs, 1);
 
-    while(true) {
-        fcu.handle();
-    }
+    // Ctrl+C to quit
+    std::cin.get();
 }

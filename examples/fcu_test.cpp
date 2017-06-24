@@ -140,7 +140,6 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&App::onDebugMessage, &app,1);
     fcu.subscribe(&App::onDebug, &app, 1);
 
-    while(true) {
-        fcu.handle();
-    }
+    // Ctrl+C to quit
+    std::cin.get();
 }

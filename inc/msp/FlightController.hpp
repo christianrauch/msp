@@ -67,13 +67,6 @@ public:
     }
 
     /**
-     * @brief handle listen for messages and call callback functions
-     */
-    void handle() {
-        client.processOneMessage();
-    }
-
-    /**
      * @brief sendRequest send request with ID
      * @param id message ID of request
      * @return true on success
