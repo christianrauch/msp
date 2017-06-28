@@ -103,7 +103,7 @@ target_link_libraries(client_read_test mspclient msp_msg_print)
 
 # installation
 if(catkin_FOUND)
-    install(TARGETS msp msp_fcu msp_msg_print
+    install(TARGETS msp msp_fcu mspclient msp_msg_print
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -138,8 +138,3 @@ else()
     INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
             DESTINATION lib/pkgconfig)
 endif()
-
-#get_cmake_property(_variableNames VARIABLES)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
