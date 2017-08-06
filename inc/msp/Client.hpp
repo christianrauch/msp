@@ -161,19 +161,23 @@ public:
     /**
      * @brief request requests payload from FC and block until payload has been received
      * @param request request whose data will be set by the received payload
+     * @param timeout (optional) timeout in seconds
      * @return true on success
      * @return false on failure
+     * @return -1 on timeout
      */
-    bool request(msp::Request &request, const double timeout = 0);
+    int request(msp::Request &request, const double timeout = 0);
 
     /**
      * @brief request_raw request raw unstructured payload data
      * @param id message ID
      * @param data reference to data buffer at which the received data will be stores
-     * @return true on success
-     * @return false on failure
+     * @param timeout (optional) timeout in seconds
+     * @return 1 on success
+     * @return 0 on failure
+     * @return -1 on timeout
      */
-    bool request_raw(const uint8_t id, ByteVector &data, const double timeout = 0);
+    int request_raw(const uint8_t id, ByteVector &data, const double timeout = 0);
 
     /**
      * @brief respond send payload to FC and block until an ACK has been received

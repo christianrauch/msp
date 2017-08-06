@@ -61,14 +61,14 @@ bool Client::sendData(const uint8_t id, const ByteVector &data) {
     return (bytes_written==msg.size());
 }
 
-bool Client::request(msp::Request &request, const double timeout) {
+int Client::request(msp::Request &request, const double timeout) {
     msp::ByteVector data;
-    const bool success = request_raw(uint8_t(request.id()), data, timeout);
-    if(success) { request.decode(data); }
+    const int success = request_raw(uint8_t(request.id()), data, timeout);
+    if(success==1) { request.decode(data); }
     return success;
 }
 
-bool Client::request_raw(const uint8_t id, ByteVector &data, const double timeout) {
+int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout) {
     // send request
     if(!sendRequest(id)) { return false; }
 
@@ -84,7 +84,7 @@ bool Client::request_raw(const uint8_t id, ByteVector &data, const double timeou
 
     if(timeout>0) {
         if(!cv_request.wait_for(lock, std::chrono::milliseconds(uint(timeout*1e3)), predicate))
-            return false;
+            return -1;
     }
     else {
         cv_request.wait(lock, predicate);
