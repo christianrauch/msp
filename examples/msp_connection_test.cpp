@@ -16,10 +16,13 @@ int main(int argc, char *argv[]) {
     std::cout<<"Waiting for flight controller to become ready..."<<std::endl;
     auto start = std::chrono::steady_clock::now();
     msp::Ident ident;
-    msp.request_wait(ident, 10);
-    auto end = std::chrono::steady_clock::now();
-
-    std::cout<<"MSP version "<<(int)ident.version<<" ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
+    if(msp.request_wait(ident, 10)) {
+        auto end = std::chrono::steady_clock::now();
+        std::cout<<"MSP version "<<(int)ident.version<<" ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
+    }
+    else {
+        std::cout << "error getting MSP version" << std::endl;
+    }
     }
 
     // test update rate for reading Gyro messages
