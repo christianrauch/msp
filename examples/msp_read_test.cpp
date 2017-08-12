@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     // wait for flight controller to become ready
     {
     std::cout<<"Connecting FCU..."<<std::endl;
-    msp::Ident ident;
+    msp::msg::Ident ident;
     if(msp.request_wait(ident, 10)) {
         std::cout<<"MSP version "<<uint(ident.version)<<" ready"<<std::endl;
     }
@@ -25,116 +25,116 @@ int main(int argc, char *argv[]) {
 
     std::cout<<"ready"<<std::endl;
 
-    msp::Ident ident;
+    msp::msg::Ident ident;
     if(msp.request_block(ident))
         std::cout<<ident;
     else
         std::cerr<<"unsupported: "<<uint(ident.id())<<std::endl;
 
-    msp::Status status;
+    msp::msg::Status status;
     if(msp.request_block(status))
         std::cout<<status;
     else
         std::cerr<<"unsupported: "<<uint(status.id())<<std::endl;
 
-    msp::ImuRaw imu_raw;
+    msp::msg::ImuRaw imu_raw;
     if(msp.request_block(imu_raw))
-        std::cout<<msp::ImuSI(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+        std::cout<<msp::msg::ImuSI(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     else
         std::cerr<<"unsupported: "<<uint(imu_raw.id())<<std::endl;
 
-    msp::Servo servo;
+    msp::msg::Servo servo;
     if(msp.request_block(servo))
         std::cout<<servo;
     else
         std::cerr<<"unsupported: "<<uint(servo.id())<<std::endl;
 
-    msp::Motor motor;
+    msp::msg::Motor motor;
     if(msp.request_block(motor))
         std::cout<<motor;
     else
         std::cerr<<"unsupported: "<<uint(motor.id())<<std::endl;
 
-    msp::Rc rc;
+    msp::msg::Rc rc;
     if(msp.request_block(rc))
         std::cout<<rc;
     else
         std::cerr<<"unsupported: "<<uint(rc.id())<<std::endl;
 
-    msp::Attitude attitude;
+    msp::msg::Attitude attitude;
     if(msp.request_block(attitude))
         std::cout<<attitude;
     else
         std::cerr<<"unsupported: "<<uint(attitude.id())<<std::endl;
 
-    msp::Altitude altitude;
+    msp::msg::Altitude altitude;
     if(msp.request_block(altitude))
         std::cout<<altitude;
     else
         std::cerr<<"unsupported: "<<uint(altitude.id())<<std::endl;
 
-    msp::Analog analog;
+    msp::msg::Analog analog;
     if(msp.request_block(analog))
         std::cout<<analog;
     else
         std::cerr<<"unsupported: "<<uint(analog.id())<<std::endl;
 
-    msp::RcTuning rc_tuning;
+    msp::msg::RcTuning rc_tuning;
     if(msp.request_block(rc_tuning))
         std::cout<<rc_tuning;
     else
         std::cerr<<"unsupported: "<<uint(rc_tuning.id())<<std::endl;
 
-    msp::Pid pid;
+    msp::msg::Pid pid;
     if(msp.request_block(pid))
         std::cout<<pid;
     else
         std::cerr<<"unsupported: "<<uint(pid.id())<<std::endl;
 
-    msp::Box box;
+    msp::msg::Box box;
     if(msp.request_block(box))
         std::cout<<box;
     else
         std::cerr<<"unsupported: "<<uint(box.id())<<std::endl;
 
-    msp::Misc misc;
+    msp::msg::Misc misc;
     if(msp.request_block(misc))
         std::cout<<misc;
     else
         std::cerr<<"unsupported: "<<uint(misc.id())<<std::endl;
 
-    msp::MotorPins pins;
+    msp::msg::MotorPins pins;
     if(msp.request_block(pins))
         std::cout<<pins;
     else
         std::cerr<<"unsupported: "<<uint(pins.id())<<std::endl;
 
-    msp::BoxNames box_names;
+    msp::msg::BoxNames box_names;
     if(msp.request_block(box_names))
         std::cout<<box_names;
     else
         std::cerr<<"unsupported: "<<uint(box_names.id())<<std::endl;
 
-    msp::PidNames pid_names;
+    msp::msg::PidNames pid_names;
     if(msp.request_block(pid_names))
         std::cout<<pid_names;
     else
         std::cerr<<"unsupported: "<<uint(pid_names.id())<<std::endl;
 
-    msp::BoxIds box_ids;
+    msp::msg::BoxIds box_ids;
     if(msp.request_block(box_ids))
         std::cout<<box_ids;
     else
         std::cerr<<"unsupported: "<<uint(box_ids.id())<<std::endl;
 
-    msp::ServoConf servo_conf;
+    msp::msg::ServoConf servo_conf;
     if(msp.request_block(servo_conf))
         std::cout<<servo_conf;
     else
         std::cerr<<"unsupported: "<<uint(servo_conf.id())<<std::endl;
 
     // needs "#define DEBUGMSG" in MultiWii firmware
-    msp::DebugMessage debug_msg;
+    msp::msg::DebugMessage debug_msg;
     if(msp.request_block(debug_msg)) {
         std::cout<<"#Debug message:"<<std::endl;
         std::cout<<debug_msg.msg<<std::endl;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<<uint(debug_msg.id())<<std::endl;
 
-    msp::Debug debug;
+    msp::msg::Debug debug;
     if(msp.request_block(debug))
         std::cout<<debug;
     else

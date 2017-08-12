@@ -98,44 +98,44 @@ public:
         return box_name_ids;
     }
 
-    bool hasCapability(const msp::Capability &cap) const {
+    bool hasCapability(const msp::msg::Capability &cap) const {
         return ident.capabilities.count(cap);
     }
 
     bool hasBind() const {
-        return hasCapability(msp::Capability::BIND);
+        return hasCapability(msp::msg::Capability::BIND);
     }
 
     bool hasDynBal() const {
-        return hasCapability(msp::Capability::DYNBAL);
+        return hasCapability(msp::msg::Capability::DYNBAL);
     }
 
     bool hasFlap() const {
-        return hasCapability(msp::Capability::FLAP);
+        return hasCapability(msp::msg::Capability::FLAP);
     }
 
-    bool hasSensor(const msp::Sensor &sensor) const {
+    bool hasSensor(const msp::msg::Sensor &sensor) const {
         return sensors.count(sensor);
     }
 
     bool hasAccelerometer() const {
-        return hasSensor(msp::Sensor::Accelerometer);
+        return hasSensor(msp::msg::Sensor::Accelerometer);
     }
 
     bool hasBarometer() const {
-        return hasSensor(msp::Sensor::Barometer);
+        return hasSensor(msp::msg::Sensor::Barometer);
     }
 
     bool hasMagnetometer() const {
-        return hasSensor(msp::Sensor::Magnetometer);
+        return hasSensor(msp::msg::Sensor::Magnetometer);
     }
 
     bool hasGPS() const {
-        return hasSensor(msp::Sensor::GPS);
+        return hasSensor(msp::msg::Sensor::GPS);
     }
 
     bool hasSonar() const {
-        return hasSensor(msp::Sensor::Sonar);
+        return hasSensor(msp::msg::Sensor::Sonar);
     }
 
     bool isStatusActive(const std::string& status_name);
@@ -170,7 +170,7 @@ public:
      */
     bool setRc(const std::vector<uint16_t> channels);
 
-    bool setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values);
+    bool setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &motor_values);
 
     /**
      * @brief arm arm or disarm FC
@@ -229,9 +229,9 @@ private:
 
     std::map<std::string, uint> box_name_ids;
 
-    msp::Ident ident;
+    msp::msg::Ident ident;
 
-    std::set<msp::Sensor> sensors;
+    std::set<msp::msg::Sensor> sensors;
 
     FirmwareType firmware;
 

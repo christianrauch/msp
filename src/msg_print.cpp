@@ -3,26 +3,26 @@
 
 typedef unsigned int uint;
 
-std::ostream& operator<<(std::ostream& s, const msp::ApiVersion& api_version) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::ApiVersion& api_version) {
     s << "#Api Version:" << std::endl;
     s << "API: " << api_version.major << "." << api_version.minor << std::endl;
     s << "Protocol: " << api_version.protocol << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::FcVariant& fc_variant) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::FcVariant& fc_variant) {
     s << "#FC variant:" << std::endl;
     s << "Identifier: " << fc_variant.identifier << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::FcVersion& fc_version) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::FcVersion& fc_version) {
     s << "#FC version:" << std::endl;
     s << "Version: " << fc_version.major << "." << fc_version.minor << "." << fc_version.patch_level << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoardInfo& board_info) {
     s << "#Board Info:" << std::endl;
     s << "Identifier: " << board_info.identifier << std::endl;
     s << "Version: " << board_info.version << std::endl;
@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::BuildInfo& build_info) {
     s << "#Build Info:" << std::endl;
     s << "Date: " << build_info.buildDate << std::endl;
     s << "Time: " << build_info.buildTime << std::endl;
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Feature& feature) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Feature& feature) {
     s << "#Features:" << std::endl;
     for(const std::string &f : feature.features) {
         s << f << std::endl;
@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream& s, const msp::Feature& feature) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::RxMap& rx_map) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::RxMap& rx_map) {
     s << "#Channel mapping:" << std::endl;
     for(uint i(0); i<rx_map.map.size(); i++) {
         s << i << ": " << uint(rx_map.map[i]) << std::endl;
@@ -54,19 +54,19 @@ std::ostream& operator<<(std::ostream& s, const msp::RxMap& rx_map) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Ident& ident) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Ident& ident) {
     std::string type;
     switch(ident.type) {
-    case msp::MultiType::TRI:
+    case msp::msg::MultiType::TRI:
         type = "Tricopter";
         break;
-    case msp::MultiType::QUADP:
+    case msp::msg::MultiType::QUADP:
         type = "Quadrocopter Plus";
         break;
-    case msp::MultiType::QUADX:
+    case msp::msg::MultiType::QUADX:
         type = "Quadrocopter X";
         break;
-    case msp::MultiType::BI:
+    case msp::msg::MultiType::BI:
         type = "BI-copter";
         break;
     default:
@@ -96,7 +96,7 @@ std::ostream& operator<<(std::ostream& s, const msp::Ident& ident) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Status& status) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Status& status) {
     s << "#Status:" << std::endl;
     s << "Cycle time: " << status.time<< " us" << std::endl;
     s << "I2C errors: " << status.errors<< std::endl;
@@ -131,7 +131,7 @@ std::ostream& operator<<(std::ostream& s, const msp::Status& status) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::ImuRaw& imu) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::ImuRaw& imu) {
     s << "#Imu:" << std::endl;
     s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << std::endl;
     s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << std::endl;
@@ -139,7 +139,7 @@ std::ostream& operator<<(std::ostream& s, const msp::ImuRaw& imu) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::ImuSI& imu) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& imu) {
     s << "#Imu:" << std::endl;
     s << "Linear acceleration: " << imu.acc[0] << ", " << imu.acc[1] << ", " << imu.acc[2] << " m/s²" << std::endl;
     s << "Angular velocity: " << imu.gyro[0] << ", " << imu.gyro[1] << ", " << imu.gyro[2] << " deg/s" << std::endl;
@@ -147,41 +147,41 @@ std::ostream& operator<<(std::ostream& s, const msp::ImuSI& imu) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Servo& servo) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Servo& servo) {
     s << "#Servo:" << std::endl;
     s << servo.servo[0] << " " << servo.servo[1] << " " << servo.servo[2] << " " << servo.servo[3] << std::endl;
     s << servo.servo[4] << " " << servo.servo[5] << " " << servo.servo[6] << " " << servo.servo[7] << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Motor& motor) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Motor& motor) {
     s << "#Motor:" << std::endl;
     s << motor.motor[0] << " " << motor.motor[1] << " " << motor.motor[2] << " " << motor.motor[3] << std::endl;
     s << motor.motor[4] << " " << motor.motor[5] << " " << motor.motor[6] << " " << motor.motor[7] << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Rc& rc) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Rc& rc) {
     s << "#Rc channels (" << rc.channels.size() << ") :" << std::endl;
     for(const uint16_t c : rc.channels) { s << c << " "; }
     s << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Attitude& attitude) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Attitude& attitude) {
     s << "#Attitude:" << std::endl;
     s << "Ang : " << attitude.ang_x << ", " << attitude.ang_y << " deg" << std::endl;
     s << "Heading: " << attitude.heading << " deg" << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Altitude& altitude) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Altitude& altitude) {
     s << "#Altitude:" << std::endl;
     s << "Altitude: " << altitude.altitude << " m, var: " << altitude.vario << " m/s" << std::endl;
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Analog& analog) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Analog& analog) {
     s << "#Analog:" << std::endl;
     s << "Battery Voltage: " << analog.vbat << " V" << std::endl;
     s << "Current: " << analog.amperage << " A" << std::endl;
@@ -190,7 +190,7 @@ std::ostream& operator<<(std::ostream& s, const msp::Analog& analog) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::RcTuning& rc_tuning) {
     s << "#Rc Tuning:" << std::endl;
     s << "Rc Rate: " << rc_tuning.RC_RATE << std::endl;
     s << "Rc Expo: " << rc_tuning.RC_EXPO << std::endl;
@@ -204,7 +204,7 @@ std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Pid& pid) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Pid& pid) {
     s << std::setprecision(3);
     s << "#PID:" << std::endl;
     s << "Name      P     | I     | D     |" << std::endl;
@@ -224,21 +224,21 @@ std::ostream& operator<<(std::ostream& s, const msp::Pid& pid) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Box& box) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Box& box) {
     s << "#Box:" << std::endl;
     for(uint ibox(0); ibox<box.box_pattern.size(); ibox++) {
         s << ibox << " ";
         for(uint iaux(0); iaux<box.box_pattern[ibox].size(); iaux++) {
             s << "aux" << iaux+1 << ": ";
-            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::LOW))
+            if(box.box_pattern[ibox][iaux].count(msp::msg::SwitchPosition::LOW))
                 s << "L";
             else
                 s << "_";
-            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::MID))
+            if(box.box_pattern[ibox][iaux].count(msp::msg::SwitchPosition::MID))
                 s << "M";
             else
                 s << "_";
-            if(box.box_pattern[ibox][iaux].count(msp::SwitchPosition::HIGH))
+            if(box.box_pattern[ibox][iaux].count(msp::msg::SwitchPosition::HIGH))
                 s << "H";
             else
                 s << "_";
@@ -250,7 +250,7 @@ std::ostream& operator<<(std::ostream& s, const msp::Box& box) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Misc& misc) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Misc& misc) {
     s << "#Miscellaneous:" << std::endl;
     s << "Power Trigger: " << misc.powerTrigger << std::endl;
     s << "Min Throttle: " << misc.minThrottle << std::endl;
@@ -269,16 +269,16 @@ std::ostream& operator<<(std::ostream& s, const msp::Misc& misc) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::MotorPins& pin) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::MotorPins& pin) {
     s << "#Motor pins:" << std::endl;
-    for(uint imotor(0); imotor<msp::N_MOTOR; imotor++) {
+    for(uint imotor(0); imotor<msp::msg::N_MOTOR; imotor++) {
         s << "Motor " << imotor << ": pin " << (uint)pin.pwm_pin[imotor] << std::endl;
     }
 
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoxNames& box_names) {
     s << "#Box names:" << std::endl;
     for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
         s << ibox << ": " << box_names.box_names[ibox] << std::endl;
@@ -286,7 +286,7 @@ std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::PidNames& pid_names) {
     s << "#PID names:" << std::endl;
     for(uint ipid(0); ipid<pid_names.pid_names.size(); ipid++) {
         s << ipid << ": " << pid_names.pid_names[ipid] << std::endl;
@@ -294,7 +294,7 @@ std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoxIds& box_ids) {
     s << "#Box IDs:" << std::endl;
     for(uint ibox(0); ibox<box_ids.box_ids.size(); ibox++) {
         s << ibox << ": " << (uint)box_ids.box_ids[ibox] << std::endl;
@@ -302,17 +302,17 @@ std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids) {
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::ServoConf& servo_conf) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::ServoConf& servo_conf) {
     s << "#Servo conf:" << std::endl;
     s << "Nr. | [min | middle | max] (rate)" << std::endl;
-    for(uint iservo(0); iservo<msp::N_SERVO; iservo++) {
-        const msp::ServoConfRange servo = servo_conf.servo_conf[iservo];
+    for(uint iservo(0); iservo<msp::msg::N_SERVO; iservo++) {
+        const msp::msg::ServoConfRange servo = servo_conf.servo_conf[iservo];
         s << iservo << ":  | "<< "["<< servo.min <<" | "<< servo.middle <<" | "<< servo.max <<"] ("<< (uint)servo.rate <<")"  << std::endl;
     }
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Debug& debug) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::Debug& debug) {
     s << "#Debug:" << std::endl;
     s << "debug1: " << debug.debug1 << std::endl;
     s << "debug2: " << debug.debug2 << std::endl;

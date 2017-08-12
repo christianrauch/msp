@@ -5,84 +5,84 @@
 #include <msg_print.hpp>
 
 struct SubCallbacks {
-    void onIdent(const msp::Ident& ident) {
+    void onIdent(const msp::msg::Ident& ident) {
         std::cout<<ident;
     }
 
-    void onStatus(const msp::Status& status) {
+    void onStatus(const msp::msg::Status& status) {
         std::cout<<status;
     }
 
-    void onImu(const msp::ImuRaw& imu) {
-        std::cout<<msp::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    void onImu(const msp::msg::ImuRaw& imu) {
+        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     }
 
-    void onServo(const msp::Servo& servo) {
+    void onServo(const msp::msg::Servo& servo) {
         std::cout<<servo;
     }
 
-    void onMotor(const msp::Motor& motor) {
+    void onMotor(const msp::msg::Motor& motor) {
         std::cout<<motor;
     }
 
-    void onRc(const msp::Rc& rc) {
+    void onRc(const msp::msg::Rc& rc) {
         std::cout<<rc;
     }
 
-    void onAttitude(const msp::Attitude& attitude) {
+    void onAttitude(const msp::msg::Attitude& attitude) {
         std::cout<<attitude;
     }
 
-    void onAltitude(const msp::Altitude& altitude) {
+    void onAltitude(const msp::msg::Altitude& altitude) {
         std::cout<<altitude;
     }
 
-    void onAnalog(const msp::Analog& analog) {
+    void onAnalog(const msp::msg::Analog& analog) {
         std::cout<<analog;
     }
 
-    void onRcTuning(const msp::RcTuning& rc_tuning) {
+    void onRcTuning(const msp::msg::RcTuning& rc_tuning) {
         std::cout<<rc_tuning;
     }
 
-    void onPID(const msp::Pid& pid) {
+    void onPID(const msp::msg::Pid& pid) {
         std::cout<<pid;
     }
 
-    void onBox(const msp::Box& box) {
+    void onBox(const msp::msg::Box& box) {
         std::cout<<box;
     }
 
-    void onMisc(const msp::Misc& misc) {
+    void onMisc(const msp::msg::Misc& misc) {
         std::cout<<misc;
     }
 
-    void onMotorPins(const msp::MotorPins& motor_pins) {
+    void onMotorPins(const msp::msg::MotorPins& motor_pins) {
         std::cout<<motor_pins;
     }
 
-    void onBoxNames(const msp::BoxNames& box_names) {
+    void onBoxNames(const msp::msg::BoxNames& box_names) {
         std::cout<<box_names;
     }
 
-    void onPidNames(const msp::PidNames& pid_names) {
+    void onPidNames(const msp::msg::PidNames& pid_names) {
         std::cout<<pid_names;
     }
 
-    void onBoxIds(const msp::BoxIds& box_ids) {
+    void onBoxIds(const msp::msg::BoxIds& box_ids) {
         std::cout<<box_ids;
     }
 
-    void onServoConf(const msp::ServoConf& servo_conf) {
+    void onServoConf(const msp::msg::ServoConf& servo_conf) {
         std::cout<<servo_conf;
     }
 
-    void onDebugMessage(const msp::DebugMessage& debug_msg) {
+    void onDebugMessage(const msp::msg::DebugMessage& debug_msg) {
         std::cout<<"#Debug message:"<<std::endl;
         std::cout<<debug_msg.msg<<std::endl;
     }
 
-    void onDebug(const msp::Debug& debug) {
+    void onDebug(const msp::msg::Debug& debug) {
         std::cout<<debug;
     }
 };

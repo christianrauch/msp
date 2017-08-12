@@ -4,58 +4,58 @@
 #include "msp_msg.hpp"
 #include <ostream>
 
-std::ostream& operator<<(std::ostream& s, const msp::ApiVersion& api_version);
+std::ostream& operator<<(std::ostream& s, const msp::msg::ApiVersion& api_version);
 
-std::ostream& operator<<(std::ostream& s, const msp::FcVariant& fc_variant);
+std::ostream& operator<<(std::ostream& s, const msp::msg::FcVariant& fc_variant);
 
-std::ostream& operator<<(std::ostream& s, const msp::FcVersion& fc_version);
+std::ostream& operator<<(std::ostream& s, const msp::msg::FcVersion& fc_version);
 
-std::ostream& operator<<(std::ostream& s, const msp::BoardInfo& board_info);
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoardInfo& board_info);
 
-std::ostream& operator<<(std::ostream& s, const msp::BuildInfo& build_info);
+std::ostream& operator<<(std::ostream& s, const msp::msg::BuildInfo& build_info);
 
-std::ostream& operator<<(std::ostream& s, const msp::Feature& feature);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Feature& feature);
 
-std::ostream& operator<<(std::ostream& s, const msp::RxMap& rx_map);
+std::ostream& operator<<(std::ostream& s, const msp::msg::RxMap& rx_map);
 
-std::ostream& operator<<(std::ostream& s, const msp::Ident& ident);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Ident& ident);
 
-std::ostream& operator<<(std::ostream& s, const msp::Status& status);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Status& status);
 
-std::ostream& operator<<(std::ostream& s, const msp::ImuRaw& imu);
+std::ostream& operator<<(std::ostream& s, const msp::msg::ImuRaw& imu);
 
-std::ostream& operator<<(std::ostream& s, const msp::ImuSI& imu);
+std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& imu);
 
-std::ostream& operator<<(std::ostream& s, const msp::Servo& servo);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Servo& servo);
 
-std::ostream& operator<<(std::ostream& s, const msp::Motor& motor);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Motor& motor);
 
-std::ostream& operator<<(std::ostream& s, const msp::Rc& rc);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Rc& rc);
 
-std::ostream& operator<<(std::ostream& s, const msp::Attitude& attitude);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Attitude& attitude);
 
-std::ostream& operator<<(std::ostream& s, const msp::Altitude& altitude);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Altitude& altitude);
 
-std::ostream& operator<<(std::ostream& s, const msp::Analog& analog);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Analog& analog);
 
-std::ostream& operator<<(std::ostream& s, const msp::RcTuning& rc_tuning);
+std::ostream& operator<<(std::ostream& s, const msp::msg::RcTuning& rc_tuning);
 
-std::ostream& operator<<(std::ostream& s, const msp::Pid& pid);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Pid& pid);
 
-std::ostream& operator<<(std::ostream& s, const msp::Box& box);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Box& box);
 
-std::ostream& operator<<(std::ostream& s, const msp::Misc& misc);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Misc& misc);
 
-std::ostream& operator<<(std::ostream& s, const msp::MotorPins& pin);
+std::ostream& operator<<(std::ostream& s, const msp::msg::MotorPins& pin);
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxNames& box_names);
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoxNames& box_names);
 
-std::ostream& operator<<(std::ostream& s, const msp::PidNames& pid_names);
+std::ostream& operator<<(std::ostream& s, const msp::msg::PidNames& pid_names);
 
-std::ostream& operator<<(std::ostream& s, const msp::BoxIds& box_ids);
+std::ostream& operator<<(std::ostream& s, const msp::msg::BoxIds& box_ids);
 
-std::ostream& operator<<(std::ostream& s, const msp::ServoConf& servo_conf);
+std::ostream& operator<<(std::ostream& s, const msp::msg::ServoConf& servo_conf);
 
-std::ostream& operator<<(std::ostream& s, const msp::Debug& debug);
+std::ostream& operator<<(std::ostream& s, const msp::msg::Debug& debug);
 
 #endif // MSG_PRINT_HPP

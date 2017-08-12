@@ -16,6 +16,7 @@
 #include "deserialise.hpp"
 
 namespace msp {
+namespace msg {
 
 const static uint N_SERVO = 8;
 const static uint N_MOTOR = 8;
@@ -356,7 +357,7 @@ struct ImuSI {
     std::array<float, 3> gyro;  // deg/s
     std::array<float, 3> magn;  // uT
 
-    ImuSI(const msp::ImuRaw &imu_raw,
+    ImuSI(const ImuRaw &imu_raw,
           const float acc_1g,       // sensor value at 1g
           const float gyro_unit,    // resolution in 1/(deg/s)
           const float magn_gain,    // scale magnetic value to uT (micro Tesla)
@@ -996,6 +997,7 @@ struct WriteEEPROM : public Response {
     }
 };
 
+} // namespace msg
 } // namespace msp
 
 #endif // MSP_MSG_HPP

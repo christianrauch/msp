@@ -15,7 +15,7 @@ FlightController::~FlightController() {
 
 void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
-    msp::Ident ident;
+    msp::msg::Ident ident;
     while(!client.request(ident, 0.5));
     std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
 }
@@ -24,7 +24,7 @@ void FlightController::initialise() {
     // wait for connection to be established
     while(client.request(ident, 0.5)==-1);
 
-    msp::ApiVersion api;
+    msp::msg::ApiVersion api;
     if(client.request(api)) {
         // this is Cleanflight
         firmware = FirmwareType::CLEANFLIGHT;
@@ -37,7 +37,7 @@ void FlightController::initialise() {
     }
 
     // get sensors
-    msp::Status status;
+    msp::msg::Status status;
     client.request(status);
     sensors = status.sensors;
 
@@ -54,7 +54,7 @@ void FlightController::initialise() {
     }
     else {
         // get channel mapping from MSP_RX_MAP
-        msp::RxMap rx_map;
+        msp::msg::RxMap rx_map;
         client.request(rx_map);
         channel_map = rx_map.map;
     }
@@ -67,12 +67,12 @@ bool FlightController::isFirmware(const FirmwareType firmware_type) {
 void FlightController::initBoxes() {
     client.setPrintWarnings(true);
     // get box names
-    msp::BoxNames box_names;
+    msp::msg::BoxNames box_names;
     if(!client.request(box_names))
         throw std::runtime_error("Cannot get BoxNames!");
 
     // get box IDs
-    msp::BoxIds box_ids;
+    msp::msg::BoxIds box_ids;
     if(!client.request(box_ids))
         throw std::runtime_error("Cannot get BoxIds!");
 
@@ -99,7 +99,7 @@ bool FlightController::isStatusActive(const std::string& status_name) {
         throw std::runtime_error("Box ID of "+status_name+" is unknown! You need to call 'initBoxes()' first.");
     }
 
-    msp::Status status;
+    msp::msg::Status status;
     client.request(status);
 
     // check if ARM box id is amongst active box IDs
@@ -118,7 +118,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
             "RC commands will have no effect on motors.");
     }
 
-    msp::SetRc rc;
+    msp::msg::SetRc rc;
     // insert mappable channels
     rc.channels.resize(MAX_MAPPABLE_RX_INPUTS);
     rc.channels[channel_map[0]] = roll;
@@ -138,19 +138,19 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
 }
 
 bool FlightController::setRc(const std::vector<uint16_t> channels) {
-    msp::SetRc rc;
+    msp::msg::SetRc rc;
     rc.channels = channels;
     return client.respond(rc, false);
 }
 
-bool FlightController::setMotors(const std::array<uint16_t,msp::N_MOTOR> &motor_values) {
+bool FlightController::setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &motor_values) {
     if(isFirmwareMultiWii() && !hasDynBal()) {
         throw std::runtime_error(
             "DYNBALANCE is not active!\n"
             "Set '#define DYNBALANCE' in your MultiWii 'config.h'");
     }
 
-    msp::SetMotor motor;
+    msp::msg::SetMotor motor;
     motor.motor = motor_values;
     return client.respond(motor);
 }
@@ -188,12 +188,12 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
                                      const std::set<std::string> &remove)
 {
     // get original feature configuration
-    msp::Feature feature_in;
+    msp::msg::Feature feature_in;
     if(!client.request(feature_in))
         return -1;
 
     // update feature configuration
-    msp::SetFeature feature_out;
+    msp::msg::SetFeature feature_out;
     feature_out.features = feature_in.features;
     // enable features
     for(const std::string &a : add) {
@@ -221,11 +221,11 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
 }
 
 bool FlightController::reboot() {
-    return client.respond(msp::Reboot());
+    return client.respond(msp::msg::Reboot());
 }
 
 bool FlightController::writeEEPROM() {
-    return client.respond(msp::WriteEEPROM());
+    return client.respond(msp::msg::WriteEEPROM());
 }
 
 } // namespace msp
