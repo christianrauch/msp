@@ -32,22 +32,8 @@ set(MSP_INCLUDE_DIR inc/msp)
 
 include_directories(${MSP_INCLUDE_DIR})
 
-set(MSP_SRC
-    ${MSP_SOURCE_DIR}/SerialPort.cpp
-    ${MSP_SOURCE_DIR}/MSP.cpp
-)
-
-set(MSP_HDR
-    ${MSP_INCLUDE_DIR}/msp_msg.hpp
-    ${MSP_INCLUDE_DIR}/msp_id.hpp
-    ${MSP_INCLUDE_DIR}/types.hpp
-    ${MSP_INCLUDE_DIR}/SerialPort.hpp
-    ${MSP_INCLUDE_DIR}/MSP.hpp
-    ${MSP_INCLUDE_DIR}/deserialise.hpp
-)
-
 # low-level API
-add_library(msp ${MSP_SRC} ${MSP_HDR})
+add_library(msp ${MSP_SOURCE_DIR}/MSP.cpp)
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 # printing message content

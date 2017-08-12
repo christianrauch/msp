@@ -1,11 +1,12 @@
 #ifndef MSP_HPP
 #define MSP_HPP
 
-#include "SerialPort.hpp"
 #include "types.hpp"
 
+#include <asio.hpp>
 #include <stdexcept>
 #include <chrono>
+#include <mutex>
 
 namespace msp {
 
@@ -49,6 +50,13 @@ public:
 class NoData : public std::runtime_error {
 public:
     NoData() : std::runtime_error("No data available!") { }
+};
+
+class NoConnection : public std::runtime_error {
+public:
+    NoConnection(const std::string &device, const std::string &msg)
+        : runtime_error("Device not available: "+device+" ("+msg+")")
+    { }
 };
 
 /**
@@ -187,7 +195,53 @@ private:
      */
     uint8_t crc(const uint8_t id, const ByteVector &data);
 
-    SerialPort sp;      //!< serial port
+    /**
+     * @brief write write data vector to device
+     * @param data raw data vector
+     * @return true on success
+     * @return false on failure
+     */
+    bool write(const std::vector<uint8_t> &data);
+
+    /**
+     * @brief read read data vector from device
+     * @param data raw data vector in which read data will be stored
+     * @return number of read bytes
+     */
+    size_t read(std::vector<uint8_t> &data);
+
+    /**
+     * @brief read read given amount of bytes from device
+     * @param n_bytes number of bytes to read
+     * @return data vector with read bytes
+     */
+    std::vector<uint8_t> read(std::size_t n_bytes);
+
+    /**
+     * @brief read read a single byte from device
+     * @return single byte
+     */
+    uint8_t read() {
+        return read(1).front();
+    }
+
+    /**
+     * @brief hasData check if data is available
+     * @return >0 amount of bytes ready to read
+     * @return -1 on error
+     */
+    int hasData();
+
+    /**
+     * @brief clear flush the serial buffer to remove old data
+     */
+    void clear();
+
+    std::string device;
+    asio::io_service io;     ///<! io service
+    asio::serial_port port;  ///<! port for serial device
+    std::mutex lock_write;
+    std::mutex lock_read;
     unsigned int wait;  //!< time (micro seconds) to wait before waiting for response
 };
 

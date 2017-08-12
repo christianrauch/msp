@@ -6,14 +6,29 @@
 
 namespace msp {
 
-MSP::MSP() : wait(10) { }
+MSP::MSP() : port(io), wait(10) { }
 
-MSP::MSP(const std::string &device, const uint baudrate) : wait(10) {
+MSP::MSP(const std::string &device, const uint baudrate) : port(io), wait(10) {
     connect(device, baudrate);
 }
 
 bool MSP::connect(const std::string &device, const uint baudrate) {
-    sp.connect(device, baudrate);
+    this->device = device;
+    try {
+        port.open(device);
+    }
+    catch(const asio::system_error &e) {
+        throw NoConnection(device, e.what());
+    }
+
+    port.set_option(asio::serial_port::baud_rate(baudrate));
+    port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
+    port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
+    port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+
+    // clear buffer for new session
+    clear();
+
     std::cout<<"Connected to: "<<device<<std::endl;
     return true;
 }
@@ -98,7 +113,7 @@ bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min
         std::this_thread::sleep_for(wait);
 
         try {
-            if(sp.hasData()>=int(FRAME_SIZE+min_payload_size)) {
+            if(hasData()>=int(FRAME_SIZE+min_payload_size)) {
                 DataID pkg = receiveData();
                 success = (pkg.id==uint8_t(request.id()));
                 if(success)
@@ -180,28 +195,28 @@ bool MSP::sendData(const uint8_t id, const ByteVector &data) {
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crc(id, data) );                     // crc
 
-    return sp.write(msg);
+    return write(msg);
 }
 
 DataID MSP::receiveData() {
     // wait for correct preamble start
-    if(sp.hasData()<1) {
+    if(hasData()<1) {
         throw NoData();
     }
 
-    while( char(sp.read()) != '$');
+    while( char(read()) != '$');
 
-    const char hdr = char(sp.read());
+    const char hdr = char(read());
     if(hdr != 'M')
         throw MalformedHeader('M', uint8_t(hdr));
 
-    const char com_state = char(sp.read());
+    const char com_state = char(read());
     if(com_state != '>') {
         switch(com_state) {
         case '!': {
             // the sent message ID is unknown to the FC
-            sp.read(); // ignore data size
-            const uint8_t id = sp.read(); // get faulty ID
+            read(); // ignore data size
+            const uint8_t id = read(); // get faulty ID
             throw UnknownMsgId(id);
         }
         default:
@@ -210,16 +225,16 @@ DataID MSP::receiveData() {
     }
 
     // read data size
-    const uint8_t data_size = sp.read();
+    const uint8_t data_size = read();
 
     // get ID of msg
-    const uint8_t id = sp.read();
+    const uint8_t id = read();
 
     // read payload data
-    const ByteVector data = sp.read(data_size);
+    const ByteVector data = read(data_size);
 
     // check CRC
-    const uint8_t rcv_crc = sp.read();
+    const uint8_t rcv_crc = read();
     const uint8_t exp_crc = crc(id, data);
 
     if(rcv_crc!=exp_crc)
@@ -235,6 +250,61 @@ uint8_t MSP::crc(const uint8_t id, const ByteVector &data) {
         crc = crc^d;
 
     return crc;
+}
+
+bool MSP::write(const std::vector<uint8_t> &data) {
+    std::lock_guard<std::mutex> lock(lock_write);
+    try {
+        const std::size_t bytes_written = asio::write(port, asio::buffer(data.data(), data.size()));
+        return (bytes_written==data.size());
+    }
+    catch(const asio::system_error &e) {
+        throw NoConnection(device, e.what());
+    }
+}
+
+size_t MSP::read(std::vector<uint8_t> &data) {
+    std::lock_guard<std::mutex> lock(lock_read);
+    return asio::read(port, asio::buffer(data.data(), data.size()));
+}
+
+std::vector<uint8_t> MSP::read(std::size_t n_bytes) {
+    std::vector<uint8_t> data(n_bytes);
+    const size_t nread = read(data);
+    assert(nread==n_bytes);
+    return data;
+}
+
+int MSP::hasData() {
+#if __unix__ || __APPLE__
+    int available_bytes;
+    if(ioctl(port.native_handle(), FIONREAD, &available_bytes)!=-1) {
+        return available_bytes;
+    }
+    else {
+        return -1;
+    }
+#elif _WIN32
+    COMSTAT comstat;
+    if (ClearCommError(port.native_handle(), NULL, &comstat) == true) {
+        return comstat.cbInQue;
+    }
+    else {
+        return -1;
+    }
+#else
+#warning "hasData() will be unimplemented"
+#endif
+}
+
+void MSP::clear() {
+#if __unix__ || __APPLE__
+    tcflush(port.native_handle(),TCIOFLUSH);
+#elif _WIN32
+    PurgeComm(port.native_handle(), PURGE_TXCLEAR);
+#else
+#warning "clear() will be unimplemented"
+#endif
 }
 
 } // namespace msp
