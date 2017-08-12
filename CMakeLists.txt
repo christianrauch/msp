@@ -28,17 +28,14 @@ endif()
 
 set(MSP_SOURCE_DIR src)
 
-set(MSP_INCLUDE_DIR inc/msp)
-
-include_directories(${MSP_INCLUDE_DIR})
+include_directories(inc/msp)
 
 # low-level API
 add_library(msp ${MSP_SOURCE_DIR}/MSP.cpp)
 target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 
 # printing message content
-add_library(msp_msg_print ${MSP_SOURCE_DIR}/msg_print.cpp
-                                 ${MSP_INCLUDE_DIR}/msg_print.hpp)
+add_library(msp_msg_print ${MSP_SOURCE_DIR}/msg_print.cpp)
 
 # test reading speed
 add_executable(get_msp_info examples/msp_connection_test.cpp)
@@ -49,14 +46,11 @@ add_executable(msp_read_test examples/msp_read_test.cpp)
 target_link_libraries(msp_read_test msp msp_msg_print)
 
 # high-level API
-add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp
-                           ${MSP_INCLUDE_DIR}/FlightController.hpp
-                           ${MSP_SOURCE_DIR}/PeriodicTimer.cpp
-                           ${MSP_INCLUDE_DIR}/PeriodicTimer.hpp)
+add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp)
 target_link_libraries(msp_fcu mspclient)
 
 # client library
-add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/PeriodicTimer.cpp)
+add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp)
 target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
 
 # testing publish/subscribe
