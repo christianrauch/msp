@@ -103,6 +103,9 @@ else()
     install(TARGETS msp_fcu
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+    install(TARGETS mspclient
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
     install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
 
     SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
