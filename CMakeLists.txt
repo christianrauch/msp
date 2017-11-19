@@ -94,16 +94,7 @@ if(catkin_FOUND)
        FILES_MATCHING PATTERN "*.hpp"
     )
 else()
-    install(TARGETS msp
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-    install(TARGETS msp_msg_print
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-    install(TARGETS msp_fcu
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-    install(TARGETS mspclient
+    install(TARGETS msp msp_msg_print msp_fcu mspclient
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
     install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
