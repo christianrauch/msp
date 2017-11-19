@@ -27,8 +27,8 @@ if(catkin_FOUND)
 endif()
 
 set(MSP_SOURCE_DIR src)
-
-include_directories(inc/msp)
+set(MSP_INCLUDE_DIR inc/msp)
+include_directories(${MSP_INCLUDE_DIR})
 
 # low-level API
 add_library(msp ${MSP_SOURCE_DIR}/MSP.cpp)
@@ -101,6 +101,9 @@ else()
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
     install(TARGETS msp_fcu
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+    install(TARGETS mspclient
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
     install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
