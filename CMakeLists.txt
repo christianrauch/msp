@@ -27,8 +27,8 @@ if(catkin_FOUND)
 endif()
 
 set(MSP_SOURCE_DIR src)
-
-include_directories(inc/msp)
+set(MSP_INCLUDE_DIR inc/msp)
+include_directories(${MSP_INCLUDE_DIR})
 
 # low-level API
 add_library(msp ${MSP_SOURCE_DIR}/MSP.cpp)
