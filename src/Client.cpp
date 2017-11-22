@@ -9,20 +9,24 @@ PeriodicTimer::PeriodicTimer(std::function<void()> funct, const double period_se
 {
     period_us = std::chrono::duration<uint, std::micro>(uint(period_seconds*1e6));
 }
-
+PeriodicTimer::~PeriodicTimer() {
+	stop();
+}
 void PeriodicTimer::start() {
     // only start thread if period is above 0
     if(!(period_us.count()>0))
         return;
-
+	mut.lock();
     thread_ptr = std::shared_ptr<std::thread>(new std::thread(
     [this]{
         running = true;
         while(running) {
-            // call function and wait until end of period
+            // call function and wait until end of period or stop is called
             const auto tstart = std::chrono::high_resolution_clock::now();
             funct();
-            std::this_thread::sleep_until(tstart+period_us);
+			if (mut.try_lock_until(tstart + period_us)) {
+				mut.unlock();
+			}
         } // while running
     }
     ));
@@ -30,6 +34,7 @@ void PeriodicTimer::start() {
 
 void PeriodicTimer::stop() {
     running = false;
+	mut.unlock();
     if(thread_ptr!=nullptr && thread_ptr->joinable()) {
         thread_ptr->join();
     }
