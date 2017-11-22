@@ -93,7 +93,7 @@ void onExit(int /*signal*/) { running = false; }
 
 int main(int argc, char *argv[]) {
     const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
-    const unsigned int baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+    const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     SubCallbacks subs;
 
@@ -122,8 +122,10 @@ int main(int argc, char *argv[]) {
     client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
     client.subscribe(&SubCallbacks::onDebug, &subs, 1);
 
-	// Ctrl+C to quit
-	std::cin.get();
+    // we need to keep the main thread running to execute callbacks
+    // stop with SIGINT (Ctrl+C)
+    std::signal(SIGINT, onExit);
+    while(running);
 
     client.stop();
 
