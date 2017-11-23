@@ -6,7 +6,6 @@
 #include <thread>
 #include <condition_variable>
 #include <map>
-
 #include "types.hpp"
 
 namespace msp {
@@ -21,6 +20,7 @@ public:
      * @param period_seconds period in seconds
      */
     PeriodicTimer(const std::function<void()> funct, const double period_seconds);
+    ~PeriodicTimer();
 
     /**
      * @brief start define and start background thread
@@ -51,6 +51,7 @@ private:
     std::shared_ptr<std::thread> thread_ptr;
     std::function<void()> funct;
     std::chrono::duration<uint, std::micro> period_us;
+    std::timed_mutex mut;
     bool running;
 };
 
