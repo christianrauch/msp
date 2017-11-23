@@ -122,10 +122,8 @@ int main(int argc, char *argv[]) {
     client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
     client.subscribe(&SubCallbacks::onDebug, &subs, 1);
 
-    // we need to keep the main thread running to execute callbacks
-    // stop with SIGINT (Ctrl+C)
-    std::signal(SIGINT, onExit);
-    while(running);
+    // Ctrl+C to quit
+    std::cin.get();
 
     client.stop();
 

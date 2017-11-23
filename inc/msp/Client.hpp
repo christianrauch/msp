@@ -7,12 +7,11 @@
 #include <condition_variable>
 #include <map>
 #include "types.hpp"
-
+typedef unsigned int uint;
 namespace msp {
 
 class PeriodicTimer {
 public:
-    typedef unsigned int uint;
 
     /**
      * @brief PeriodicTimer define a periodic timer
