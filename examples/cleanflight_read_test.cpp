@@ -4,10 +4,10 @@
 #include <MSP.hpp>
 #include <msp_msg.hpp>
 #include <msg_print.hpp>
-typedef unsigned int uint;
+
 int main(int argc, char *argv[]) {
     const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
-    const uint baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+    const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     msp::MSP msp(device, baudrate);
 

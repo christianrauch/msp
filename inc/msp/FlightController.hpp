@@ -6,8 +6,6 @@
 
 namespace fcu {
 
-typedef unsigned int uint;
-
 enum class FirmwareType {
     MULTIWII,
     CLEANFLIGHT
@@ -15,7 +13,7 @@ enum class FirmwareType {
 
 class FlightController {
 public:
-    FlightController(const std::string &device, const uint baudrate=115200);
+    FlightController(const std::string &device, const size_t baudrate=115200);
 
     ~FlightController();
 
@@ -94,7 +92,7 @@ public:
 
     void initBoxes();
 
-    std::map<std::string, uint> &getBoxNames() {
+    std::map<std::string, size_t> &getBoxNames() {
         return box_name_ids;
     }
 
@@ -227,7 +225,7 @@ private:
 
     msp::client::Client client;
 
-    std::map<std::string, uint> box_name_ids;
+    std::map<std::string, size_t> box_name_ids;
 
     msp::msg::Ident ident;
 

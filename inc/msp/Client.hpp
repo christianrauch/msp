@@ -7,7 +7,7 @@
 #include <condition_variable>
 #include <map>
 #include "types.hpp"
-typedef unsigned int uint;
+
 namespace msp {
 
 class PeriodicTimer {
@@ -50,7 +50,7 @@ public:
 private:
     std::shared_ptr<std::thread> thread_ptr;
     std::function<void()> funct;
-    std::chrono::duration<uint, std::micro> period_us;
+    std::chrono::duration<size_t, std::micro> period_us;
     std::timed_mutex mutex_timer;
     bool running;
 };
@@ -147,7 +147,7 @@ public:
      * @param baudrate serial baudrate (default: 115200)
      * @return true on success
      */
-    void connect(const std::string &device, const uint baudrate=115200);
+    void connect(const std::string &device, const size_t baudrate=115200);
 
     /**
      * @brief waitForOneMessage block until one message has been received

@@ -7,8 +7,6 @@
 
 namespace msp {
 
-typedef unsigned int uint;
-
 /**
  * @brief ByteVector vector of bytes
  */

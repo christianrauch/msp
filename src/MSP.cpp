@@ -8,11 +8,11 @@ namespace msp {
 
 MSP::MSP() : port(io), wait(10) { }
 
-MSP::MSP(const std::string &device, const uint baudrate) : port(io), wait(10) {
+MSP::MSP(const std::string &device, const size_t baudrate) : port(io), wait(10) {
     connect(device, baudrate);
 }
 
-bool MSP::connect(const std::string &device, const uint baudrate) {
+bool MSP::connect(const std::string &device, const size_t baudrate) {
     this->device = device;
     try {
         port.open(device);
@@ -102,7 +102,7 @@ bool MSP::request_block(msp::Request &request) {
     return true;
 }
 
-bool MSP::request_wait(msp::Request &request, const uint wait_ms, const uint min_payload_size) {
+bool MSP::request_wait(msp::Request &request, const size_t wait_ms, const size_t min_payload_size) {
     const std::chrono::milliseconds wait(wait_ms);
 
     bool success = false;

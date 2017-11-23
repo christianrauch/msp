@@ -18,14 +18,14 @@
 namespace msp {
 namespace msg {
 
-const static uint N_SERVO = 8;
-const static uint N_MOTOR = 8;
+const static size_t N_SERVO = 8;
+const static size_t N_MOTOR = 8;
 
-const static uint BOARD_IDENTIFIER_LENGTH = 4;
+const static size_t BOARD_IDENTIFIER_LENGTH = 4;
 
-const static uint BUILD_DATE_LENGTH = 11;
-const static uint BUILD_TIME_LENGTH = 8;
-const static uint GIT_SHORT_REVISION_LENGTH = 7;
+const static size_t BUILD_DATE_LENGTH = 11;
+const static size_t BUILD_TIME_LENGTH = 8;
+const static size_t GIT_SHORT_REVISION_LENGTH = 7;
 
 enum class MultiType : uint8_t {
     TRI             = 1,
@@ -66,9 +66,9 @@ enum class Sensor {
     Sonar
 };
 
-const static uint NAUX = 4;
+const static size_t NAUX = 4;
 
-enum class SwitchPosition : uint {
+enum class SwitchPosition : size_t {
     LOW  = 0,
     MID  = 1,
     HIGH = 2,
@@ -89,9 +89,9 @@ static const std::vector<std::string> FEATURES = {
 struct ApiVersion : public Request {
     ID id() const { return ID::MSP_API_VERSION; }
 
-    uint protocol;
-    uint major;
-    uint minor;
+	size_t protocol;
+	size_t major;
+	size_t minor;
 
     void decode(const std::vector<uint8_t> &data) {
         protocol = data[0];
@@ -115,9 +115,9 @@ struct FcVariant : public Request {
 struct FcVersion : public Request {
     ID id() const { return ID::MSP_FC_VERSION; }
 
-    uint major;
-    uint minor;
-    uint patch_level;
+	size_t major;
+	size_t minor;
+	size_t patch_level;
 
     void decode(const std::vector<uint8_t> &data) {
         major = data[0];
@@ -164,7 +164,7 @@ struct Feature : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         const uint32_t mask = deserialise_uint32(data,0);
-        for(uint ifeat(0); ifeat<FEATURES.size(); ifeat++) {
+        for(size_t ifeat(0); ifeat<FEATURES.size(); ifeat++) {
             if(mask & (1<<ifeat))
                 features.insert(FEATURES[ifeat]);
         }
@@ -180,7 +180,7 @@ struct SetFeature : public Response {
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data;
         uint32_t mask = 0;
-        for(uint ifeat(0); ifeat<FEATURES.size(); ifeat++) {
+        for(size_t ifeat(0); ifeat<FEATURES.size(); ifeat++) {
             if(features.count(FEATURES[ifeat]))
                 mask |= 1<<ifeat;
         }
@@ -250,9 +250,9 @@ struct Reboot : public Response {
 struct Ident : public Request {
     ID id() const { return ID::MSP_IDENT; }
 
-    uint version;
+	size_t version;
     MultiType type;
-    uint msp_version;
+	size_t msp_version;
     std::set<Capability> capabilities;
 
     void decode(const std::vector<uint8_t> &data) {
@@ -292,8 +292,8 @@ struct Status : public Request {
     uint16_t    time;   // in us
     uint16_t    errors;
     std::set<Sensor> sensors;
-    uint        current_setting;
-    std::set<uint> active_box_id;
+	size_t      current_setting;
+    std::set<size_t> active_box_id;
 
     void decode(const std::vector<uint8_t> &data) {
         time = deserialise_uint16(data, 0);
@@ -317,7 +317,7 @@ struct Status : public Request {
         // check active boxes
         active_box_id.clear();
         const uint32_t flag = deserialise_uint32(data, 6);
-        for(uint ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
+        for(size_t ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
                 active_box_id.insert(ibox);
         }
@@ -413,7 +413,7 @@ struct Rc : public Request {
         // If feature 'RX_MSP' is active but "USE_RX_MSP" is undefined for the target,
         // no RC data is provided as feedback. See also description at 'MSP_SET_RAW_RC'.
         // In this case, return 0 for all RC channels.
-        for(uint i(0); i<data.size(); i+=sizeof(uint16_t)) {
+        for(size_t i(0); i<data.size(); i+=sizeof(uint16_t)) {
             channels.push_back(deserialise_uint16(data, i));
         }
     }
@@ -489,10 +489,10 @@ struct Altitude : public Request {
 struct Analog : public Request {
     ID id() const { return ID::MSP_ANALOG; }
 
-    float vbat;           // Volt
-    float powerMeterSum;  // Ah
-    uint rssi;  // Received Signal Strength Indication [0; 1023]
-    float amperage;       // Ampere
+    float	vbat;           // Volt
+    float	powerMeterSum;  // Ah
+	size_t	rssi;  // Received Signal Strength Indication [0; 1023]
+    float	amperage;       // Ampere
 
     void decode(const std::vector<uint8_t> &data) {
         vbat          = data[0]/10.0f;
@@ -568,13 +568,13 @@ struct Box : public Request {
 
     void decode(const std::vector<uint8_t> &data) {
         box_pattern.clear();
-        for(uint i(0); i<data.size(); i+=2) {
+        for(size_t i(0); i<data.size(); i+=2) {
             const uint16_t box_conf = deserialise_uint16(data, i);
             //box_conf.push_back(deser16(data, i));
 
             std::array<std::set<SwitchPosition>,NAUX> aux_sp;
-            for(uint iaux(0); iaux<NAUX; iaux++) {
-                for(uint ip(0); ip<3; ip++) {
+            for(size_t iaux(0); iaux<NAUX; iaux++) {
+                for(size_t ip(0); ip<3; ip++) {
                     if(box_conf & (1<<(iaux*3+ip)))
                         aux_sp[iaux].insert(SwitchPosition(ip));
                 } // each position (L,M,H)
@@ -588,10 +588,10 @@ struct Box : public Request {
 struct Misc : public Request {
     ID id() const { return ID::MSP_MISC; }
 
-    uint powerTrigger;
-    uint minThrottle, maxThrottle, failsafeThrottle;
-    uint minCommand;
-    uint arm, lifetime;
+	size_t powerTrigger;
+	size_t minThrottle, maxThrottle, failsafeThrottle;
+	size_t minCommand;
+	size_t arm, lifetime;
     float mag_declination; // degree
     float vbatScale, vbatLevelWarn1, vbatLevelWarn2, vbatLevelCrit;
 
@@ -620,7 +620,7 @@ struct MotorPins : public Request {
     uint8_t pwm_pin[N_MOTOR];
 
     void decode(const std::vector<uint8_t> &data) {
-        for(uint i(0); i<N_MOTOR; i++)
+        for(size_t i(0); i<N_MOTOR; i++)
             pwm_pin[i] = data[i];
     }
 };
@@ -710,7 +710,7 @@ struct ServoConf : public Request {
     ServoConfRange servo_conf[N_SERVO];
 
     void decode(const std::vector<uint8_t> &data) {
-        for(uint i(0); i<N_SERVO; i++) {
+        for(size_t i(0); i<N_SERVO; i++) {
             servo_conf[i].min = deserialise_uint16(data, 7*i);
             servo_conf[i].max = deserialise_uint16(data, 7*i+2);
             servo_conf[i].middle = deserialise_uint16(data, 7*i+4);
@@ -951,7 +951,7 @@ struct ResetConfig : public Response {
 struct SelectSetting : public Response {
     ID id() const { return ID::MSP_SELECT_SETTING; }
 
-    uint current_setting;
+	size_t current_setting;
 
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data(1);
@@ -982,7 +982,7 @@ struct SetMotor : public Response {
 
     std::vector<uint8_t> encode() const {
         std::vector<uint8_t> data;
-        for(uint i(0); i<N_MOTOR; i++)
+        for(size_t i(0); i<N_MOTOR; i++)
             serialise_uint16(motor[i], data);
         assert(data.size()==N_MOTOR*2);
         return data;
