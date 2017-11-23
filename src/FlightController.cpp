@@ -4,7 +4,7 @@
 
 namespace fcu {
 
-FlightController::FlightController(const std::string &device, const uint baudrate) {
+FlightController::FlightController(const std::string &device, const size_t baudrate) {
     client.connect(device, baudrate);
     client.start();
 }
@@ -17,7 +17,7 @@ void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::msg::Ident ident;
     while(!client.request(ident, 0.5));
-    std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
+    std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
 }
 
 void FlightController::initialise() {
@@ -33,7 +33,7 @@ void FlightController::initialise() {
     else {
         // this is MultiWii
         firmware = FirmwareType::MULTIWII;
-        std::cout<<"MultiWii version "<<uint(ident.version)<<" ready"<<std::endl;
+        std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
     }
 
     // get sensors
@@ -79,7 +79,7 @@ void FlightController::initBoxes() {
     assert(box_names.box_names.size()==box_ids.box_ids.size());
 
     box_name_ids.clear();
-    for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
+    for(size_t ibox(0); ibox<box_names.box_names.size(); ibox++) {
         if(isFirmwareCleanflight()) {
             // workaround for wrong box ids in cleanflight
             // cleanflight's box ids are in order of the box names

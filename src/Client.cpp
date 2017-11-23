@@ -7,7 +7,7 @@ namespace msp {
 PeriodicTimer::PeriodicTimer(std::function<void()> funct, const double period_seconds)
     : funct(funct), running(false)
 {
-    period_us = std::chrono::duration<uint, std::micro>(uint(period_seconds*1e6));
+    period_us = std::chrono::duration<size_t, std::micro>(size_t(period_seconds*1e6));
 }
 
 void PeriodicTimer::start() {
@@ -40,7 +40,7 @@ void PeriodicTimer::stop() {
 
 void PeriodicTimer::setPeriod(const double period_seconds) {
     stop();
-    period_us = std::chrono::duration<uint, std::micro>(uint(period_seconds*1e6));
+    period_us = std::chrono::duration<size_t, std::micro>(size_t(period_seconds*1e6));
     start();
 }
 
@@ -59,7 +59,7 @@ Client::~Client() {
         delete s.second;
 }
 
-void Client::connect(const std::string &device, const uint baudrate) {
+void Client::connect(const std::string &device, const size_t baudrate) {
     port.open(device);
 
     port.set_option(asio::serial_port::baud_rate(baudrate));
@@ -127,7 +127,7 @@ int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout
     };
 
     if(timeout>0) {
-        if(!cv_request.wait_for(lock, std::chrono::milliseconds(uint(timeout*1e3)), predicate))
+        if(!cv_request.wait_for(lock, std::chrono::milliseconds(size_t(timeout*1e3)), predicate))
             return -1;
     }
     else {
@@ -195,12 +195,12 @@ void Client::processOneMessage() {
     const uint8_t id = read();
 
     if(print_warnings && !ok_id) {
-        std::cerr << "Message with ID " << uint(id) << " is not recognised!" << std::endl;
+        std::cerr << "Message with ID " << size_t(id) << " is not recognised!" << std::endl;
     }
 
     // payload
     std::vector<uint8_t> data;
-    for(uint i(0); i<len; i++) {
+    for(size_t i(0); i<len; i++) {
         data.push_back(read());
     }
 
@@ -210,7 +210,7 @@ void Client::processOneMessage() {
     const bool ok_crc = (rcv_crc==exp_crc);
 
     if(print_warnings && !ok_crc) {
-        std::cerr << "Message with ID " << uint(id) << " has wrong CRC! (expected: " << uint(exp_crc) << ", received: "<< uint(rcv_crc) << ")" << std::endl;
+        std::cerr << "Message with ID " << size_t(id) << " has wrong CRC! (expected: " << size_t(exp_crc) << ", received: "<< size_t(rcv_crc) << ")" << std::endl;
     }
 
     if(!ok_id) { status = FAIL_ID; }

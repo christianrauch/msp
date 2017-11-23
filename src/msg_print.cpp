@@ -1,8 +1,6 @@
 #include "msg_print.hpp"
 #include <iomanip>
 
-typedef unsigned int uint;
-
 std::ostream& operator<<(std::ostream& s, const msp::msg::ApiVersion& api_version) {
     s << "#Api Version:" << std::endl;
     s << "API: " << api_version.major << "." << api_version.minor << std::endl;
@@ -26,7 +24,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::BoardInfo& board_info)
     s << "#Board Info:" << std::endl;
     s << "Identifier: " << board_info.identifier << std::endl;
     s << "Version: " << board_info.version << std::endl;
-    s << "Type: " << uint(board_info.type) << std::endl;
+    s << "Type: " << size_t(board_info.type) << std::endl;
     return s;
 }
 
@@ -48,8 +46,8 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::Feature& feature) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::RxMap& rx_map) {
     s << "#Channel mapping:" << std::endl;
-    for(uint i(0); i<rx_map.map.size(); i++) {
-        s << i << ": " << uint(rx_map.map[i]) << std::endl;
+    for(size_t i(0); i<rx_map.map.size(); i++) {
+        s << i << ": " << size_t(rx_map.map[i]) << std::endl;
     }
     return s;
 }
@@ -123,7 +121,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::Status& status) {
     s << std::endl;
 
     s << "Active Boxes (by ID):";
-    for(const uint box_id : status.active_box_id) {
+    for(const size_t box_id : status.active_box_id) {
         s << " " << box_id;
     }
     s << std::endl;
@@ -226,9 +224,9 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::Pid& pid) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::Box& box) {
     s << "#Box:" << std::endl;
-    for(uint ibox(0); ibox<box.box_pattern.size(); ibox++) {
+    for(size_t ibox(0); ibox<box.box_pattern.size(); ibox++) {
         s << ibox << " ";
-        for(uint iaux(0); iaux<box.box_pattern[ibox].size(); iaux++) {
+        for(size_t iaux(0); iaux<box.box_pattern[ibox].size(); iaux++) {
             s << "aux" << iaux+1 << ": ";
             if(box.box_pattern[ibox][iaux].count(msp::msg::SwitchPosition::LOW))
                 s << "L";
@@ -271,8 +269,8 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::Misc& misc) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::MotorPins& pin) {
     s << "#Motor pins:" << std::endl;
-    for(uint imotor(0); imotor<msp::msg::N_MOTOR; imotor++) {
-        s << "Motor " << imotor << ": pin " << (uint)pin.pwm_pin[imotor] << std::endl;
+    for(size_t imotor(0); imotor<msp::msg::N_MOTOR; imotor++) {
+        s << "Motor " << imotor << ": pin " << size_t(pin.pwm_pin[imotor]) << std::endl;
     }
 
     return s;
@@ -280,7 +278,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::MotorPins& pin) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::BoxNames& box_names) {
     s << "#Box names:" << std::endl;
-    for(uint ibox(0); ibox<box_names.box_names.size(); ibox++) {
+    for(size_t ibox(0); ibox<box_names.box_names.size(); ibox++) {
         s << ibox << ": " << box_names.box_names[ibox] << std::endl;
     }
     return s;
@@ -288,7 +286,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::BoxNames& box_names) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::PidNames& pid_names) {
     s << "#PID names:" << std::endl;
-    for(uint ipid(0); ipid<pid_names.pid_names.size(); ipid++) {
+    for(size_t ipid(0); ipid<pid_names.pid_names.size(); ipid++) {
         s << ipid << ": " << pid_names.pid_names[ipid] << std::endl;
     }
     return s;
@@ -296,8 +294,8 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::PidNames& pid_names) {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::BoxIds& box_ids) {
     s << "#Box IDs:" << std::endl;
-    for(uint ibox(0); ibox<box_ids.box_ids.size(); ibox++) {
-        s << ibox << ": " << (uint)box_ids.box_ids[ibox] << std::endl;
+    for(size_t ibox(0); ibox<box_ids.box_ids.size(); ibox++) {
+        s << ibox << ": " << size_t(box_ids.box_ids[ibox]) << std::endl;
     }
     return s;
 }
@@ -305,9 +303,9 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::BoxIds& box_ids) {
 std::ostream& operator<<(std::ostream& s, const msp::msg::ServoConf& servo_conf) {
     s << "#Servo conf:" << std::endl;
     s << "Nr. | [min | middle | max] (rate)" << std::endl;
-    for(uint iservo(0); iservo<msp::msg::N_SERVO; iservo++) {
+    for(size_t iservo(0); iservo<msp::msg::N_SERVO; iservo++) {
         const msp::msg::ServoConfRange servo = servo_conf.servo_conf[iservo];
-        s << iservo << ":  | "<< "["<< servo.min <<" | "<< servo.middle <<" | "<< servo.max <<"] ("<< (uint)servo.rate <<")"  << std::endl;
+        s << iservo << ":  | "<< "["<< servo.min <<" | "<< servo.middle <<" | "<< servo.max <<"] ("<< size_t(servo.rate) <<")"  << std::endl;
     }
     return s;
 }
