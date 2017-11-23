@@ -20,7 +20,8 @@ public:
      * @param period_seconds period in seconds
      */
     PeriodicTimer(const std::function<void()> funct, const double period_seconds);
-    ~PeriodicTimer();
+
+    ~PeriodicTimer() { stop(); }
 
     /**
      * @brief start define and start background thread
@@ -51,7 +52,7 @@ private:
     std::shared_ptr<std::thread> thread_ptr;
     std::function<void()> funct;
     std::chrono::duration<uint, std::micro> period_us;
-    std::timed_mutex mut;
+    std::timed_mutex mutex_timer;
     bool running;
 };
 
