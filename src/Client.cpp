@@ -78,7 +78,7 @@ void Client::start() {
 void Client::stop() {
     running = false;
     io.stop();
-    thread.join();
+    thread.detach();
 }
 
 uint8_t Client::read() {
