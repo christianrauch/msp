@@ -16,16 +16,6 @@ endif()
 
 find_package(Threads)
 
-find_package(catkin QUIET)
-
-if(catkin_FOUND)
-    catkin_package(
-        INCLUDE_DIRS inc
-        LIBRARIES msp msp_fcu mspclient msp_msg_print
-    #    DEPENDS Boost
-    )
-endif()
-
 set(MSP_SOURCE_DIR src)
 set(MSP_INCLUDE_DIR inc/msp)
 include_directories(${MSP_INCLUDE_DIR})
@@ -41,13 +31,13 @@ target_link_libraries(msp ${CMAKE_THREAD_LIBS_INIT})
 # printing message content
 add_library(msp_msg_print ${MSP_SOURCE_DIR}/msg_print.cpp)
 
-# high-level API
-add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp)
-target_link_libraries(msp_fcu mspclient)
-
 # client library
 add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp)
 target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
+
+# high-level API
+add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp)
+target_link_libraries(msp_fcu mspclient)
 
 
 ################################################################################
@@ -93,33 +83,20 @@ target_link_libraries(client_read_test mspclient msp_msg_print)
 ################################################################################
 ### installation
 
-if(catkin_FOUND)
-    install(TARGETS msp msp_fcu mspclient msp_msg_print
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+install(TARGETS msp msp_msg_print msp_fcu mspclient
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
+install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
 
-    install(DIRECTORY inc/${PROJECT_NAME}/
-       DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-       FILES_MATCHING PATTERN "*.hpp"
-    )
-else()
-    install(TARGETS msp msp_msg_print msp_fcu mspclient
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-    install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
+SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
+SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/" )
+SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lmspclient -lmsp_msg_print" )
+SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
 
-    SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
-    SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/msp" )
-    SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lmsp_msg_print" )
-    SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
+)
 
-    CONFIGURE_FILE(
-      "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
-      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
-    )
-
-    INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
-            DESTINATION lib/pkgconfig)
-endif()
+INSTALL(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc"
+        DESTINATION lib/pkgconfig)
