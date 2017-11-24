@@ -101,7 +101,12 @@ bool Client::sendData(const uint8_t id, const ByteVector &data) {
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crc(id, data) );                     // crc
 
-    const std::size_t bytes_written = asio::write(port, asio::buffer(msg.data(), msg.size()));
+    asio::error_code ec;
+    const std::size_t bytes_written = asio::write(port, asio::buffer(msg.data(), msg.size()), ec);
+    if (ec == asio::error::operation_aborted) {
+        //operation_aborted error probably means the client is being closed
+        return false;
+    }
 
     return (bytes_written==msg.size());
 }
