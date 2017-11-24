@@ -78,7 +78,8 @@ void Client::start() {
 void Client::stop() {
     running = false;
     io.stop();
-    thread.detach();
+    port.close();
+    thread.join();
 }
 
 uint8_t Client::read() {
@@ -176,9 +177,12 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
 
 void Client::processOneMessage() {
     std::lock_guard<std::mutex> lck(mutex_buffer);
-
-    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M");
-
+    asio::error_code ec;
+    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M", ec);
+    if (ec == asio::error::operation_aborted) {
+        //operation_aborted error probably means the client is being closed
+        return;
+    }
     // ignore and remove header bytes
     buffer.consume(bytes_transferred);
 
