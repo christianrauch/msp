@@ -78,7 +78,7 @@ void Client::start() {
 void Client::stop() {
     running = false;
     io.stop();
-	port.close();
+    port.close();
     thread.join();
 }
 
