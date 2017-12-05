@@ -1,4 +1,5 @@
 #include "MSP.hpp"
+#include "SerialPortImpl.cpp"
 
 #include <future>
 #include <iostream>
@@ -6,25 +7,27 @@
 
 namespace msp {
 
-MSP::MSP() : port(io), wait(10) { }
+MSP::MSP() : pimpl(new SerialPortImpl), wait(10) { }
 
-MSP::MSP(const std::string &device, const size_t baudrate) : port(io), wait(10) {
+MSP::MSP(const std::string &device, const size_t baudrate) : pimpl(new SerialPortImpl), wait(10) {
     connect(device, baudrate);
 }
+
+MSP::~MSP() { }
 
 bool MSP::connect(const std::string &device, const size_t baudrate) {
     this->device = device;
     try {
-        port.open(device);
+        pimpl->port.open(device);
     }
     catch(const asio::system_error &e) {
         throw NoConnection(device, e.what());
     }
 
-    port.set_option(asio::serial_port::baud_rate(baudrate));
-    port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
-    port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
-    port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    pimpl->port.set_option(asio::serial_port::baud_rate(baudrate));
+    pimpl->port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
+    pimpl->port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
+    pimpl->port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
 
     // clear buffer for new session
     clear();
@@ -255,7 +258,7 @@ uint8_t MSP::crc(const uint8_t id, const ByteVector &data) {
 bool MSP::write(const std::vector<uint8_t> &data) {
     std::lock_guard<std::mutex> lock(lock_write);
     try {
-        const std::size_t bytes_written = asio::write(port, asio::buffer(data.data(), data.size()));
+        const std::size_t bytes_written = asio::write(pimpl->port, asio::buffer(data.data(), data.size()));
         return (bytes_written==data.size());
     }
     catch(const asio::system_error &e) {
@@ -265,7 +268,7 @@ bool MSP::write(const std::vector<uint8_t> &data) {
 
 size_t MSP::read(std::vector<uint8_t> &data) {
     std::lock_guard<std::mutex> lock(lock_read);
-    return asio::read(port, asio::buffer(data.data(), data.size()));
+    return asio::read(pimpl->port, asio::buffer(data.data(), data.size()));
 }
 
 std::vector<uint8_t> MSP::read(std::size_t n_bytes) {
@@ -278,7 +281,7 @@ std::vector<uint8_t> MSP::read(std::size_t n_bytes) {
 int MSP::hasData() {
 #if __unix__ || __APPLE__
     int available_bytes;
-    if(ioctl(port.native_handle(), FIONREAD, &available_bytes)!=-1) {
+    if(ioctl(pimpl->port.native_handle(), FIONREAD, &available_bytes)!=-1) {
         return available_bytes;
     }
     else {
@@ -286,7 +289,7 @@ int MSP::hasData() {
     }
 #elif _WIN32
     COMSTAT comstat;
-    if (ClearCommError(port.native_handle(), NULL, &comstat) == true) {
+    if (ClearCommError(pimpl->port.native_handle(), NULL, &comstat) == true) {
         return comstat.cbInQue;
     }
     else {
@@ -299,9 +302,9 @@ int MSP::hasData() {
 
 void MSP::clear() {
 #if __unix__ || __APPLE__
-    tcflush(port.native_handle(),TCIOFLUSH);
+    tcflush(pimpl->port.native_handle(),TCIOFLUSH);
 #elif _WIN32
-    PurgeComm(port.native_handle(), PURGE_TXCLEAR);
+    PurgeComm(pimpl->port.native_handle(), PURGE_TXCLEAR);
 #else
 #warning "clear() will be unimplemented"
 #endif

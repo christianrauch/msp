@@ -2,13 +2,14 @@
 #define CLIENT_HPP
 
 #include <string>
-#include <asio.hpp>
 #include <thread>
 #include <condition_variable>
 #include <map>
 #include "types.hpp"
 
 namespace msp {
+
+struct SerialPortImpl;
 
 class PeriodicTimer {
 public:
@@ -312,9 +313,7 @@ private:
 
 private:
     // I/O
-    asio::io_service io;
-    asio::serial_port port;
-    asio::streambuf buffer;
+    std::unique_ptr<SerialPortImpl> pimpl;
     // threading
     std::thread thread;
     bool running;

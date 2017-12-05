@@ -3,12 +3,14 @@
 
 #include "types.hpp"
 
-#include <asio.hpp>
 #include <stdexcept>
 #include <chrono>
 #include <mutex>
+#include <memory>
 
 namespace msp {
+
+struct SerialPortImpl;
 
 // size of header+crc, e.g. amount of bytes in MSP message that do not belong to payload
 // preamble (2) + direction (1) + size (1) + command (1) + crc (1) = 6
@@ -91,6 +93,8 @@ public:
      * @param baudrate serial baudrate
      */
     MSP(const std::string &device, const size_t baudrate=115200);
+
+    ~MSP();
 
     /**
      * @brief connect establish connection to serial device
@@ -238,8 +242,7 @@ private:
     void clear();
 
     std::string device;
-    asio::io_service io;     ///<! io service
-    asio::serial_port port;  ///<! port for serial device
+    std::unique_ptr<SerialPortImpl> pimpl;
     std::mutex lock_write;
     std::mutex lock_read;
     unsigned int wait;  //!< time (micro seconds) to wait before waiting for response

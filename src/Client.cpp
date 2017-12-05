@@ -1,4 +1,5 @@
 #include <Client.hpp>
+#include "SerialPortImpl.cpp"
 
 #include <iostream>
 
@@ -49,7 +50,7 @@ void PeriodicTimer::setPeriod(const double period_seconds) {
 namespace msp {
 namespace client {
 
-Client::Client() : port(io), running(false), print_warnings(false) { }
+Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false) { }
 
 Client::~Client() {
     for(const std::pair<msp::ID, msp::Request*> d : subscribed_requests)
@@ -60,12 +61,12 @@ Client::~Client() {
 }
 
 void Client::connect(const std::string &device, const size_t baudrate) {
-    port.open(device);
+    pimpl->port.open(device);
 
-    port.set_option(asio::serial_port::baud_rate(baudrate));
-    port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
-    port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
-    port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    pimpl->port.set_option(asio::serial_port::baud_rate(baudrate));
+    pimpl->port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
+    pimpl->port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
+    pimpl->port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
 }
 
 void Client::start() {
@@ -77,17 +78,17 @@ void Client::start() {
 
 void Client::stop() {
     running = false;
-    io.stop();
-    port.close();
+    pimpl->io.stop();
+    pimpl->port.close();
     thread.join();
 }
 
 uint8_t Client::read() {
-    if(buffer.sgetc()==EOF) {
-        asio::read(port, buffer, asio::transfer_exactly(1));
+    if(pimpl->buffer.sgetc()==EOF) {
+        asio::read(pimpl->port, pimpl->buffer, asio::transfer_exactly(1));
     }
 
-    return uint8_t(buffer.sbumpc());
+    return uint8_t(pimpl->buffer.sbumpc());
 }
 
 bool Client::sendData(const uint8_t id, const ByteVector &data) {
@@ -102,7 +103,7 @@ bool Client::sendData(const uint8_t id, const ByteVector &data) {
     msg.push_back( crc(id, data) );                     // crc
 
     asio::error_code ec;
-    const std::size_t bytes_written = asio::write(port, asio::buffer(msg.data(), msg.size()), ec);
+    const std::size_t bytes_written = asio::write(pimpl->port, asio::buffer(msg.data(), msg.size()), ec);
     if (ec == asio::error::operation_aborted) {
         //operation_aborted error probably means the client is being closed
         return false;
@@ -183,13 +184,13 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
 void Client::processOneMessage() {
     std::lock_guard<std::mutex> lck(mutex_buffer);
     asio::error_code ec;
-    const std::size_t bytes_transferred = asio::read_until(port, buffer, "$M", ec);
+    const std::size_t bytes_transferred = asio::read_until(pimpl->port, pimpl->buffer, "$M", ec);
     if (ec == asio::error::operation_aborted) {
         //operation_aborted error probably means the client is being closed
         return;
     }
     // ignore and remove header bytes
-    buffer.consume(bytes_transferred);
+    pimpl->buffer.consume(bytes_transferred);
 
     MessageStatus status = OK;
 
