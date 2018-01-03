@@ -101,7 +101,21 @@ int main(int argc, char *argv[]) {
     client.connect(device, baudrate);
     client.start();
 
-    client.subscribe(&SubCallbacks::onImu, &subs, 0.1);
+    // using class method callback
+//    client.subscribe(&SubCallbacks::onImu, &subs, 0.1);
+
+    // using lambda callback with stored lambda object
+//    const auto imu_cb1 = [](const msp::msg::ImuRaw& imu){
+//        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+//    };
+//    client.subscribe<msp::msg::ImuRaw>(imu_cb1, 0.1);
+
+    // using lambda callback with stored function object
+    const std::function<void(const msp::msg::ImuRaw&)> imu_cb2 = [](const msp::msg::ImuRaw& imu){
+        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    };
+    client.subscribe(imu_cb2, 0.1);
+
     client.subscribe(&SubCallbacks::onIdent, &subs, 10);
     client.subscribe(&SubCallbacks::onStatus, &subs, 1);
     client.subscribe(&SubCallbacks::onServo, &subs, 0.1);

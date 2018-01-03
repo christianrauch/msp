@@ -13,12 +13,10 @@ public:
     }
 
     void onIdent(const msp::msg::Ident& ident) {
-        std::cout<<"Name: "<<name<<std::endl;
         std::cout<<ident;
     }
 
     void onStatus(const msp::msg::Status& status) {
-        std::cout<<"Name: "<<name<<std::endl;
         std::cout<<status;
     }
 
@@ -115,8 +113,15 @@ int main(int argc, char *argv[]) {
     // define subscriptions with specific period
     fcu.subscribe(&App::onIdent, &app, 10);
     fcu.subscribe(&App::onStatus, &app, 1);
-    // no period => requested Imu each time callbacks are checked
-    fcu.subscribe(&App::onImu, &app, 0.1);
+
+    // using class method callback
+    //fcu.subscribe(&App::onImu, &app, 0.1);
+
+    // using lambda callback
+    fcu.subscribe<msp::msg::ImuRaw>([](const msp::msg::ImuRaw& imu){
+        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    }, 0.1);
+
     fcu.subscribe(&App::onServo, &app, 0.1);
     fcu.subscribe(&App::onMotor, &app, 0.1);
     fcu.subscribe(&App::onRc, &app, 0.1);
