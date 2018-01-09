@@ -1,9 +1,9 @@
-# MultiWii / Cleanflight Communication Library (C++)
+# MultiWii / Cleanflight / Baseflight Communication Library (C++)
 
 This library implements the MultiWii Serial Protocol ([MSP](http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol)) for communicating with a MultiWii or Cleanflight flight controller (FC) over a serial device.
 It defines a **low-level API** for sending+encoding and receiving+decoding MSP messages, and a **high-level API** with a subscriber pattern to periodically request data from the FC and call callback functions as soon as a message is received.
 
-The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 340Hz (for a FC cycle time of 2.8ms / 357Hz).
+The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where it can achieve a update rate of approximately 340Hz (for a FC cycle time of 2.8ms / 357Hz) and Betaflight on a Naze32 Rev6 with update rates of max. 1200Hz.
 
 ## Installation and Test
 ### Linux (Ubuntu / Debian)
@@ -31,14 +31,11 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 
 You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-to-Serial connector or (2) by direct serial connection (RX->TX, TX->RX, GND->GND, VCC->VCC). The first option is preferable for high transfer rates, as the direct connection is more exposed to transmission errors.
 
-### Baseflight / Cleanflight until 1.11:
-- the MSP update rate is determined by the looptime
-- change the looptime in the CLI to e.g. 1000us (1000Hz): `set looptime=1000`, then `save`
+### MultiWii
+- the MSP update rate is determined by variable `LOOP_TIME` in `config.h`
+    - e.g. `#define LOOP_TIME 2800` sets the loop time to 2800µs and the update rate to 1/0.0028 s = 357.14 Hz
 
-### Cleanflight from 1.12 / Betaflight until 3.0.1
-- the MSP update rate is fixed to 100Hz
-
-### Betaflight 3.1
+### Cleanflight / Betaflight
 - change the update rate for the serial task in the range 100 ... 2000Hz
     - e.g. to 2000Hz: `set serial_update_rate_hz=2000`, then `save`
 - it might be necessary to increase the serial baudrate in the Ports configuration tab
