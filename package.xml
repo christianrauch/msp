@@ -29,8 +29,6 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <build_depend>asio</build_depend>
-  <build_export_depend>asio</build_export_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
