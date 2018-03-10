@@ -212,6 +212,17 @@ struct RxConfig : public Request {
     }
 };
 
+// MSP_SONAR_ALTITUDE: 58
+struct SonarAltitude : public Request {
+    ID id() const { return ID::MSP_SONAR_ALTITUDE; }
+
+    float altitude; // meters
+
+    void decode(const std::vector<uint8_t> &data) {
+        altitude = deserialise_int32(data, 0)/100.0f;
+    }
+};
+
 // MSP_RX_MAP: 64
 struct RxMap : public Request {
     ID id() const { return ID::MSP_RX_MAP; }
