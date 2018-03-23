@@ -3,6 +3,7 @@
 
 #include <string>
 #include <thread>
+#include <functional>
 #include <mutex>
 #include <condition_variable>
 #include <map>
