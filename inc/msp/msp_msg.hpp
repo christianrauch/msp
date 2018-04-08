@@ -872,7 +872,7 @@ struct SetRc : public Response {
 };
 
 // MSP_SET_RAW_GPS: 201
-struct SetRawGPS : public Request {
+struct SetRawGPS : public Response {
     ID id() const { return ID::MSP_SET_RAW_GPS; }
 
     uint8_t fix;
