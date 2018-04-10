@@ -126,8 +126,8 @@ enum MessageStatus {
 };
 
 struct ReceivedMessage {
-    uint8_t id;
-    std::vector<uint8_t> data;
+    uint32_t id;
+    ByteVector data;
     MessageStatus status;
 };
 
@@ -139,6 +139,14 @@ public:
 
     void setPrintWarnings(const bool warnings) {
         print_warnings = warnings;
+    }
+    
+    bool setVersion(int ver) {
+        if (ver == 1 || ver == 2) {
+            version = ver;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -166,7 +174,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
+    bool sendData(const uint32_t id, const ByteVector &data = ByteVector(0));
 
     /**
      * @brief sendRequest request payload from FC
@@ -297,25 +305,22 @@ public:
         return subscriptions.at(id);
     }
 
-private:
+    void processOneMessage();
+
+protected:
     /**
      * @brief crc compute checksum of data package
      * @param id message ID
      * @param data raw data vector
      * @return checksum
      */
-    uint8_t crc(const uint8_t id, const ByteVector &data);
+    //uint8_t crc(const uint8_t id, const ByteVector &data);
+    
+    ReceivedMessage processOneMessageV1();
+    ReceivedMessage processOneMessageV2();
 
-    /**
-     * @brief waitForOneMessage block until one message has been received
-     */
-    void waitForOneMessage();
 
-    void waitForOneMessageBlock();
-
-    void processOneMessage();
-
-private:
+protected:
     // I/O
     std::unique_ptr<SerialPortImpl> pimpl;
     // threading
@@ -335,6 +340,15 @@ private:
     std::map<msp::ID, msp::Request*> subscribed_requests;
     // debugging
     bool print_warnings;
+    
+    int version;
+
+    bool sendDataV1(const uint8_t id, const ByteVector &data = ByteVector(0));
+    uint8_t crcV1(const uint8_t id, const ByteVector &data);
+
+    bool sendDataV2(const uint16_t id, const ByteVector &data = ByteVector(0));
+    uint8_t crcV2(uint8_t crc, const ByteVector &data);
+    uint8_t crcV2(uint8_t crc, const uint8_t& b);
 };
 
 } // namespace client

@@ -22,19 +22,59 @@ void FlightController::waitForConnection() {
 
 void FlightController::initialise() {
     // wait for connection to be established
+    //client.setVersion(2);
+    
+    client.setPrintWarnings(true);
+    
     while(client.request(ident, 0.5)==-1);
+    
+    std::cout << "ident ver: " << ident.version << " msp ver: " << ident.msp_version <<std::endl;
 
-    msp::msg::ApiVersion api;
-    if(client.request(api)) {
+    if(client.request(apiVersion)) {
         // this is Cleanflight
         firmware = FirmwareType::CLEANFLIGHT;
-        std::cout<<"Cleanflight API "<<api.major<<"."<<api.minor<<"."<<api.protocol<<" ready"<<std::endl;
+        std::cout<<"Cleanflight API "<<apiVersion.major<<"."<<apiVersion.minor<<" protocol: "<<apiVersion.protocol<<" ready"<<std::endl;
     }
     else {
         // this is MultiWii
         firmware = FirmwareType::MULTIWII;
         std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
     }
+    /*
+    if(firmware == FirmwareType::CLEANFLIGHT) {
+        client.setVersion((int)apiVersion.major);
+    }
+    */
+    int rc;
+    std::cout << "FcVariant ";
+    msp::msg::FcVariant fcvar;
+    rc = client.request(fcvar);
+    if ( rc == 1)
+    std::cout << fcvar.identifier << std::endl;
+    else std::cout << rc << std::endl;
+    
+    std::cout << "FcVersion ";
+    msp::msg::FcVersion fcver;
+    rc = client.request(fcver);
+    if (rc == 1)
+    std::cout << fcver.major << "." << fcver.minor << "." << fcver.patch_level << std::endl;
+    else std::cout << rc << std::endl;
+    
+    std::cout << "BoardInfo ";
+    msp::msg::BoardInfo boardinfo;
+    rc = client.request(boardinfo);
+    if (rc == 1)
+    std::cout << boardinfo.identifier << " " << uint32_t(boardinfo.version) << " " << uint32_t(boardinfo.type) <<std::endl;
+    else std::cout << rc << std::endl;
+    
+    std::cout << "BuildInfo ";
+    msp::msg::BuildInfo buildinfo;
+    rc = client.request(buildinfo);
+    if (rc == 1)
+    std::cout << buildinfo.buildDate << " " << buildinfo.buildTime << " " << buildinfo.shortGitRevision << std::endl;
+    else std::cout << rc << std::endl;
+    
+    
 
     // get sensors
     msp::msg::Status status;

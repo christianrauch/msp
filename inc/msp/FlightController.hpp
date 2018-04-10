@@ -239,6 +239,7 @@ private:
     std::map<std::string, size_t> box_name_ids;
 
     msp::msg::Ident ident;
+    msp::msg::ApiVersion apiVersion;
 
     std::set<msp::msg::Sensor> sensors;
 

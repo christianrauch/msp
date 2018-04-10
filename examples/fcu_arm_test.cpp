@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     std::chrono::high_resolution_clock::time_point start, end;
     bool feature_changed = false;
 start:
+    std::cout << "making FC" << std::endl;
     fcu::FlightController fcu(device, baudrate);
 
     // wait until connection is established
@@ -35,20 +36,36 @@ start:
     fcu.initialise();
     end = std::chrono::high_resolution_clock::now();
     std::cout<<"ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
-
+/*
     // on cleanflight, we need to enable the "RX_MSP" feature
     if(fcu.isFirmwareCleanflight()) {
-        if(fcu.enableRxMSP()==1) {
+        msp::msg::Feature feature_in;
+        if(fcu.request(feature_in)) {
+            std::cout << "features: ";
+            for (auto f : feature_in.features)
+                std::cout << f << " ";
+            std::cout << std::endl;
+        }
+        int rc = fcu.enableRxMSP();
+        std::cout << "enableRxMSP returned " << rc <<std::endl;
+        if(rc==1) {
             std::cout<<"RX_MSP enabled, restart"<<std::endl;
             feature_changed = true;
             goto start;
         }
-
+        
         if(feature_changed) {
             // if we rebooted after updating the RX_MSP feature, we need to sleep for a while
+            std::cout << "waiting for reboot" << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(5));
         }
     }
+*/
+
+    msp::msg::RxConfig rxcfg;
+    fcu.request(rxcfg);
+    std::cout << "rx config: " << (uint32_t)rxcfg.serialrx_provider << std::endl;
+    
 
     std::cout<<"Armed? "<<fcu.isArmed()<<std::endl;
 
