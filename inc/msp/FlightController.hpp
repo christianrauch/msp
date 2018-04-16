@@ -41,7 +41,7 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T, typename C>
-    msp::client::SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
+    msp::client::SubscriptionBase* subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
         return client.subscribe(callback, context, tp);
     }
 
@@ -52,7 +52,7 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T>
-    msp::client::SubscriptionBase* subscribe(const std::function<void(const T&)> &callback, const double tp = 0.0) {
+    msp::client::SubscriptionBase* subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
         return client.subscribe(callback, tp);
     }
 

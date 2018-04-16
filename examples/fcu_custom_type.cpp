@@ -7,14 +7,15 @@ struct MyIdent : public msp::Request {
 
     msp::ByteVector raw_data;
 
-    void decode(const msp::ByteVector &data) {
+    bool decode(msp::ByteVector &data) {
         raw_data = data;
+        return true;
     }
 
 };
 
 struct Callbacks {
-    void onIdent(const MyIdent &ident) {
+    void onIdent(MyIdent &ident) {
         std::cout << "Raw Ident data: ";
         for(auto d : ident.raw_data) {
             std::cout << int(d) << ",";

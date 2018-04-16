@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::FcVariant& fc_variant)
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::FcVersion& fc_version) {
     s << "#FC version:" << std::endl;
-    s << "Version: " << fc_version.major << "." << fc_version.minor << "." << fc_version.patch_level << std::endl;
+    s << "Version: " << (uint32_t)fc_version.major << "." << (uint32_t)fc_version.minor << "." << (uint32_t)fc_version.patch_level << std::endl;
     return s;
 }
 
@@ -24,7 +24,10 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::BoardInfo& board_info)
     s << "#Board Info:" << std::endl;
     s << "Identifier: " << board_info.identifier << std::endl;
     s << "Version: " << board_info.version << std::endl;
-    s << "Type: " << size_t(board_info.type) << std::endl;
+    s << "OSD support: " << size_t(board_info.osd_support) << std::endl;
+    s << "Comms bitmask: " << size_t(board_info.comms_capabilites) << std::endl;
+    s << "Board Name: " << board_info.name << std::endl;
+    
     return s;
 }
 

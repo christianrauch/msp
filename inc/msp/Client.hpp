@@ -71,7 +71,7 @@ public:
         if(timer!=NULL) { delete timer; }
     }
 
-    virtual void call(const msp::Request &req) = 0;
+    virtual void call(msp::Request &req) = 0;
 
     bool hasTimer() {
         // subscription with manual sending of requests
@@ -101,7 +101,7 @@ protected:
 template<typename T>
 class Subscription : public SubscriptionBase {
 public:
-    typedef std::function<void(const T&)> Callback;
+    typedef std::function<void(T&)> Callback;
 
     Subscription(const Callback &callback) : callback(callback) { }
 
@@ -111,8 +111,8 @@ public:
         this->timer->start();
     }
 
-    void call(const msp::Request &req) {
-        callback( dynamic_cast<const T&>(req) );
+    void call(msp::Request &req) {
+        callback( dynamic_cast<T&>(req) );
     }
 
 private:
@@ -248,7 +248,7 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T, typename C>
-    SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
+    SubscriptionBase* subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
         return subscribe<T>(std::bind(callback, context, std::placeholders::_1), tp);
     }
 
@@ -259,7 +259,7 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T>
-    SubscriptionBase* subscribe(const std::function<void(const T&)> &callback, const double tp = 0.0) {
+    SubscriptionBase* subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
 
         if(!std::is_base_of<msp::Request, T>::value)
             throw std::runtime_error("Callback parameter needs to be of Request type!");

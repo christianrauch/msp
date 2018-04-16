@@ -176,6 +176,7 @@ bool Client::sendData(const uint32_t id, const ByteVector &data) {
     case 2:
         return sendDataV2(uint16_t(id),data);
     }
+    return false;
 }
 
 void Client::processOneMessage() {

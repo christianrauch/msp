@@ -1,5 +1,5 @@
 #include "FlightController.hpp"
-
+#include "msg_print.hpp"
 #include <iostream>
 
 namespace fcu {
@@ -33,7 +33,7 @@ void FlightController::initialise() {
     if(client.request(apiVersion)) {
         // this is Cleanflight
         firmware = FirmwareType::CLEANFLIGHT;
-        std::cout<<"Cleanflight API "<<apiVersion.major<<"."<<apiVersion.minor<<" protocol: "<<apiVersion.protocol<<" ready"<<std::endl;
+        std::cout<<"Cleanflight API "<<(uint32_t)apiVersion.major<<"."<<(uint32_t)apiVersion.minor<<" protocol: "<<(uint32_t)apiVersion.protocol<<" ready"<<std::endl;
     }
     else {
         // this is MultiWii
@@ -57,14 +57,14 @@ void FlightController::initialise() {
     msp::msg::FcVersion fcver;
     rc = client.request(fcver);
     if (rc == 1)
-    std::cout << fcver.major << "." << fcver.minor << "." << fcver.patch_level << std::endl;
+    std::cout << (uint32_t)fcver.major << "." << (uint32_t)fcver.minor << "." << (uint32_t)fcver.patch_level << std::endl;
     else std::cout << rc << std::endl;
     
     std::cout << "BoardInfo ";
     msp::msg::BoardInfo boardinfo;
     rc = client.request(boardinfo);
     if (rc == 1)
-    std::cout << boardinfo.identifier << " " << uint32_t(boardinfo.version) << " " << uint32_t(boardinfo.type) <<std::endl;
+    std::cout << boardinfo.identifier << " " << uint32_t(boardinfo.version) << " " << boardinfo.name <<std::endl;
     else std::cout << rc << std::endl;
     
     std::cout << "BuildInfo ";
@@ -73,7 +73,6 @@ void FlightController::initialise() {
     if (rc == 1)
     std::cout << buildinfo.buildDate << " " << buildinfo.buildTime << " " << buildinfo.shortGitRevision << std::endl;
     else std::cout << rc << std::endl;
-    
     
 
     // get sensors

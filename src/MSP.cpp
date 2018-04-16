@@ -43,7 +43,7 @@ bool MSP::request(msp::Request &request) {
     std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
     try {
-        const DataID pkg = receiveData();
+        DataID pkg = receiveData();
         if(pkg.id==uint8_t(request.id()))
             request.decode(pkg.data);
         return pkg.id==uint8_t(request.id());
@@ -78,7 +78,7 @@ bool MSP::request_block(msp::Request &request) {
         std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
         try {
-            const DataID pkg = receiveData();
+            DataID pkg = receiveData();
             success = (pkg.id==uint8_t(request.id()));
             if(success)
                 request.decode(pkg.data);
