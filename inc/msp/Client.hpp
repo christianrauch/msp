@@ -71,7 +71,7 @@ public:
         if(timer!=NULL) { delete timer; }
     }
 
-    virtual void call(msp::Request &req) = 0;
+    virtual void call(msp::Message &req) = 0;
 
     bool hasTimer() {
         // subscription with manual sending of requests
@@ -111,7 +111,7 @@ public:
         this->timer->start();
     }
 
-    void call(msp::Request &req) {
+    void call(msp::Message &req) {
         callback( dynamic_cast<T&>(req) );
     }
 
@@ -196,7 +196,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool sendResponse(const msp::Response &response) {
+    bool sendResponse(const msp::Message &response) {
         return sendData(uint8_t(response.id()), response.encode());
     }
 
@@ -208,7 +208,7 @@ public:
      * @return false on failure
      * @return -1 on timeout
      */
-    int request(msp::Request &request, const double timeout = 0);
+    int request(msp::Message &request, const double timeout = 0);
 
     /**
      * @brief request_raw request raw unstructured payload data
@@ -228,7 +228,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool respond(const msp::Response &response, const bool wait_ack=true);
+    bool respond(const msp::Message &response, const bool wait_ack=true);
 
     /**
      * @brief respond_raw send raw unstructured payload data
@@ -261,7 +261,7 @@ public:
     template<typename T>
     SubscriptionBase* subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
 
-        if(!std::is_base_of<msp::Request, T>::value)
+        if(!std::is_base_of<msp::Message, T>::value)
             throw std::runtime_error("Callback parameter needs to be of Request type!");
 
         if(!(tp>=0.0))
@@ -337,7 +337,7 @@ protected:
     ReceivedMessage request_received;
     // subscriptions
     std::map<msp::ID, SubscriptionBase*> subscriptions;
-    std::map<msp::ID, msp::Request*> subscribed_requests;
+    std::map<msp::ID, msp::Message*> subscribed_requests;
     // debugging
     bool print_warnings;
     

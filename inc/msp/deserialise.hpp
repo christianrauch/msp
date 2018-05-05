@@ -8,7 +8,7 @@ namespace msp {
 
 /////////////////////////////////////////////////////////////////////
 /// de-/serialization for 16 and 32 bit unsigned integer
-
+/*
 static void serialise_uint16(const uint16_t val, ByteVector &data) {
     data.push_back(val>>0);
     data.push_back(val>>8);
@@ -41,7 +41,7 @@ static void serialise_uint32(const uint32_t val, ByteVector &data) {
 static uint32_t deserialise_uint32(const ByteVector &data, const size_t start) {
     return (data[start]<<0) | (data[start+1]<<8) | (data[start+2]<<16) | (data[start+3]<<24);
 }
-
+*/
 }
 
 #endif // DESERIALISE_HPP

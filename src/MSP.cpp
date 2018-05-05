@@ -36,7 +36,7 @@ bool MSP::connect(const std::string &device, const size_t baudrate) {
     return true;
 }
 
-bool MSP::request(msp::Request &request) {
+bool MSP::request(msp::Message &request) {
     if(!sendData(request.id()))
         return false;
 
@@ -66,7 +66,7 @@ bool MSP::request(msp::Request &request) {
     catch(asio::system_error) { return false; }
 }
 
-bool MSP::request_block(msp::Request &request) {
+bool MSP::request_block(msp::Message &request) {
     bool success = false;
     while(success==false) {
         // write ID
@@ -105,7 +105,7 @@ bool MSP::request_block(msp::Request &request) {
     return true;
 }
 
-bool MSP::request_wait(msp::Request &request, const size_t wait_ms, const size_t min_payload_size) {
+bool MSP::request_wait(msp::Message &request, const size_t wait_ms, const size_t min_payload_size) {
     const std::chrono::milliseconds wait(wait_ms);
 
     bool success = false;
@@ -145,7 +145,7 @@ bool MSP::request_wait(msp::Request &request, const size_t wait_ms, const size_t
     return true;
 }
 
-bool MSP::respond(const msp::Response &response) {
+bool MSP::respond(const msp::Message &response) {
     if(!sendData(response.id(), response.encode()))
         return false;
 
@@ -162,7 +162,7 @@ bool MSP::respond(const msp::Response &response) {
     catch(asio::system_error) { return false; }
 }
 
-bool MSP::respond_block(const msp::Response &response) {
+bool MSP::respond_block(const msp::Message &response) {
     bool success = false;
     while(success==false) {
         // write ID and data and skip to write again if error occurred

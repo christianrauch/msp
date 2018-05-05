@@ -4,6 +4,8 @@
 #ifndef MSP_MSG_HPP
 #define MSP_MSG_HPP
 
+#include "types.hpp"
+
 #include <string>
 #include <array>
 #include <sstream>
@@ -11,7 +13,7 @@
 #include <climits>
 #include <cassert>
 
-#include "types.hpp"
+
 
 #include "deserialise.hpp"
 
@@ -37,6 +39,12 @@ const static size_t MAX_ADJUSTMENT_RANGE_COUNT = 12;
 const static size_t MAX_SIMULTANEOUS_ADJUSTMENT_COUNT = 6;
 
 const static size_t OSD_ITEM_COUNT = 41; //manual count from iNav io/osd.h
+
+const static size_t MAX_MAPPABLE_RX_INPUTS = 8;
+
+const static size_t LED_MODE_COUNT = 6;
+const static size_t LED_DIRECTION_COUNT = 6;
+const static size_t LED_SPECIAL_COLOR_COUNT = 11;
 
 enum class MultiType : uint8_t {
     TRI             = 1,
@@ -74,7 +82,10 @@ enum class Sensor {
     Barometer,
     Magnetometer,
     GPS,
-    Sonar
+    Sonar,
+    OpticalFlow,
+    Pitot,
+    GeneralHealth
 };
 
 const static size_t NAUX = 4;
@@ -97,12 +108,12 @@ static const std::vector<std::string> FEATURES = {
 /// Cleanflight
 
 // MSP_API_VERSION: 1
-struct ApiVersion : public Request {
+struct ApiVersion : public Message {
     ID id() const { return ID::MSP_API_VERSION; }
 
-	uint8_t protocol;
-	uint8_t major;
-	uint8_t minor;
+	value<uint8_t> protocol;
+	value<uint8_t> major;
+	value<uint8_t> minor;
 
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -114,10 +125,10 @@ struct ApiVersion : public Request {
 };
 
 // MSP_FC_VARIANT: 2
-struct FcVariant : public Request {
+struct FcVariant : public Message {
     ID id() const { return ID::MSP_FC_VARIANT; }
 
-    std::string identifier;
+    value<std::string> identifier;
 
     bool decode(ByteVector &data) {
         return data.unpack(identifier,data.size());
@@ -125,12 +136,12 @@ struct FcVariant : public Request {
 };
 
 // MSP_FC_VERSION: 3
-struct FcVersion : public Request {
+struct FcVersion : public Message {
     ID id() const { return ID::MSP_FC_VERSION; }
 
-	uint8_t major;
-	uint8_t minor;
-	uint8_t patch_level;
+	value<uint8_t> major;
+	value<uint8_t> minor;
+	value<uint8_t> patch_level;
 
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -142,50 +153,105 @@ struct FcVersion : public Request {
 };
 
 // MSP_BOARD_INFO: 4
-struct BoardInfo : public Request {
+struct BoardInfo : public Message {
     ID id() const { return ID::MSP_BOARD_INFO; }
 
-    std::string identifier;
-    uint16_t version;
-    uint8_t osd_support;
-    uint8_t comms_capabilites;
-    std::string name;
+    value<std::string> identifier;
+    value<uint16_t> version;
+    value<uint8_t> osd_support;
+    value<uint8_t> comms_capabilites;
+    value<std::string> name;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(identifier,BOARD_IDENTIFIER_LENGTH);
+        rc &= data.unpack(identifier(),BOARD_IDENTIFIER_LENGTH);
         rc &= data.unpack(version);
         rc &= data.unpack(osd_support);
         rc &= data.unpack(comms_capabilites);
         uint8_t name_len;
         rc &= data.unpack(name_len);
-        rc &= data.unpack(name,name_len);
+        rc &= data.unpack(name(),name_len);
         return rc;
     }
 };
 
 // MSP_BUILD_INFO: 5
-struct BuildInfo : public Request {
+struct BuildInfo : public Message {
     ID id() const { return ID::MSP_BUILD_INFO; }
 
-    std::string buildDate;
-    std::string buildTime;
-    std::string shortGitRevision;
+    value<std::string> buildDate;
+    value<std::string> buildTime;
+    value<std::string> shortGitRevision;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(buildDate,BUILD_DATE_LENGTH);
-        rc &= data.unpack(buildTime,BUILD_TIME_LENGTH);
-        rc &= data.unpack(shortGitRevision,GIT_SHORT_REVISION_LENGTH);
+        rc &= data.unpack(buildDate(),BUILD_DATE_LENGTH);
+        rc &= data.unpack(buildTime(),BUILD_TIME_LENGTH);
+        rc &= data.unpack(shortGitRevision(),GIT_SHORT_REVISION_LENGTH);
         return rc;
     }
 };
 
+struct PidSettings {
+    value<uint8_t> async_mode;
+    value<uint16_t> acc_task_frequency;
+    value<uint16_t> attitude_task_frequency;
+    value<uint8_t> heading_hold_rate_limit;
+    value<uint8_t> heading_hold_error_lpf_freq;
+    value<uint16_t> yaw_jump_prevention_limit;
+    value<uint8_t> gyro_lpf;
+    value<uint8_t> acc_soft_lpf_hz;
+};
+
+// MSP_INAV_PID: 6
+struct InavPid : public PidSettings, public Message {
+    ID id() const { return ID::MSP_INAV_PID; }
+
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(async_mode);
+        rc &= data.unpack(acc_task_frequency);
+        rc &= data.unpack(attitude_task_frequency);
+        rc &= data.unpack(heading_hold_rate_limit);
+        rc &= data.unpack(heading_hold_error_lpf_freq);
+        rc &= data.unpack(yaw_jump_prevention_limit);
+        rc &= data.unpack(gyro_lpf);
+        rc &= data.unpack(acc_soft_lpf_hz);
+        return rc;
+    }
+};
+
+
+// MSP_SET_INAV_PID: 7
+struct SetInavPid : public PidSettings, public Message {
+    ID id() const { return ID::MSP_SET_INAV_PID; }
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(async_mode);
+        data.pack(acc_task_frequency);
+        data.pack(attitude_task_frequency);
+        data.pack(heading_hold_rate_limit);
+        data.pack(heading_hold_error_lpf_freq);
+        data.pack(yaw_jump_prevention_limit);
+        data.pack(gyro_lpf);
+        data.pack(acc_soft_lpf_hz);
+        uint8_t tmp = 0;
+        data.pack(tmp);
+        data.pack(tmp);
+        data.pack(tmp);
+        data.pack(tmp);
+        return data;
+    }
+};
+
+
+
 // MSP_NAME: 10
-struct BoardName : public Request {
+struct BoardName : public Message {
     ID id() const { return ID::MSP_NAME; }
     
-    std::string name;
+    value<std::string> name;
     
     bool decode(ByteVector & data) {
         return data.unpack(name,data.size());
@@ -194,10 +260,10 @@ struct BoardName : public Request {
 
 
 // MSP_SET_NAME: 11
-struct SetBoardName : public Response {
+struct SetBoardName : public Message {
     ID id() const { return ID::MSP_SET_NAME; }
     
-    std::string name;
+    value<std::string> name;
     
     ByteVector encode() const {
         ByteVector data;
@@ -206,20 +272,21 @@ struct SetBoardName : public Response {
     }
 };
 
+struct NavPosHoldSettings {
+    value<uint8_t> user_control_mode;
+    value<uint16_t> max_auto_speed;
+    value<uint16_t> max_auto_climb_rate;
+    value<uint16_t> max_manual_speed;
+    value<uint16_t> max_manual_climb_rate;
+    value<uint8_t> max_bank_angle;
+    value<uint8_t> use_thr_mid_for_althold;
+    value<uint16_t> hover_throttle;
+};
 
 // MSP_NAV_POSHOLD: 12
-struct NavPosHold : public Request {
+struct NavPosHold : public NavPosHoldSettings, public Message {
     ID id() const { return ID::MSP_NAV_POSHOLD; }
     
-    uint8_t user_control_mode;
-    uint16_t max_auto_speed;
-    uint16_t max_auto_climb_rate;
-    uint16_t max_manual_speed;
-    uint16_t max_manual_climb_rate;
-    uint8_t max_bank_angle;
-    uint8_t use_thr_mid_for_althold;
-    uint16_t hover_throttle;
-
     bool decode(ByteVector &data) {
         bool rc = true;
         rc &= data.unpack(user_control_mode);
@@ -235,17 +302,8 @@ struct NavPosHold : public Request {
 };
 
 // MSP_SET_NAV_POSHOLD: 13
-struct SetNavPosHold : public Response {
+struct SetNavPosHold : public NavPosHoldSettings, public Message {
     ID id() const { return ID::MSP_SET_NAV_POSHOLD; }
-    
-    uint8_t user_control_mode;
-    uint16_t max_auto_speed;
-    uint16_t max_auto_climb_rate;
-    uint16_t max_manual_speed;
-    uint16_t max_manual_climb_rate;
-    uint8_t max_bank_angle;
-    uint8_t use_thr_mid_for_althold;
-    uint16_t hover_throttle;
     
     ByteVector encode() const {
         ByteVector data;
@@ -261,22 +319,24 @@ struct SetNavPosHold : public Response {
     }
 };
 
+struct CalibrationDataSettings {
+    value<uint16_t> acc_zero_x;
+    value<uint16_t> acc_zero_y;
+    value<uint16_t> acc_zero_z;
+    value<uint16_t> acc_gain_x;
+    value<uint16_t> acc_gain_y;
+    value<uint16_t> acc_gain_z;
+};
         
 // MSP_CALIBRATION_DATA: 14
-struct CalibrationData : public Request {
+struct CalibrationData : public CalibrationDataSettings, public Message {
     ID id() const { return ID::MSP_CALIBRATION_DATA; }
     
-    uint8_t axis_flags;
-    uint16_t acc_zero_x;
-    uint16_t acc_zero_y;
-    uint16_t acc_zero_z;
-    uint16_t acc_gain_x;
-    uint16_t acc_gain_y;
-    uint16_t acc_gain_z;
+    value<uint8_t> axis_calibration_flags;
     
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(axis_flags);
+        rc &= data.unpack(axis_calibration_flags);
         rc &= data.unpack(acc_zero_x);
         rc &= data.unpack(acc_zero_y);
         rc &= data.unpack(acc_zero_z);
@@ -288,15 +348,8 @@ struct CalibrationData : public Request {
 };
 
 // MSP_SET_CALIBRATION_DATA: 15
-struct SetCalibrationData : public Response {
+struct SetCalibrationData : public CalibrationDataSettings, public Message {
     ID id() const { return ID::MSP_SET_CALIBRATION_DATA; }
-    
-    uint16_t acc_zero_x;
-    uint16_t acc_zero_y;
-    uint16_t acc_zero_z;
-    uint16_t acc_gain_x;
-    uint16_t acc_gain_y;
-    uint16_t acc_gain_z;
     
     ByteVector encode() const {
         ByteVector data;
@@ -309,62 +362,46 @@ struct SetCalibrationData : public Response {
         return data;
     }
 };
-        
+
+struct PositionEstimationConfigSettings {
+    value<float> w_z_baro_p;
+    value<float> w_z_gps_p;
+    value<float> w_z_gps_v;
+    value<float> w_xy_gps_p;
+    value<float> w_xy_gps_v;
+    value<uint8_t> gps_min_sats;
+    value<bool> use_gps_vel_NED;
+};
+
+
 // MSP_POSITION_ESTIMATION_CONFIG: 16
-struct PositionEstimationConfig : public Request {
+struct PositionEstimationConfig : public PositionEstimationConfigSettings, public Message {
     ID id() const { return ID::MSP_POSITION_ESTIMATION_CONFIG; }
     
-    float w_z_baro_p;
-    float w_z_gps_p;
-    float w_z_gps_v;
-    float w_xy_gps_p;
-    float w_xy_gps_v;
-    uint8_t gps_min_sats;
-    bool use_gps_vel_NED;
-
     bool decode(ByteVector &data) {
         bool rc = true;
-        uint16_t raw;
-        rc &= data.unpack(raw);
-        w_z_baro_p = raw/100.0;
-        rc &= data.unpack(raw);
-        w_z_gps_p = raw/100.0;
-        rc &= data.unpack(raw);
-        w_z_gps_v = raw/100.0;
-        rc &= data.unpack(raw);
-        w_xy_gps_p = raw/100.0;
-        rc &= data.unpack(raw);
-        w_xy_gps_v = raw/100.0;
+        rc &= data.unpack<uint16_t>(w_z_baro_p,0.01);
+        rc &= data.unpack<uint16_t>(w_z_gps_p,0.01);
+        rc &= data.unpack<uint16_t>(w_z_gps_v,0.01);
+        rc &= data.unpack<uint16_t>(w_xy_gps_p,0.01);
+        rc &= data.unpack<uint16_t>(w_xy_gps_v,0.01);
         rc &= data.unpack(gps_min_sats);
         rc &= data.unpack(use_gps_vel_NED);
+        return rc;
     }
 };
 
 // MSP_SET_POSITION_ESTIMATION_CONFIG: 17
-struct SetPositionEstimationConfig : public Response {
+struct SetPositionEstimationConfig : public PositionEstimationConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_POSITION_ESTIMATION_CONFIG; }
-    
-    float w_z_baro_p;
-    float w_z_gps_p;
-    float w_z_gps_v;
-    float w_xy_gps_p;
-    float w_xy_gps_v;
-    uint8_t gps_min_sats;
-    bool use_gps_vel_NED;
     
     ByteVector encode() const {
         ByteVector data;
-        uint16_t val;
-        val = static_cast<uint16_t>(w_z_baro_p*100);
-        data.pack(val);
-        val = static_cast<uint16_t>(w_z_gps_p*100);
-        data.pack(val);
-        val = static_cast<uint16_t>(w_z_gps_v*100);
-        data.pack(val);
-        val = static_cast<uint16_t>(w_xy_gps_p*100);
-        data.pack(val);
-        val = static_cast<uint16_t>(w_xy_gps_v*100);
-        data.pack(val);
+        data.pack(static_cast<uint16_t>(w_z_baro_p()*100));
+        data.pack(static_cast<uint16_t>(w_z_gps_p()*100));
+        data.pack(static_cast<uint16_t>(w_z_gps_v()*100));
+        data.pack(static_cast<uint16_t>(w_xy_gps_p()*100));
+        data.pack(static_cast<uint16_t>(w_xy_gps_v()*100));
         data.pack(gps_min_sats);
         data.pack(use_gps_vel_NED);
         return data;
@@ -372,7 +409,7 @@ struct SetPositionEstimationConfig : public Response {
 };
     
 // MSP_WP_MISSION_LOAD: 18
-struct WpMissionLoad : public Response {
+struct WpMissionLoad : public Message {
     ID id() const { return ID::MSP_WP_MISSION_LOAD; }
     
     ByteVector encode() const {
@@ -381,7 +418,7 @@ struct WpMissionLoad : public Response {
 };
     
 // MSP_WP_MISSION_SAVE: 19
-struct WpMissionSave : public Response {
+struct WpMissionSave : public Message {
     ID id() const { return ID::MSP_WP_MISSION_SAVE; }
     
     ByteVector encode() const {
@@ -390,13 +427,13 @@ struct WpMissionSave : public Response {
 };
 
 // MSP_WP_GETINFO: 20
-struct WpGetInfo : public Request {
+struct WpGetInfo : public Message {
     ID id() const { return ID::MSP_WP_GETINFO; }
     
-    uint8_t wp_capabilites;
-    uint8_t max_waypoints;
-    bool wp_list_valid;
-    uint8_t wp_count;
+    value<uint8_t> wp_capabilites;
+    value<uint8_t> max_waypoints;
+    value<bool> wp_list_valid;
+    value<uint8_t> wp_count;
     
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -408,22 +445,24 @@ struct WpGetInfo : public Request {
     }
 };
 
+struct RthAndLandConfigSettings {
+    value<uint16_t> min_rth_distance;
+    value<uint8_t> rth_climb_first;
+    value<uint8_t> rth_climb_ignore_emerg;
+    value<uint8_t> rth_tail_first;
+    value<uint8_t> rth_allow_landing;
+    value<uint8_t> rth_alt_control_mode;
+    value<uint16_t> rth_abort_threshold;
+    value<uint16_t> rth_altitude;
+    value<uint16_t> land_descent_rate;
+    value<uint16_t> land_slowdown_minalt;
+    value<uint16_t> land_slowdown_maxalt;
+    value<uint16_t> emerg_descent_rate;
+};
+
 // MSP_RTH_AND_LAND_CONFIG: 21
-struct RthAndLandConfig : public Request {
+struct RthAndLandConfig : public RthAndLandConfigSettings, public Message {
     ID id() const { return ID::MSP_RTH_AND_LAND_CONFIG; }
-    
-    uint16_t min_rth_distance;
-    uint8_t rth_climb_first;
-    uint8_t rth_climb_ignore_emerg;
-    uint8_t rth_tail_first;
-    uint8_t rth_allow_landing;
-    uint8_t rth_alt_control_mode;
-    uint16_t rth_abort_threshold;
-    uint16_t rth_altitude;
-    uint16_t land_descent_rate;
-    uint16_t land_slowdown_minalt;
-    uint16_t land_slowdown_maxalt;
-    uint16_t emerg_descent_rate;
     
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -444,21 +483,8 @@ struct RthAndLandConfig : public Request {
 };
 
 // MSP_SET_RTH_AND_LAND_CONFIG: 22
-struct SetRthAndLandConfig : public Response {
+struct SetRthAndLandConfig : public RthAndLandConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_RTH_AND_LAND_CONFIG; }
-    
-    uint16_t min_rth_distance;
-    uint8_t rth_climb_first;
-    uint8_t rth_climb_ignore_emerg;
-    uint8_t rth_tail_first;
-    uint8_t rth_allow_landing;
-    uint8_t rth_alt_control_mode;
-    uint16_t rth_abort_threshold;
-    uint16_t rth_altitude;
-    uint16_t land_descent_rate;
-    uint16_t land_slowdown_minalt;
-    uint16_t land_slowdown_maxalt;
-    uint16_t emerg_descent_rate;
     
     ByteVector encode() const {
         ByteVector data;
@@ -478,18 +504,20 @@ struct SetRthAndLandConfig : public Response {
     }
 };
 
+struct FwConfigSettings {
+    value<uint16_t> cruise_throttle;
+    value<uint16_t> min_throttle;
+    value<uint16_t> max_throttle;
+    value<uint8_t> max_bank_angle;
+    value<uint8_t> max_climb_angle;
+    value<uint8_t> max_dive_angle;
+    value<uint8_t> pitch_to_throttle;
+    value<uint16_t> loiter_radius;
+};
+
 // MSP_FW_CONFIG: 23
-struct FwConfig : public Request {
+struct FwConfig : public FwConfigSettings, public Message {
     ID id() const { return ID::MSP_FW_CONFIG; }
-    
-    uint16_t cruise_throttle;
-    uint16_t min_throttle;
-    uint16_t max_throttle;
-    uint8_t max_bank_angle;
-    uint8_t max_climb_angle;
-    uint8_t max_dive_angle;
-    uint8_t pitch_to_throttle;
-    uint16_t loiter_radius;
     
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -506,17 +534,8 @@ struct FwConfig : public Request {
 };
 
 // MSP_SET_FW_CONFIG: 24
-struct SetFwConfig : public Response {
+struct SetFwConfig : public FwConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_FW_CONFIG; }
-
-    uint16_t cruise_throttle;
-    uint16_t min_throttle;
-    uint16_t max_throttle;
-    uint8_t max_bank_angle;
-    uint8_t max_climb_angle;
-    uint8_t max_dive_angle;
-    uint8_t pitch_to_throttle;
-    uint16_t loiter_radius;
     
     ByteVector encode() const {
         ByteVector data;
@@ -532,16 +551,58 @@ struct SetFwConfig : public Response {
     }
 };
 
+struct BatteryConfigSettings {
+    value<uint8_t> vbatmincellvoltage;
+    value<uint8_t> vbatmaxcellvoltage;
+    value<uint8_t> vbatwarningcellvoltage;
+    value<uint16_t> batteryCapacity;
+    value<uint8_t> voltageMeterSource;
+    value<uint8_t> currentMeterSource;
+};
+
+// MSP_BATTERY_CONFIG: 32
+struct BatteryConfig : public BatteryConfigSettings, public Message {
+    ID id() const { return ID::MSP_BATTERY_CONFIG; }
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(vbatmincellvoltage);
+        rc &= data.unpack(vbatmaxcellvoltage);
+        rc &= data.unpack(vbatwarningcellvoltage);
+        rc &= data.unpack(batteryCapacity);
+        rc &= data.unpack(voltageMeterSource);
+        rc &= data.unpack(currentMeterSource);
+        return rc;
+    }
+};
+
+// MSP_SET_BATTERY_CONFIG: 33
+struct SetBatteryConfig : public BatteryConfigSettings, public Message {
+    ID id() const { return ID::MSP_SET_BATTERY_CONFIG; }
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(vbatmincellvoltage);
+        data.pack(vbatmaxcellvoltage);
+        data.pack(vbatwarningcellvoltage);
+        data.pack(batteryCapacity);
+        data.pack(voltageMeterSource);
+        data.pack(currentMeterSource);
+        return data;
+    }
+};
+
+
 struct box_description
 {
-    uint8_t id;
-    uint8_t aux_channel_index;
-    uint8_t startStep;
-    uint8_t endStep;
+    value<uint8_t> id;
+    value<uint8_t> aux_channel_index;
+    value<uint8_t> startStep;
+    value<uint8_t> endStep;
 };
 
 // MSP_MODE_RANGES: 34
-struct ModeRange : public Request {
+struct ModeRanges : public Message {
     ID id() const { return ID::MSP_MODE_RANGES; }
     
     std::array<box_description,MAX_MODE_ACTIVATION_CONDITION_COUNT> boxes;
@@ -558,17 +619,16 @@ struct ModeRange : public Request {
     }
 };
 
-
 // MSP_SET_MODE_RANGE: 35
-struct SetModeRange : public Response {
+struct SetModeRange : public Message {
     ID id() const { return ID::MSP_SET_MODE_RANGE; }
     
-    uint8_t mode_activation_condition;
+    value<uint8_t> mode_activation_condition_idx;
     box_description box;
     
     ByteVector encode() const {
         ByteVector data;
-        data.pack(mode_activation_condition);
+        data.pack(mode_activation_condition_idx);
         data.pack(box.id);
         data.pack(box.aux_channel_index);
         data.pack(box.startStep);
@@ -580,7 +640,7 @@ struct SetModeRange : public Response {
 
 
 // MSP_FEATURE: 36
-struct Feature : public Request {
+struct Feature : public Message {
     ID id() const { return ID::MSP_FEATURE; }
 
     std::set<std::string> features;
@@ -589,15 +649,17 @@ struct Feature : public Request {
         uint32_t mask;
         bool rc = data.unpack(mask);
         if (!rc) return rc;
+        features.clear();
         for(size_t ifeat(0); ifeat<FEATURES.size(); ifeat++) {
             if(mask & (1<<ifeat))
                 features.insert(FEATURES[ifeat]);
         }
+        return rc;
     }
 };
 
 // MSP_SET_FEATURE: 37
-struct SetFeature : public Response {
+struct SetFeature : public Message {
     ID id() const { return ID::MSP_SET_FEATURE; }
 
     std::set<std::string> features;
@@ -614,51 +676,49 @@ struct SetFeature : public Response {
     }
 };
 
+//iNav uses decidegrees, BF/CF use degrees
+struct BoardAlignmentSettings {
+    value<uint16_t> roll;
+    value<uint16_t> pitch;
+    value<uint16_t> yaw;
+};
 
 // MSP_BOARD_ALIGNMENT: 38
-struct BoardAlignment : public Request {
+struct BoardAlignment : public BoardAlignmentSettings, public Message {
     ID id() const { return ID::MSP_BOARD_ALIGNMENT; }
-
-    uint16_t rollDeciDegrees;
-    uint16_t pitchDeciDegrees;
-    uint16_t yawDeciDegrees;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(rollDeciDegrees);
-        rc &= data.unpack(pitchDeciDegrees);
-        rc &= data.unpack(yawDeciDegrees);
+        rc &= data.unpack(roll);
+        rc &= data.unpack(pitch);
+        rc &= data.unpack(yaw);
         return rc;
     }
 };
 
-
 // MSP_SET_BOARD_ALIGNMENT: 39
-struct SetBoardAlignment : public Response {
+struct SetBoardAlignment : public BoardAlignmentSettings, public Message {
     ID id() const { return ID::MSP_BOARD_ALIGNMENT; }
-
-    uint16_t rollDeciDegrees;
-    uint16_t pitchDeciDegrees;
-    uint16_t yawDeciDegrees;
     
     ByteVector encode() const {
         ByteVector data;
-        data.pack(rollDeciDegrees);
-        data.pack(pitchDeciDegrees);
-        data.pack(yawDeciDegrees);
+        data.pack(roll);
+        data.pack(pitch);
+        data.pack(yaw);
         return data;
     }
 };
 
+struct CurrentMeterConfigSettings {
+    value<uint16_t> currnet_scale;
+    value<uint16_t> current_offset;
+    value<uint8_t> current_type;
+    value<uint16_t> capacity;
+};
 
-// MSP_AMPERAGE_METER_CONFIG: 40 (AKA MSP_CURRENT_METER_CONFIG)
-struct CurrentMeterConfig : public Request {
-    ID id() const { return ID::MSP_AMPERAGE_METER_CONFIG; }
-
-    uint16_t currnet_scale;
-    uint16_t current_offset;
-    uint8_t current_type;
-    uint16_t capacity;
+// MSP_CURRENT_METER_CONFIG: 40 (differs from Cleanflight/BetaFlight)
+struct CurrentMeterConfig : public CurrentMeterConfigSettings, public Message {
+    ID id() const { return ID::MSP_CURRENT_METER_CONFIG; }
 
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -671,15 +731,10 @@ struct CurrentMeterConfig : public Request {
 };
 
 
-// MSP_SET_AMPERAGE_METER_CONFIG: 41 (AKA MSP_SET_CURRENT_METER_CONFIG)
-struct SetCurrentMeterConfig : public Response {
-    ID id() const { return ID::MSP_SET_AMPERAGE_METER_CONFIG; }
+// MSP_SET_CURRENT_METER_CONFIG: 41 (differs from Cleanflight/BetaFlight)
+struct SetCurrentMeterConfig : public CurrentMeterConfigSettings, public Message {
+    ID id() const { return ID::MSP_SET_CURRENT_METER_CONFIG; }
 
-    uint16_t currnet_scale;
-    uint16_t current_offset;
-    uint8_t current_type;
-    uint16_t capacity;
-    
     ByteVector encode() const {
         ByteVector data;
         data.pack(currnet_scale);
@@ -692,10 +747,10 @@ struct SetCurrentMeterConfig : public Response {
 
 
 // MSP_MIXER: 42
-struct Mixer : public Request {
+struct Mixer : public Message {
     ID id() const { return ID::MSP_MIXER; }
 
-    uint8_t mode;
+    value<uint8_t> mode;
 
     bool decode(ByteVector &data) {
         return data.unpack(mode);
@@ -705,10 +760,10 @@ struct Mixer : public Request {
 
 
 // MSP_SET_MIXER: 43
-struct SetMixer : public Response {
+struct SetMixer : public Message {
     ID id() const { return ID::MSP_SET_MIXER; }
 
-    uint8_t mode;
+    value<uint8_t> mode;
     
     ByteVector encode() const {
         ByteVector data;
@@ -717,50 +772,76 @@ struct SetMixer : public Response {
     }
 };
 
+struct RxConfigSettings {
+    size_t valid_data_groups;
+    //group1
+    value<uint8_t> serialrx_provider;
+    value<uint16_t> maxcheck;
+    value<uint16_t> midrc;
+    value<uint16_t> mincheck;
+    value<uint8_t> spektrum_sat_bind;
+    //group 2
+    value<uint16_t> rx_min_usec;
+    value<uint16_t> rx_max_usec;
+    //group 3
+    value<uint8_t> rcInterpolation;
+    value<uint8_t> rcInterpolationInterval;
+    value<uint16_t> airModeActivateThreshold;
+    //group 4
+    value<uint8_t> rx_spi_protocol;
+    value<uint32_t> rx_spi_id;
+    value<uint8_t> rx_spi_rf_channel_count;
+    //group 5
+    value<uint8_t> fpvCamAngleDegrees;
+    //group 6 - iNav only
+    value<uint8_t> receiverType;
+};
 
 // MSP_RX_CONFIG: 44
-struct RxConfig : public Request {
+struct RxConfig : public RxConfigSettings, public Message {
     ID id() const { return ID::MSP_RX_CONFIG; }
 
-    uint8_t serialrx_provider;
-    uint16_t maxcheck;
-    uint16_t midrc;
-    uint16_t mincheck;
-    uint8_t spektrum_sat_bind;
-    uint16_t rx_min_usec;
-    uint16_t rx_max_usec;
-
     bool decode(ByteVector &data) {
-        serialrx_provider = data[0];
-        maxcheck = deserialise_uint16(data, 1);
-        midrc = deserialise_uint16(data, 3);
-        mincheck = deserialise_uint16(data, 5);
-        spektrum_sat_bind = data[7];
-        rx_min_usec = deserialise_uint16(data, 8);
-        rx_max_usec = deserialise_uint16(data, 10);
+        bool rc = true;
+        valid_data_groups = 1;
+        rc &= data.unpack(serialrx_provider);
+        rc &= data.unpack(maxcheck);
+        rc &= data.unpack(midrc);
+        rc &= data.unpack(mincheck);
+        rc &= data.unpack(spektrum_sat_bind);
+        if (data.unpacking_remaining() == 0) return rc;
+        
+        valid_data_groups += 1;
+        rc &= data.unpack(rx_min_usec);
+        rc &= data.unpack(rx_max_usec);
+        if (data.unpacking_remaining() == 0) return rc;
+        
+        valid_data_groups += 1;
+        rc &= data.unpack(rcInterpolation);
+        rc &= data.unpack(rcInterpolationInterval);
+        rc &= data.unpack(airModeActivateThreshold);
+        if (data.unpacking_remaining() == 0) return rc;
+        
+        valid_data_groups += 1;
+        rc &= data.unpack(rx_spi_protocol);
+        rc &= data.unpack(rx_spi_id);
+        rc &= data.unpack(rx_spi_rf_channel_count);
+        if (data.unpacking_remaining() == 0) return rc;
+        
+        valid_data_groups += 1;
+        rc &= data.unpack(fpvCamAngleDegrees);
+        if (data.unpacking_remaining() == 0) return rc;
+        
+        valid_data_groups += 1;
+        rc &= data.unpack(receiverType);
+        return rc;
     }
 };
 
 
 // MSP_SET_RX_CONFIG: 45
-struct SetRxConfig : public Response {
+struct SetRxConfig : public RxConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_RX_CONFIG; }
-
-    uint8_t serialrx_provider;
-    uint16_t maxcheck;
-    uint16_t midrc;
-    uint16_t mincheck;
-    uint8_t spektrum_sat_bind;
-    uint16_t rx_min_usec;
-    uint16_t rx_max_usec;
-    uint8_t rcInterpolation;
-    uint8_t rcInterpolationInterval;
-    uint16_t airModeActivateThreshold;
-    uint8_t rx_spi_protocol;
-    uint32_t rx_spi_id;
-    uint8_t rx_spi_rf_channel_count;
-    uint8_t fpvCamAngleDegrees;
-    uint8_t receiverType;
     
     ByteVector encode() const {
         ByteVector data;
@@ -769,35 +850,40 @@ struct SetRxConfig : public Response {
         data.pack(midrc);
         data.pack(mincheck);
         data.pack(spektrum_sat_bind);
+        if (valid_data_groups == 1) return data;
         data.pack(rx_min_usec);
         data.pack(rx_max_usec);
+        if (valid_data_groups == 2) return data;
         data.pack(rcInterpolation);
         data.pack(rcInterpolationInterval);
         data.pack(airModeActivateThreshold);
+        if (valid_data_groups == 3) return data;
         data.pack(rx_spi_protocol);
         data.pack(rx_spi_id);
         data.pack(rx_spi_rf_channel_count);
+        if (valid_data_groups == 4) return data;
         data.pack(fpvCamAngleDegrees);
+        if (valid_data_groups == 5) return data;
         data.pack(receiverType);
         return data;
     }
 };
 
 struct HsvColor {
-    uint16_t h;
-    uint8_t s;
-    uint8_t v;
+    value<uint16_t> h;
+    value<uint8_t> s;
+    value<uint8_t> v;
 };
 
 // MSP_LED_COLORS: 46
-struct LedColors : public Request {
+struct LedColors : public Message {
     ID id() const { return ID::MSP_LED_COLORS; }
 
     std::array<HsvColor,LED_CONFIGURABLE_COLOR_COUNT> colors;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        for (int i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; i++) {
+        for (size_t i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; ++i) {
             rc &= data.unpack(colors[i].h);
             rc &= data.unpack(colors[i].s);
             rc &= data.unpack(colors[i].v);
@@ -808,14 +894,14 @@ struct LedColors : public Request {
 
 
 // MSP_SET_LED_COLORS: 47
-struct SetLedColors : public Response {
+struct SetLedColors : public Message {
     ID id() const { return ID::MSP_SET_LED_COLORS; }
 
     std::array<HsvColor,LED_CONFIGURABLE_COLOR_COUNT> colors;
 
     ByteVector encode() const {
         ByteVector data;
-        for (int i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; i++) {
+        for (size_t i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; ++i) {
             data.pack(colors[i].h);
             data.pack(colors[i].s);
             data.pack(colors[i].v);
@@ -825,14 +911,14 @@ struct SetLedColors : public Response {
 };
 
 // MSP_LED_STRIP_CONFIG: 48
-struct LedStripConfig : public Request {
+struct LedStripConfigs : public Message {
     ID id() const { return ID::MSP_LED_STRIP_CONFIG; }
 
     std::array<uint32_t,LED_MAX_STRIP_LENGTH> configs;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        for (int i = 0; i < LED_MAX_STRIP_LENGTH; i++) {
+        for (size_t i = 0; i < LED_MAX_STRIP_LENGTH; ++i) {
             rc &= data.unpack(configs[i]);
         }
         return rc;
@@ -840,27 +926,25 @@ struct LedStripConfig : public Request {
 };
 
 // MSP_SET_LED_STRIP_CONFIG: 49
-struct SetLedStripConfig : public Response {
+struct SetLedStripConfig : public Message {
     ID id() const { return ID::MSP_SET_LED_STRIP_CONFIG; }
 
-    uint8_t cfg_index;
-    uint32_t config;
+    value<uint8_t> cfg_index;
+    value<uint32_t> config;
 
     ByteVector encode() const {
         ByteVector data;
-        for (int i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; i++) {
-            data.pack(cfg_index);
-            data.pack(config);
-        }
+        data.pack(cfg_index);
+        data.pack(config);
         return data;
     }
 };
 
 // MSP_RSSI_CONFIG: 50
-struct RssiConfig : public Request {
+struct RssiConfig : public Message {
     ID id() const { return ID::MSP_RSSI_CONFIG; }
 
-    uint8_t rssi_channel;
+    value<uint8_t> rssi_channel;
 
     bool decode(ByteVector &data) {
         return data.unpack(rssi_channel);
@@ -868,10 +952,10 @@ struct RssiConfig : public Request {
 };
 
 // MSP_SET_RSSI_CONFIG: 51
-struct SetRssiConfig : public Response {
+struct SetRssiConfig : public Message {
     ID id() const { return ID::MSP_SET_RSSI_CONFIG; }
 
-    uint8_t rssi_channel;
+    value<uint8_t> rssi_channel;
 
     ByteVector encode() const {
         ByteVector data;
@@ -881,23 +965,23 @@ struct SetRssiConfig : public Response {
 };
 
 struct adjustmentRange {
-    uint8_t adjustmentIndex;
-    uint8_t auxChannelIndex;
-    uint8_t range_startStep;
-    uint8_t range_endStep;
-    uint8_t adjustmentFunction;
-    uint8_t auxSwitchChannelIndex;
+    value<uint8_t> adjustmentIndex;
+    value<uint8_t> auxChannelIndex;
+    value<uint8_t> range_startStep;
+    value<uint8_t> range_endStep;
+    value<uint8_t> adjustmentFunction;
+    value<uint8_t> auxSwitchChannelIndex;
 };
 
 // MSP_ADJUSTMENT_RANGES: 52
-struct AdjustmentRanges : public Request {
+struct AdjustmentRanges : public Message {
     ID id() const { return ID::MSP_ADJUSTMENT_RANGES; }
 
     std::array<adjustmentRange,MAX_ADJUSTMENT_RANGE_COUNT> ranges;
 
     bool decode(ByteVector &data) {
         bool rc = true;
-        for (int i = 0; i < MAX_ADJUSTMENT_RANGE_COUNT; i++) {
+        for (size_t i = 0; i < MAX_ADJUSTMENT_RANGE_COUNT; ++i) {
             rc &= data.unpack(ranges[i].adjustmentIndex);
             rc &= data.unpack(ranges[i].auxChannelIndex);
             rc &= data.unpack(ranges[i].range_startStep);
@@ -911,10 +995,10 @@ struct AdjustmentRanges : public Request {
 
 
 // MSP_SET_ADJUSTMENT_RANGE: 53
-struct SetAdjustmentRanges : public Response {
+struct SetAdjustmentRange : public Message {
     ID id() const { return ID::MSP_SET_ADJUSTMENT_RANGE; }
 
-    uint8_t range_index;
+    value<uint8_t> range_index;
     adjustmentRange range;
 
     ByteVector encode() const {
@@ -930,18 +1014,68 @@ struct SetAdjustmentRanges : public Response {
     }
 };
 
-// MSP_CF_SERIAL_CONFIG: 54
-// MSP_SET_CF_SERIAL_CONFIG: 55
+struct CfSerialConfigSettings {
+    value<uint8_t> identifier;
+    value<uint16_t> functionMask;
+    value<uint8_t> mspBaudrateIndx;
+    value<uint8_t> gpsBaudrateIndx;
+    value<uint8_t> telemetryBaudrateIndx;
+    value<uint8_t> peripheralBaudrateIndx;
+};
 
-// MSP_VOLTAGE_METER_CONFIG: 56 (differs from BetaFlight)
-struct VoltageMeterConfig : public Request {
+// MSP_CF_SERIAL_CONFIG: 54
+struct CfSerialConfig : public Message {
+    ID id() const { return ID::MSP_CF_SERIAL_CONFIG; }
+    
+    std::vector<CfSerialConfigSettings> configs;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        do {
+            CfSerialConfigSettings tmp;
+            rc &= data.unpack(tmp.identifier);
+            rc &= data.unpack(tmp.functionMask);
+            rc &= data.unpack(tmp.mspBaudrateIndx);
+            rc &= data.unpack(tmp.gpsBaudrateIndx);
+            rc &= data.unpack(tmp.telemetryBaudrateIndx);
+            rc &= data.unpack(tmp.peripheralBaudrateIndx);
+            if (rc) configs.push_back(tmp);
+        } while (rc);
+        return configs.size();
+    }
+};
+
+// MSP_SET_CF_SERIAL_CONFIG: 55
+struct SetCfSerialConfig : public Message {
+    ID id() const { return ID::MSP_SET_CF_SERIAL_CONFIG; }
+    
+    std::vector<CfSerialConfigSettings> configs;
+ 
+    ByteVector encode() const {
+        ByteVector data;
+        for (auto config : configs) {
+            data.pack(config.identifier);
+            data.pack(config.functionMask);
+            data.pack(config.mspBaudrateIndx);
+            data.pack(config.gpsBaudrateIndx);
+            data.pack(config.telemetryBaudrateIndx);
+            data.pack(config.peripheralBaudrateIndx);
+        }
+        return data;
+    }
+};
+
+struct VoltageMeterConfigSettings {
+    value<uint8_t> scale_dV;
+    value<uint8_t> cell_min_dV;
+    value<uint8_t> cell_max_dV;
+    value<uint8_t> cell_warning_dV;
+};
+
+// MSP_VOLTAGE_METER_CONFIG: 56 (differs from Cleanflight/BetaFlight)
+struct VoltageMeterConfig : public VoltageMeterConfigSettings, public Message {
     ID id() const { return ID::MSP_VOLTAGE_METER_CONFIG; }
 
-    uint8_t scale_dV;
-    uint8_t cell_min_dV;
-    uint8_t cell_max_dV;
-    uint8_t cell_warning_dV;
-    
     bool decode(ByteVector &data) {
         bool rc = true;
         rc &= data.unpack(scale_dV);
@@ -952,16 +1086,9 @@ struct VoltageMeterConfig : public Request {
     }
 };
 
-
-
-// MSP_SET_VOLTAGE_METER_CONFIG: 57 (differs from BetaFlight)
-struct SetVoltageMeterConfig : public Response {
+// MSP_SET_VOLTAGE_METER_CONFIG: 57 (differs from Cleanflight/BetaFlight)
+struct SetVoltageMeterConfig : public VoltageMeterConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_VOLTAGE_METER_CONFIG; }
-
-    uint8_t scale_dV;
-    uint8_t cell_min_dV;
-    uint8_t cell_max_dV;
-    uint8_t cell_warning_dV;
 
     ByteVector encode() const {
         ByteVector data;
@@ -975,73 +1102,151 @@ struct SetVoltageMeterConfig : public Response {
 
 
 // MSP_SONAR_ALTITUDE: 58
-struct SonarAltitude : public Request {
+struct SonarAltitude : public Message {
     ID id() const { return ID::MSP_SONAR_ALTITUDE; }
 
-    float altitude; // meters
+    value<uint32_t> altitude_cm; // meters
 
     bool decode(ByteVector &data) {
-        int32_t cm;
-        bool rc = data.unpack(cm);
-        altitude = cm/100.0f;
-        return rc;
+        return data.unpack(altitude_cm);
     }
 };
 
-//MSP_ARMING_CONFIG: 61
-struct ArmingConfig : public Request {
-    ID id() const { return ID::MSP_ARMING_CONFIG; }
+// MSP_PID_CONTROLLER: 59
+struct PidController : public Message {
+    ID id() const { return ID::MSP_PID_CONTROLLER; }
+    
+    value<uint8_t> controller_id;
+    
+    bool decode(ByteVector &data) {
+        return data.unpack(controller_id);
+    }
+};
 
-    uint8_t auto_disarm_delay;
-    uint8_t disarm_kill_switch;
+// MSP_SET_PID_CONTROLLER: 60
+struct SetPidController : public Message {
+    ID id() const { return ID::MSP_SET_PID_CONTROLLER; }
+    
+    ByteVector encode() const {
+        return ByteVector();
+    }
+};
+
+struct ArmingConfigSettings {
+    value<uint8_t> auto_disarm_delay;
+    value<uint8_t> disarm_kill_switch;
+    bool imu_small_angle_valid;
+    value<uint8_t> imu_small_angle;
+};
+
+//MSP_ARMING_CONFIG: 61
+struct ArmingConfig : public ArmingConfigSettings, public Message {
+    ID id() const { return ID::MSP_ARMING_CONFIG; }
 
     bool decode(ByteVector &data) {
         bool rc = true;
         rc &= data.unpack(auto_disarm_delay);
         rc &= data.unpack(disarm_kill_switch);
+        if (data.unpack(imu_small_angle)) imu_small_angle_valid = true;
         return rc;
     }
 };
 
 //MSP_SET_ARMING_CONFIG: 62
-struct SetArmingConfig : public Response {
+struct SetArmingConfig : public ArmingConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_ARMING_CONFIG; }
-
-    uint8_t auto_disarm_delay;
-    uint8_t disarm_kill_switch;
 
     ByteVector encode() const {
         ByteVector data;
         data.pack(auto_disarm_delay);
         data.pack(disarm_kill_switch);
+        if (imu_small_angle_valid) data.pack(imu_small_angle);
         return data;
     }
 };
 
 // MSP_RX_MAP: 64
-struct RxMap : public Request {
+struct RxMap : public Message {
     ID id() const { return ID::MSP_RX_MAP; }
 
-    ByteVector map;
+    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> map;
 
     bool decode(ByteVector &data) {
-        map = data;
+        if (data.size() < MAX_MAPPABLE_RX_INPUTS) return false;
+        bool rc = true;
+        for (size_t i = 0; i < MAX_MAPPABLE_RX_INPUTS; ++i) {
+            rc &= data.unpack(data[i]);
+        }
+        return rc;
     }
 };
 
 // MSP_SET_RX_MAP: 65
-struct SetRxMap : public Response {
+struct SetRxMap : public Message {
     ID id() const { return ID::MSP_SET_RX_MAP; }
 
-    ByteVector map;
+    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> map;
 
     ByteVector encode() const {
-        return map;
+        ByteVector data;
+        for (auto channel : map) {
+            data.pack(channel);
+        }
+        return data;
     }
 };
 
+//iNav uses decidegrees, BF/CF use degrees
+struct BfConfigSettings {
+    value<uint8_t> mixer_mode;
+    value<uint32_t> feature_mask;
+    value<uint8_t> serialrx_provider;
+    value<uint16_t> roll;
+    value<uint16_t> pitch;
+    value<uint16_t> yaw;
+    value<uint16_t> current_meter_scale;
+    value<uint16_t> current_meter_offset;
+};
+
+// MSP_BF_CONFIG: 66, //out message baseflight-specific settings that aren't covered elsewhere
+struct BfConfig : public BfConfigSettings, public Message {
+    ID id() const { return ID::MSP_BF_CONFIG; }
+
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(mixer_mode);
+        rc &= data.unpack(feature_mask);
+        rc &= data.unpack(serialrx_provider);
+        rc &= data.unpack(roll);
+        rc &= data.unpack(pitch);
+        rc &= data.unpack(yaw);
+        rc &= data.unpack(current_meter_scale);
+        rc &= data.unpack(current_meter_offset);
+        return rc;
+    }
+};
+
+// MSP_SET_BF_CONFIG: 67, //in message baseflight-specific settings save
+struct SetBfConfig : public BfConfigSettings, public Message {
+    ID id() const { return ID::MSP_SET_BF_CONFIG; }
+
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(mixer_mode);
+        data.pack(feature_mask);
+        data.pack(serialrx_provider);
+        data.pack(roll);
+        data.pack(pitch);
+        data.pack(yaw);
+        data.pack(current_meter_scale);
+        data.pack(current_meter_offset);
+        return data;
+    }
+};
+
+
 // MSP_REBOOT: 68
-struct Reboot : public Response {
+struct Reboot : public Message {
     ID id() const { return ID::MSP_REBOOT; }
     
     ByteVector encode() const {
@@ -1051,43 +1256,71 @@ struct Reboot : public Response {
 
 
 // MSP_BF_BUILD_INFO: 69
-struct BfBuildInfo : public Request {
+struct BfBuildInfo : public Message {
     ID id() const { return ID::MSP_BF_BUILD_INFO; }
 
-    std::string build_date;
-    uint32_t reserved1;
-    uint32_t reserved2;
+    value<std::string> build_date;
+    value<uint32_t> reserved1;
+    value<uint32_t> reserved2;
 
     bool decode(ByteVector &data) {
-        data.unpack(build_date,11);
-        data.unpack(reserved1);
-        data.unpack(reserved2);
+        bool rc = true;
+        rc &= data.unpack(build_date,11);
+        rc &= data.unpack(reserved1);
+        rc &= data.unpack(reserved2);
+        return rc;
     }
 };
 
 // MSP_DATAFLASH_SUMMARY: 70
-struct DataflashSummary : public Request {
+struct DataflashSummary : public Message {
     ID id() const { return ID::MSP_DATAFLASH_SUMMARY; }
 
     bool flash_is_ready;
-    uint32_t sectors;
-    uint32_t total_size;
-    uint32_t offset;
+    value<uint32_t> sectors;
+    value<uint32_t> total_size;
+    value<uint32_t> offset;
 
     bool decode(ByteVector &data) {
-        data.unpack(flash_is_ready);
-        data.unpack(sectors);
-        data.unpack(total_size);
-        data.unpack(offset);
+        bool rc = true;
+        rc &= data.unpack(flash_is_ready);
+        rc &= data.unpack(sectors);
+        rc &= data.unpack(total_size);
+        rc &= data.unpack(offset);
+        return rc;
     }
 };
 
+//message format differs between iNav and BF/CF
 // MSP_DATAFLASH_READ: 71
-// This seems like a special command that actually encodes data into the 
-// outbound buffer. I'm too lazy to do this now. TODO
+struct DataflashRead : public Message {
+    ID id() const { return ID::MSP_DATAFLASH_READ; }
+    
+    value<uint32_t> read_address;
+    value<uint16_t> read_size;
+    bool allow_compression;
+    ByteVector flash_data;
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(read_address);
+        data.pack(read_size);
+        data.pack(allow_compression);
+        return data;
+    }
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(read_address);
+        flash_data = ByteVector(data.unpacking_iterator(),data.end());
+        rc &= data.consume(flash_data.size());
+        return rc;
+    }
+
+};
 
 // MSP_DATAFLASH_ERASE: 72
-struct DataflashErase : public Request {
+struct DataflashErase : public Message {
     ID id() const { return ID::MSP_DATAFLASH_ERASE; }
 
     bool decode(ByteVector &data) {
@@ -1096,10 +1329,10 @@ struct DataflashErase : public Request {
 };
 
 // MSP_LOOP_TIME: 73
-struct LoopTime : public Request {
+struct LoopTime : public Message {
     ID id() const { return ID::MSP_LOOP_TIME; }
 
-    uint16_t loop_time;
+    value<uint16_t> loop_time;
     
     bool decode(ByteVector &data) {
         return data.unpack(loop_time);
@@ -1107,10 +1340,10 @@ struct LoopTime : public Request {
 };
 
 // MSP_SET_LOOP_TIME:74
-struct SetLoopTime : public Response {
+struct SetLoopTime : public Message {
     ID id() const { return ID::MSP_SET_LOOP_TIME; }
     
-    uint16_t loop_time;
+    value<uint16_t> loop_time;
     
     ByteVector encode() const {
         ByteVector data;
@@ -1119,85 +1352,121 @@ struct SetLoopTime : public Response {
     }
 };
 
-struct Failsafe {
-    uint8_t delay;
-    uint8_t off_delay;
-    uint16_t throttle;
-    uint8_t kill_switch;
-    uint16_t throttle_low_delay;
-    uint8_t procedure;
-    uint8_t recovery_delay;
-    uint16_t fw_roll_angle;
-    uint16_t fw_pitch_angle;
-    uint16_t fw_yaw_rate;
-    uint16_t stick_motion_threshold;
-    uint16_t min_distance;
-    uint8_t min_distance_procedure;
+struct FailsafeSettings {
+    bool extended_contents;
+    value<uint8_t> delay;
+    value<uint8_t> off_delay;
+    value<uint16_t> throttle;
+    value<uint8_t> kill_switch;
+    value<uint16_t> throttle_low_delay;
+    value<uint8_t> procedure;
+    value<uint8_t> recovery_delay;
+    value<uint16_t> fw_roll_angle;
+    value<uint16_t> fw_pitch_angle;
+    value<uint16_t> fw_yaw_rate;
+    value<uint16_t> stick_motion_threshold;
+    value<uint16_t> min_distance;
+    value<uint8_t> min_distance_procedure;
 };
 
 // MSP_FAILSAFE_CONFIG: 75
-struct FailsafeConfig : public Request {
+struct FailsafeConfig : public FailsafeSettings, public Message {
     ID id() const { return ID::MSP_FAILSAFE_CONFIG; }
-
-    Failsafe failsafe;
     
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(failsafe.delay);
-        rc &= data.unpack(failsafe.off_delay);
-        rc &= data.unpack(failsafe.throttle);
-        rc &= data.unpack(failsafe.kill_switch);
-        rc &= data.unpack(failsafe.throttle_low_delay);
-        rc &= data.unpack(failsafe.procedure);
-        rc &= data.unpack(failsafe.recovery_delay);
-        rc &= data.unpack(failsafe.fw_roll_angle);
-        rc &= data.unpack(failsafe.fw_pitch_angle);
-        rc &= data.unpack(failsafe.fw_yaw_rate);
-        rc &= data.unpack(failsafe.stick_motion_threshold);
-        rc &= data.unpack(failsafe.min_distance);
-        rc &= data.unpack(failsafe.min_distance_procedure);
+        extended_contents = false;
+        rc &= data.unpack(delay);
+        rc &= data.unpack(off_delay);
+        rc &= data.unpack(throttle);
+        rc &= data.unpack(kill_switch);
+        rc &= data.unpack(throttle_low_delay);
+        rc &= data.unpack(procedure);
+        if (data.unpacking_remaining() == 0) return rc;
+        extended_contents = true;
+        rc &= data.unpack(recovery_delay);
+        rc &= data.unpack(fw_roll_angle);
+        rc &= data.unpack(fw_pitch_angle);
+        rc &= data.unpack(fw_yaw_rate);
+        rc &= data.unpack(stick_motion_threshold);
+        rc &= data.unpack(min_distance);
+        rc &= data.unpack(min_distance_procedure);
         return rc;
     }
 };
 
 // MSP_SET_FAILSAFE_CONFIG: 76
-struct SetFailsafeConfig : public Response {
+struct SetFailsafeConfig : public FailsafeSettings, public Message {
     ID id() const { return ID::MSP_SET_FAILSAFE_CONFIG; }
-    
-    Failsafe failsafe;
     
     ByteVector encode() const {
         ByteVector data;
-        data.pack(failsafe.delay);
-        data.pack(failsafe.off_delay);
-        data.pack(failsafe.throttle);
-        data.pack(failsafe.kill_switch);
-        data.pack(failsafe.throttle_low_delay);
-        data.pack(failsafe.procedure);
-        data.pack(failsafe.recovery_delay);
-        data.pack(failsafe.fw_roll_angle);
-        data.pack(failsafe.fw_pitch_angle);
-        data.pack(failsafe.fw_yaw_rate);
-        data.pack(failsafe.stick_motion_threshold);
-        data.pack(failsafe.min_distance);
-        data.pack(failsafe.min_distance_procedure);
+        data.pack(delay);
+        data.pack(off_delay);
+        data.pack(throttle);
+        data.pack(kill_switch);
+        data.pack(throttle_low_delay);
+        data.pack(procedure);
+        if (!extended_contents) return data;
+        data.pack(recovery_delay);
+        data.pack(fw_roll_angle);
+        data.pack(fw_pitch_angle);
+        data.pack(fw_yaw_rate);
+        data.pack(stick_motion_threshold);
+        data.pack(min_distance);
+        data.pack(min_distance_procedure);
         return data;
     }
 };
 
-//Depricated
+struct RxFailChannelSettings {
+    value<uint8_t> mode;
+    value<uint16_t> val;
+};
+
 // MSP_RXFAIL_CONFIG: 77
+struct RxFailConfigs : public Message {
+    ID id() const { return ID::MSP_RXFAIL_CONFIG; }
+    
+    std::vector<RxFailChannelSettings> channels;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        channels.clear();
+        while (rc && data.unpacking_remaining()) {
+            RxFailChannelSettings tmp;
+            rc &= data.unpack(tmp.mode);
+            rc &= data.unpack(tmp.val);
+            channels.push_back(tmp);
+        }
+        return rc;
+    }
+};
+
 // MSP_SET_RXFAIL_CONFIG: 78
+struct SetRxFailConfigs : public RxFailChannelSettings, public Message {
+    ID id() const { return ID::MSP_SET_RXFAIL_CONFIG; }
+    
+    value<uint8_t> channel;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(channel);
+        rc &= data.unpack(mode);
+        rc &= data.unpack(val);
+        return rc;
+    }
+};
 
 // MSP_SDCARD_SUMMARY: 79
-struct SdcardSummary : public Request {
+struct SdcardSummary : public Message {
     ID id() const { return ID::MSP_SDCARD_SUMMARY; }
 
-    uint8_t flags;
-    uint8_t state;
-    uint8_t last_error;
-    uint32_t free_space_kb;
-    uint32_t total_space_kb;
+    value<uint8_t> flags;
+    value<uint8_t> state;
+    value<uint8_t> last_error;
+    value<uint32_t> free_space_kb;
+    value<uint32_t> total_space_kb;
     
     bool decode(ByteVector &data) {
         bool rc = true;
@@ -1210,65 +1479,118 @@ struct SdcardSummary : public Request {
     }
 };
 
+struct BlackboxConfigSettings {
+    value<uint8_t> device;
+    value<uint8_t> rate_num;
+    value<uint8_t> rate_denom;
+    bool p_ratio_set;
+    value<uint16_t> p_ratio;
+};
+
 // MSP_BLACKBOX_CONFIG: 80
-struct BlackboxConfig : public Request {
+struct BlackboxConfig : public BlackboxConfigSettings, public Message {
     ID id() const { return ID::MSP_BLACKBOX_CONFIG; }
 
-    uint8_t supported;
-    uint8_t device;
-    uint8_t rate_num;
-    uint8_t rate_denom;
-    
+    value<uint8_t> supported;
+
     bool decode(ByteVector &data) {
         bool rc = true;
+        p_ratio_set = false;
         rc &= data.unpack(supported);
         rc &= data.unpack(device);
         rc &= data.unpack(rate_num);
         rc &= data.unpack(rate_denom);
+        if (data.unpacking_remaining()) {
+            p_ratio_set = true;
+            rc &= data.unpack(p_ratio);
+        }
         return rc;
     }
 };
 
 // MSP_SET_BLACKBOX_CONFIG: 81
-struct SetBlackboxConfig : public Response {
+struct SetBlackboxConfig : public BlackboxConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_BLACKBOX_CONFIG; }
-    
-    uint8_t device;
-    uint8_t rate_num;
-    uint8_t rate_denom;
     
     ByteVector encode() const {
         ByteVector data;
         data.pack(device);
         data.pack(rate_num);
         data.pack(rate_denom);
+        if (p_ratio_set) data.pack(p_ratio);
         return data;
     }
 };
 
-// No reference available TODO
+struct TransponderConfigSettings {
+    value<uint8_t> provider;
+    value<uint8_t> data_length;
+};
+
 // MSP_TRANSPONDER_CONFIG: 82
-// MSP_SET_TRANSPONDER_CONFIG: 83
-
-// MSP_OSD_CONFIG: 84
-struct OsdConfig : public Request {
-    ID id() const { return ID::MSP_OSD_CONFIG; }
-
-    uint8_t supported;
-    uint8_t video_system;
-    uint8_t units;
-    uint8_t rssi_alarm;
-    uint16_t battery_cap_warn;
-    uint16_t time_alarm;
-    uint16_t alt_alarm;
-    uint16_t dist_alarm;
-    uint16_t neg_alt_alarm;
-    std::array<uint16_t,OSD_ITEM_COUNT> items;
+struct TransponderConfig : public Message {
+    ID id() const { return ID::MSP_TRANSPONDER_CONFIG; }
+    
+    value<uint8_t> transponder_count;
+    std::vector<TransponderConfigSettings> transponder_data;
+    value<uint8_t> provider;
+    ByteVector provider_data;
     
     bool decode(ByteVector &data) {
         bool rc = true;
-        rc &= data.unpack(supported);
-        if (rc && supported) {
+        rc &= data.unpack(transponder_count);
+        if (!transponder_count()) return rc;
+        for (uint8_t i = 0; i < transponder_count(); ++i) {
+            TransponderConfigSettings tmp;
+            rc &= data.unpack(tmp.provider);
+            rc &= data.unpack(tmp.data_length);
+            transponder_data.push_back(tmp);
+        }
+        rc &= data.unpack(provider);
+        if (!provider()) return rc;
+        uint8_t data_len = transponder_data[provider()-1].data_length();
+        provider_data = ByteVector(data.unpacking_iterator(),data.unpacking_iterator()+data_len);
+        rc &= data.consume(data_len);
+        return rc;
+    }
+    
+};
+
+// MSP_SET_TRANSPONDER_CONFIG: 83
+struct SetTransponderConfig : public Message {
+    ID id() const { return ID::MSP_SET_TRANSPONDER_CONFIG; }
+    
+    value<uint8_t> provider;
+    ByteVector provider_data;
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(provider);
+        data.pack(provider_data);
+        return data;
+    }
+};
+
+//Differences between iNav and BF/CF
+// MSP_OSD_CONFIG: 84
+struct OsdConfig : public Message {
+    ID id() const { return ID::MSP_OSD_CONFIG; }
+
+    value<uint8_t> osd_flags;
+    value<uint8_t> video_system;
+    value<uint8_t> units;
+    value<uint8_t> rssi_alarm;
+    value<uint16_t> battery_cap_warn;
+    value<uint16_t> time_alarm;
+    value<uint16_t> alt_alarm;
+    value<uint16_t> dist_alarm;
+    value<uint16_t> neg_alt_alarm;
+    std::array<uint16_t,OSD_ITEM_COUNT> item_pos;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(osd_flags);
+        if (rc && osd_flags()) {
             rc &= data.unpack(video_system);
             rc &= data.unpack(units);
             rc &= data.unpack(rssi_alarm);
@@ -1277,8 +1599,8 @@ struct OsdConfig : public Request {
             rc &= data.unpack(alt_alarm);
             rc &= data.unpack(dist_alarm);
             rc &= data.unpack(neg_alt_alarm);
-            for (int i = 0; i < OSD_ITEM_COUNT; i++) {
-                rc &= data.unpack(items[i]);
+            for (size_t i = 0; i < OSD_ITEM_COUNT; ++i) {
+                rc &= data.unpack(item_pos[i]);
             }
         }
         return rc;
@@ -1286,19 +1608,19 @@ struct OsdConfig : public Request {
 };
 
 // MSP_SET_OSD_CONFIG: 85
-struct SetOsdConfig : public Response {
+struct SetOsdConfig : public Message {
     ID id() const { return ID::MSP_SET_OSD_CONFIG; }
     
     int8_t param_idx;
-    uint16_t param_val;
-    uint8_t video_system;
-    uint8_t units;
-    uint8_t rssi_alarm;
-    uint16_t battery_cap_warn;
-    uint16_t time_alarm;
-    uint16_t alt_alarm;
-    uint16_t dist_alarm;
-    uint16_t neg_alt_alarm;
+    value<uint16_t> item_pos;
+    value<uint8_t> video_system;
+    value<uint8_t> units;
+    value<uint8_t> rssi_alarm;
+    value<uint16_t> battery_cap_warn;
+    value<uint16_t> time_alarm;
+    value<uint16_t> alt_alarm;
+    value<uint16_t> dist_alarm;
+    value<uint16_t> neg_alt_alarm;
     
     ByteVector encode() const {
         ByteVector data;
@@ -1313,7 +1635,7 @@ struct SetOsdConfig : public Response {
             data.pack(dist_alarm);
             data.pack(neg_alt_alarm);
         } else {
-            data.pack(param_val);
+            data.pack(item_pos);
         }
         return data;
     }
@@ -1323,10 +1645,10 @@ struct SetOsdConfig : public Response {
 
 
 // MSP_OSD_CHAR_WRITE: 87
-struct OsdCharWrite : public Response {
+struct OsdCharWrite : public Message {
     ID id() const { return ID::MSP_OSD_CHAR_WRITE; }
     
-    uint8_t addr;
+    value<uint8_t> addr;
     std::array<uint8_t,54> data;
     
     ByteVector encode() const {
@@ -1341,121 +1663,136 @@ struct OsdCharWrite : public Response {
 
 
 // MSP_VTX_CONFIG: 88
-struct VtxConfig : public Request {
+struct VtxConfig : public Message {
     ID id() const { return ID::MSP_VTX_CONFIG; }
 
-    uint8_t device_type;
-    uint8_t band;
-    uint8_t channel;
-    uint8_t power_idx;
-    uint8_t pit_mode;
+    value<uint8_t> device_type;
+    value<uint8_t> band;
+    value<uint8_t> channel;
+    value<uint8_t> power_idx;
+    value<uint8_t> pit_mode;
+    bool freq_set;
+    value<uint16_t> frequency;
     
     bool decode(ByteVector &data) {
         bool rc = true;
+        freq_set = false;
         rc &= data.unpack(device_type);
-        if (device_type != 0xFF) {
+        if (rc && (device_type() != 0xFF)) {
             rc &= data.unpack(band);
             rc &= data.unpack(channel);
             rc &= data.unpack(power_idx);
             rc &= data.unpack(pit_mode);
+            if (data.unpacking_remaining()) {
+                freq_set = true;
+                rc &= data.unpack(frequency);
+            }
         }
         return rc;
     }
 };
 
 // MSP_SET_VTX_CONFIG: 89
-struct SetVtxConfig : public Response {
+struct SetVtxConfig : public Message {
     ID id() const { return ID::MSP_SET_VTX_CONFIG; }
     
-    uint8_t band;
-    uint8_t channel;
-    uint8_t power;
-    uint8_t pit_mode;
+    value<uint16_t> frequency;
+    value<uint8_t> power;
+    value<uint8_t> pit_mode;
     
+    bool set_freq(uint8_t band, uint8_t channel) {
+        if (band & 0xF8 || channel & 0xF8) {
+            return false;
+        }
+        frequency = (band-1) & ((channel-1) << 3);
+        return true;
+    }
     
     ByteVector encode() const {
         ByteVector data;
-        uint16_t tmp = (band-1)*8 + (channel-1);
-        data.pack(tmp);
+        data.pack(frequency);
         data.pack(power);
         data.pack(pit_mode);
         return data;
     }
 };
 
-
-
+//Differs between iNav and BF/CF
+struct AdvancedConfigSettings {
+    value<uint8_t> gyro_sync_denom;
+    value<uint8_t> pid_process_denom;
+    value<uint8_t> use_unsynced_pwm;
+    value<uint8_t> motor_pwm_protocol;
+    value<uint16_t> motor_pwm_rate;
+    value<uint16_t> servo_pwm_rate; //digitalIdleOffsetValue in BF/CF
+    value<uint8_t> gyro_sync;
+    bool pwm_inversion_set;
+    value<uint8_t> pwm_inversion;
+};
 
 // Betaflight Additional Commands
 // MSP_ADVANCED_CONFIG: 90
-struct AdvancedConfig : public Request {
+struct AdvancedConfig : public AdvancedConfigSettings, public Message {
     ID id() const { return ID::MSP_ADVANCED_CONFIG; }
 
-    uint8_t gyro_sync_denom;
-    uint8_t pid_process_denom;
-    uint8_t use_unsynced_pwm;
-    uint8_t pwm_protocol;
-    uint16_t motor_pwm_rate;
-    uint16_t servo_pwm_rate;
-    uint8_t gyro_sync;
-    
     bool decode(ByteVector &data) {
         bool rc = true;
+        pwm_inversion_set = false;
         rc &= data.unpack(gyro_sync_denom);
         rc &= data.unpack(pid_process_denom);
         rc &= data.unpack(use_unsynced_pwm);
-        rc &= data.unpack(pwm_protocol);
+        rc &= data.unpack(motor_pwm_protocol);
         rc &= data.unpack(motor_pwm_rate);
         rc &= data.unpack(servo_pwm_rate);
         rc &= data.unpack(gyro_sync);
+        if (rc && data.unpacking_remaining()) {
+            pwm_inversion_set = true;
+            rc &= data.unpack(pwm_inversion);
+        }
         return rc;
     }
 };
 
 
 // MSP_SET_ADVANCED_CONFIG: 91
-struct SetAdvancedConfig : public Response {
+struct SetAdvancedConfig : public AdvancedConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_ADVANCED_CONFIG; }
-    
-    uint8_t gyro_sync_denom;
-    uint8_t pid_process_denom;
-    uint8_t use_unsynced_pwm;
-    uint8_t pwm_protocol;
-    uint16_t motor_pwm_rate;
-    uint16_t servo_pwm_rate;
-    uint8_t gyro_sync;
-    
     
     ByteVector encode() const {
         ByteVector data;
         data.pack(gyro_sync_denom);
         data.pack(pid_process_denom);
         data.pack(use_unsynced_pwm);
-        data.pack(pwm_protocol);
+        data.pack(motor_pwm_protocol);
         data.pack(motor_pwm_rate);
         data.pack(servo_pwm_rate);
         data.pack(gyro_sync);
+        if (pwm_inversion_set) data.pack(pwm_inversion);
         return data;
     }
 };
 
+struct FilterConfigSettings {
+    value<uint8_t> gyro_soft_lpf_hz;
+    value<uint16_t> dterm_lpf_hz;
+    value<uint16_t> yaw_lpf_hz;
+    value<uint16_t> gyro_soft_notch_hz_1;
+    value<uint16_t> gyro_soft_notch_cutoff_1;
+    value<uint16_t> dterm_soft_notch_hz;
+    value<uint16_t> dterm_soft_notch_cutoff;
+    value<uint16_t> gyro_soft_notch_hz_2;
+    value<uint16_t> gyro_soft_notch_cutoff_2;
+    bool dterm_filter_type_set;
+    value<uint8_t> dterm_filter_type;
+};
 
 // MSP_FILTER_CONFIG: 92
-struct FilterConfig : public Request {
+struct FilterConfig : public FilterConfigSettings, public Message {
     ID id() const { return ID::MSP_FILTER_CONFIG; }
 
-    uint8_t gyro_soft_lpf_hz;
-    uint16_t dterm_lpf_hz;
-    uint16_t yaw_lpf_hz;
-    uint16_t gyro_soft_notch_hz_1;
-    uint16_t gyro_soft_notch_cutoff_1;
-    uint16_t dterm_soft_notch_hz;
-    uint16_t dterm_soft_notch_cutoff;
-    uint16_t gyro_soft_notch_hz_2;
-    uint16_t gyro_soft_notch_cutoff_2;
-    
     bool decode(ByteVector &data) {
         bool rc = true;
+        dterm_filter_type_set = false;
         rc &= data.unpack(gyro_soft_lpf_hz);
         rc &= data.unpack(dterm_lpf_hz);
         rc &= data.unpack(yaw_lpf_hz);
@@ -1465,26 +1802,17 @@ struct FilterConfig : public Request {
         rc &= data.unpack(dterm_soft_notch_cutoff);
         rc &= data.unpack(gyro_soft_notch_hz_2);
         rc &= data.unpack(gyro_soft_notch_cutoff_2);
+        if (rc && data.unpacking_remaining()) {
+            dterm_filter_type_set = true;
+            rc &= data.unpack(dterm_filter_type);
+        }
         return rc;
     }
 };
 
-
-
-// MSP_SET_FILTER_CONFIG: 93 TODO this is an unstable message, decoding depends on the FC build flags
-struct SetFilterConfig : public Response {
+// MSP_SET_FILTER_CONFIG: 93 
+struct SetFilterConfig : public FilterConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_FILTER_CONFIG; }
-    
-    uint8_t gyro_soft_lpf_hz;
-    uint16_t dterm_lpf_hz;
-    uint16_t yaw_lpf_hz;
-    uint16_t gyro_soft_notch_hz_1;
-    uint16_t gyro_soft_notch_cutoff_1;
-    uint16_t dterm_soft_notch_hz;
-    uint16_t dterm_soft_notch_cutoff;
-    uint16_t gyro_soft_notch_hz_2;
-    uint16_t gyro_soft_notch_cutoff_2;
-    
     
     ByteVector encode() const {
         ByteVector data;
@@ -1497,27 +1825,32 @@ struct SetFilterConfig : public Response {
         data.pack(dterm_soft_notch_cutoff);
         data.pack(gyro_soft_notch_hz_2);
         data.pack(gyro_soft_notch_cutoff_2);
+        if (dterm_filter_type_set) data.pack(dterm_filter_type);
         return data;
     }
 };
 
 
+struct PidAdvancedSettings {
+    value<uint16_t> rollPitchItermIgnoreRate;
+    value<uint16_t> yawItermIgnoreRate;
+    value<uint16_t> yaw_p_limit;
+    value<uint8_t> deltaMethod;
+    value<uint8_t> vbatPidCompensation;
+    value<uint8_t> setpointRelaxRatio;
+    value<float> dterm_setpoint_weight; //TODO scaled value
+    value<uint16_t> pidSumLimit;
+    value<uint8_t> itermThrottleGain;
+    value<uint32_t> axisAccelerationLimitRollPitch; //TODO scaled and clamped value
+    value<uint32_t> axisAccelerationLimitYaw; //TODO scaled and clamped value
+    
+};
+
+//Difference between iNav and BF/CF
 // MSP_PID_ADVANCED: 94
-struct PidAdvanced : public Request {
+struct PidAdvanced : public PidAdvancedSettings, public Message {
     ID id() const { return ID::MSP_PID_ADVANCED; }
 
-    uint16_t rollPitchItermIgnoreRate;
-    uint16_t yawItermIgnoreRate;
-    uint16_t yaw_p_limit;
-    uint8_t deltaMethod;
-    uint8_t vbatPidCompensation;
-    uint8_t setpointRelaxRatio;
-    uint8_t dterm_setpoint_weight; //TODO scaled value
-    uint16_t pidSumLimit;
-    uint8_t itermThrottleGain;
-    uint16_t axisAccelerationLimitRollPitch; //TODO scaled and clamped value
-    uint16_t axisAccelerationLimitYaw; //TODO scaled and clamped value
-    
     bool decode(ByteVector &data) {
         bool rc = true;
         rc &= data.unpack(rollPitchItermIgnoreRate);
@@ -1526,31 +1859,22 @@ struct PidAdvanced : public Request {
         rc &= data.unpack(deltaMethod);
         rc &= data.unpack(vbatPidCompensation);
         rc &= data.unpack(setpointRelaxRatio);
-        rc &= data.unpack(dterm_setpoint_weight);
+        rc &= data.unpack<uint8_t>(dterm_setpoint_weight,0.01);
         rc &= data.unpack(pidSumLimit);
         rc &= data.unpack(itermThrottleGain);
-        rc &= data.unpack(axisAccelerationLimitRollPitch);
-        rc &= data.unpack(axisAccelerationLimitYaw);
+        value<uint16_t> tmp16;
+        rc &= data.unpack(tmp16);
+        axisAccelerationLimitRollPitch = tmp16()*10;
+        rc &= data.unpack(tmp16);
+        axisAccelerationLimitYaw = tmp16()*10;
         return rc;
     }
 };
 
 
 // MSP_SET_PID_ADVANCED: 95
-struct SetPidAdvanced : public Response {
+struct SetPidAdvanced : public PidAdvancedSettings, public Message {
     ID id() const { return ID::MSP_SET_PID_ADVANCED; }
-    
-    uint16_t rollPitchItermIgnoreRate;
-    uint16_t yawItermIgnoreRate;
-    uint16_t yaw_p_limit;
-    uint8_t deltaMethod;
-    uint8_t vbatPidCompensation;
-    uint8_t setpointRelaxRatio;
-    uint8_t dterm_setpoint_weight; //TODO scaled value
-    uint16_t pidSumLimit;
-    uint8_t itermThrottleGain;
-    uint16_t axisAccelerationLimitRollPitch; //TODO scaled and clamped value
-    uint16_t axisAccelerationLimitYaw; //TODO scaled and clamped value
     
     ByteVector encode() const {
         ByteVector data;
@@ -1560,56 +1884,56 @@ struct SetPidAdvanced : public Response {
         data.pack(deltaMethod);
         data.pack(vbatPidCompensation);
         data.pack(setpointRelaxRatio);
-        data.pack(dterm_setpoint_weight);
+        data.pack(uint8_t(dterm_setpoint_weight()*100));
         data.pack(pidSumLimit);
         data.pack(itermThrottleGain);
-        data.pack(axisAccelerationLimitRollPitch);
-        data.pack(axisAccelerationLimitYaw);
+        data.pack(axisAccelerationLimitRollPitch()/10);
+        data.pack(axisAccelerationLimitYaw()/10);
         return data;
     }
 };
 
+struct SensorConfigSettings {
+    value<uint8_t> acc_hardware;
+    value<uint8_t> baro_hardware;
+    value<uint8_t> mag_hardware;
+    bool extended_contents;
+    value<uint8_t> pitot_hardware;
+    value<uint8_t> rangefinder_hardware;
+    value<uint8_t> opflow_hardware;
+};
 
 // MSP_SENSOR_CONFIG: 96
-struct SensorConfig : public Request {
+struct SensorConfig : public SensorConfigSettings, public Message {
     ID id() const { return ID::MSP_SENSOR_CONFIG; }
-
-    uint8_t acc_hardware;
-    uint8_t baro_hardware;
-    uint8_t mag_hardware;
-    uint8_t pitot_hardware;
-    uint8_t rangefinder_hardware;
-    uint8_t opflow_hardware;
     
     bool decode(ByteVector &data) {
         bool rc = true;
+        extended_contents = false;
         rc &= data.unpack(acc_hardware);
         rc &= data.unpack(baro_hardware);
         rc &= data.unpack(mag_hardware);
-        rc &= data.unpack(pitot_hardware);
-        rc &= data.unpack(rangefinder_hardware);
-        rc &= data.unpack(opflow_hardware);
+        if (data.unpacking_remaining()) {
+            extended_contents = true;
+            rc &= data.unpack(pitot_hardware);
+            rc &= data.unpack(rangefinder_hardware);
+            rc &= data.unpack(opflow_hardware);
+        }
         return rc;
     }
 };
 
 
 // MSP_SET_SENSOR_CONFIG: 97
-struct SetSensorConfig : public Response {
+struct SetSensorConfig : public SensorConfigSettings, public Message {
     ID id() const { return ID::MSP_SET_SENSOR_CONFIG; }
-    
-    uint8_t acc_hardware;
-    uint8_t baro_hardware;
-    uint8_t mag_hardware;
-    uint8_t pitot_hardware;
-    uint8_t rangefinder_hardware;
-    uint8_t opflow_hardware;
     
     ByteVector encode() const {
         ByteVector data;
         data.pack(acc_hardware);
         data.pack(baro_hardware);
         data.pack(mag_hardware);
+        if (!extended_contents) return data;
         data.pack(pitot_hardware);
         data.pack(rangefinder_hardware);
         data.pack(opflow_hardware);
@@ -1617,32 +1941,57 @@ struct SetSensorConfig : public Response {
     }
 };
 
+// MSP_CAMERA_CONTROL: 98
+struct CameraControl : public Message {
+    ID id() const { return ID::MSP_CAMERA_CONTROL; }
+    
+    value<uint8_t> key;
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(key);
+        return data;
+    }
+};
 
-// MSP_SPECIAL_PARAMETERS: 98 // Temporary betaflight parameters before cleanup and k$
-// MSP_SET_SPECIAL_PARAMETERS: 99 // Temporary betaflight parameters before cleanup and k$
+// MSP_SET_ARMING_DISABLED: 99
+struct SetArmingDisabled : public Message {
+    ID id() const { return ID::MSP_SET_ARMING_DISABLED; }
+    
+    value<uint8_t> command;
+    value<uint8_t> disableRunawayTakeoff;
+    
+    ByteVector encode() const {
+        ByteVector data;
+        data.pack(command);
+        data.pack(disableRunawayTakeoff);
+        return data;
+    }
+};
 
 
 /////////////////////////////////////////////////////////////////////
 /// Requests (1xx)
 
 // MSP_IDENT: 100
-struct Ident : public Request {
+struct Ident : public Message {
     ID id() const { return ID::MSP_IDENT; }
 
-	size_t version;
+	value<uint8_t> version;
     MultiType type;
-	size_t msp_version;
+	value<uint8_t> msp_version;
     std::set<Capability> capabilities;
 
     bool decode(ByteVector &data) {
-        version = data[0];
-
-        // determine multicopter type
-        type = MultiType(data[1]);
-
-        msp_version = data[2];
-
-        const uint32_t capability = deserialise_uint32(data, 3);
+        bool rc = true;
+        
+        rc &= data.unpack(version);
+        rc &= data.unpack((uint8_t&)type);
+        rc &= data.unpack(msp_version);
+        uint32_t capability;
+        rc &= data.unpack(capability);
+        if (!rc) return false;
+        capabilities.clear();
         if(capability & (1 << 0))
             capabilities.insert(Capability::BIND);
         if(capability & (1 << 2))
@@ -1667,23 +2016,27 @@ struct Ident : public Request {
 };
 
 // MSP_STATUS: 101
-struct Status : public Request {
+struct Status : public Message {
     ID id() const { return ID::MSP_STATUS; }
 
-    uint16_t    time;   // in us
-    uint16_t    errors;
+    value<uint16_t>    cycle_time;   // in us
+    value<uint16_t>    i2c_errors;
     std::set<Sensor> sensors;
-	size_t      current_setting;
-    std::set<size_t> active_box_id;
+    std::set<size_t> box_mode_flags;
+	value<uint8_t>      current_profile;
+    value<uint16_t>     avg_system_load_pct;
+    value<uint16_t>     gyro_cycle_time;
+
 
     bool decode(ByteVector &data) {
-        time = deserialise_uint16(data, 0);
-
-        errors = deserialise_uint16(data, 2);
-
+        bool rc = true;
+        rc &= data.unpack(cycle_time);
+        rc &= data.unpack(i2c_errors);
+        
         // get sensors
         sensors.clear();
-        const uint16_t sensor = deserialise_uint16(data, 4);
+        uint16_t sensor;
+        rc &= data.unpack(sensor);
         if(sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
         if(sensor & (1 << 1))
@@ -1694,16 +2047,29 @@ struct Status : public Request {
             sensors.insert(Sensor::GPS);
         if(sensor & (1 << 4))
             sensors.insert(Sensor::Sonar);
+        if(sensor & (1 << 5))
+            sensors.insert(Sensor::OpticalFlow);
+        if(sensor & (1 << 6))
+            sensors.insert(Sensor::Pitot);
+        if(sensor & (1 << 15))
+            sensors.insert(Sensor::GeneralHealth);
 
         // check active boxes
-        active_box_id.clear();
-        const uint32_t flag = deserialise_uint32(data, 6);
-        for(size_t ibox(0); ibox<sizeof(flag)*CHAR_BIT; ibox++) {
+        box_mode_flags.clear();
+        uint32_t flag;
+        rc &= data.unpack(flag);
+        for(size_t ibox(0); ibox < sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
-                active_box_id.insert(ibox);
+                box_mode_flags.insert(ibox);
         }
 
-        current_setting = data[10];
+        rc &= data.unpack(current_profile);
+        
+        if (variant_ != variant::INAV) {
+            rc &= data.unpack(avg_system_load_pct);
+            rc &= data.unpack(gyro_cycle_time);
+        }
+        return rc;
     }
 
     bool hasAccelerometer() const { return sensors.count(Sensor::Accelerometer); }
@@ -1715,21 +2081,34 @@ struct Status : public Request {
     bool hasGPS() const { return sensors.count(Sensor::GPS); }
 
     bool hasSonar() const { return sensors.count(Sensor::Sonar); }
+    
+    bool hasOpticalFlow() const { return sensors.count(Sensor::OpticalFlow); }
+    
+    bool hasPitot() const { return sensors.count(Sensor::Pitot); }
+    
+    bool isHealthy() const { return sensors.count(Sensor::GeneralHealth); }
 };
 
 // MSP_RAW_IMU: 102
-struct ImuRaw : public Request {
+struct ImuRaw : public Message {
     ID id() const { return ID::MSP_RAW_IMU; }
 
     std::array<int16_t, 3> acc;
     std::array<int16_t, 3> gyro;
-    std::array<int16_t, 3> magn;
+    std::array<int16_t, 3> mag;
 
     bool decode(ByteVector &data) {
-        acc = {{deserialise_int16(data, 0), deserialise_int16(data, 2), deserialise_int16(data, 4)}};
-        gyro = {{deserialise_int16(data, 6), deserialise_int16(data, 8), deserialise_int16(data, 10)}};
-        magn = {{deserialise_int16(data, 12), deserialise_int16(data, 14), deserialise_int16(data, 16)}};
-        return true;
+        bool rc = true;
+        rc &= data.unpack(acc[0]);
+        rc &= data.unpack(acc[1]);
+        rc &= data.unpack(acc[2]);
+        rc &= data.unpack(gyro[0]);
+        rc &= data.unpack(gyro[1]);
+        rc &= data.unpack(gyro[2]);
+        rc &= data.unpack(mag[0]);
+        rc &= data.unpack(mag[1]);
+        rc &= data.unpack(mag[2]);
+        return rc;
     }
 };
 
@@ -1737,12 +2116,12 @@ struct ImuRaw : public Request {
 struct ImuSI {
     std::array<float, 3> acc;   // m/s^2
     std::array<float, 3> gyro;  // deg/s
-    std::array<float, 3> magn;  // uT
+    std::array<float, 3> mag;  // uT
 
     ImuSI(const ImuRaw &imu_raw,
           const float acc_1g,       // sensor value at 1g
           const float gyro_unit,    // resolution in 1/(deg/s)
-          const float magn_gain,    // scale magnetic value to uT (micro Tesla)
+          const float mag_gain,    // scale magnetic value to uT (micro Tesla)
           const float si_unit_1g    // acceleration at 1g (in m/s^2)
             )
     {
@@ -1754,318 +2133,392 @@ struct ImuSI {
                  imu_raw.gyro[1]*gyro_unit,
                  imu_raw.gyro[2]*gyro_unit}};
 
-        magn = {{imu_raw.magn[0]*magn_gain,
-                 imu_raw.magn[1]*magn_gain,
-                 imu_raw.magn[2]*magn_gain}};
+        mag = {{imu_raw.mag[0]*mag_gain,
+                imu_raw.mag[1]*mag_gain,
+                imu_raw.mag[2]*mag_gain}};
     }
 };
 
 // MSP_SERVO: 103
-struct Servo : public Request {
+struct Servo : public Message {
     ID id() const { return ID::MSP_SERVO; }
 
-    uint16_t servo[N_SERVO];
+    std::array<uint16_t,N_SERVO> servo;
 
     bool decode(ByteVector &data) {
-        for(unsigned int i=0; i<N_SERVO; i++)
-            servo[i] = deserialise_uint16(data, 2*i);
+        bool rc = true;
+        for(auto s : servo)
+            rc &= data.unpack(s);
+        return rc;
     }
 };
 
 // MSP_MOTOR: 104
-struct Motor : public Request {
+struct Motor : public Message {
     ID id() const { return ID::MSP_MOTOR; }
 
-    uint16_t motor[N_MOTOR];
+    std::array<uint16_t,N_MOTOR> motor;
 
     bool decode(ByteVector &data) {
-        for(unsigned int i=0; i<N_MOTOR; i++)
-            motor[i] = deserialise_uint16(data, 2*i);
+        bool rc = true;
+        for(auto m : motor)
+            rc &= data.unpack(m);
+        return rc;
     }
 };
 
 // MSP_RC: 105
-struct Rc : public Request {
+struct Rc : public Message {
     ID id() const { return ID::MSP_RC; }
 
     std::vector<uint16_t> channels;
 
     bool decode(ByteVector &data) {
         channels.clear();
-        // If feature 'RX_MSP' is active but "USE_RX_MSP" is undefined for the target,
-        // no RC data is provided as feedback. See also description at 'MSP_SET_RAW_RC'.
-        // In this case, return 0 for all RC channels.
-        for(size_t i(0); i<data.size(); i+=sizeof(uint16_t)) {
-            channels.push_back(deserialise_uint16(data, i));
+        bool rc = true;
+        while (rc) {
+            uint16_t rc_data;
+            rc &= data.unpack(rc_data);
+            if (rc) channels.push_back(rc_data);
         }
+        return !channels.empty();
     }
 };
 
 // MSP_RAW_GPS: 106
-struct RawGPS : public Request {
+struct RawGPS : public Message {
     ID id() const { return ID::MSP_RAW_GPS; }
 
-    uint8_t fix;
-    uint8_t numSat;
-    uint32_t lat;
-    uint32_t lon;
-    uint16_t altitude;
-    uint16_t speed;
-    uint16_t ground_course;
+    value<uint8_t> fix;
+    value<uint8_t> numSat;
+    value<uint32_t> lat;
+    value<uint32_t> lon;
+    value<uint16_t> altitude;
+    value<uint16_t> ground_speed;
+    value<uint16_t> ground_course;
+    bool hdop_set;
+    value<uint16_t> hdop;
 
     bool decode(ByteVector &data) {
-        fix             = data[0];
-        numSat          = data[1];
-        lat             = deserialise_uint32(data, 2);
-        lon             = deserialise_uint32(data, 6);
-        altitude        = deserialise_uint16(data, 10);
-        speed           = deserialise_uint16(data, 12);
-        ground_course   = deserialise_uint16(data, 14);
+        bool rc = true;
+        hdop_set = false;
+        rc &= data.unpack(fix);
+        rc &= data.unpack(numSat);
+        rc &= data.unpack(lat);
+        rc &= data.unpack(lon);
+        rc &= data.unpack(altitude);
+        rc &= data.unpack(ground_speed);
+        rc &= data.unpack(ground_course);
+        if (data.unpacking_remaining()) {
+            hdop_set = true;
+            rc &= data.unpack(hdop);
+        }
+        return rc;
     }
 };
 
 // MSP_COMP_GPS: 107
-struct CompGPS : public Request {
+struct CompGPS : public Message {
     ID id() const { return ID::MSP_COMP_GPS; }
 
-    uint16_t distanceToHome;    // meter
-    uint16_t directionToHome;   // degree
-    uint8_t update;
+    value<uint16_t> distanceToHome;    // meter
+    value<uint16_t> directionToHome;   // degree
+    value<uint8_t> update;
 
     bool decode(ByteVector &data) {
-        distanceToHome  = deserialise_uint16(data, 0);
-        directionToHome = deserialise_uint16(data, 2);
-        update          = data[4];
+        bool rc = true;
+        rc &= data.unpack(distanceToHome);
+        rc &= data.unpack(directionToHome);
+        rc &= data.unpack(update);
+        return rc;
     }
 };
 
+//TODO validate units
 // MSP_ATTITUDE: 108
-struct Attitude : public Request {
+struct Attitude : public Message {
     ID id() const { return ID::MSP_ATTITUDE; }
 
-    float ang_x;        // degree
-    float ang_y;        // degree
-    int16_t heading;    // degree
+    int16_t roll;        // degree
+    int16_t pitch;        // degree
+    int16_t yaw;    // degree
 
     bool decode(ByteVector &data) {
-        ang_x   = deserialise_int16(data, 0)/10.0f;
-        ang_y   = deserialise_int16(data, 2)/10.0f;
-        heading = deserialise_int16(data, 4);
+        bool rc = true;
+        rc &= data.unpack(roll);
+        rc &= data.unpack(pitch);
+        rc &= data.unpack(yaw);
+        return rc;
     }
 };
 
+//TODO validate units
 // MSP_ALTITUDE: 109
-struct Altitude : public Request {
+struct Altitude : public Message {
     ID id() const { return ID::MSP_ALTITUDE; }
 
-    float altitude; // m
-    float vario;    // m/s
+    value<float> altitude; // m
+    value<float> vario;    // m/s
+    bool baro_altitude_set;
+    value<float> baro_altitude;
 
     bool decode(ByteVector &data) {
-        altitude = deserialise_int32(data, 0)/100.0f;
-        vario    = deserialise_int16(data, 4)/100.0f;
+        bool rc = true;
+        rc &= data.unpack<uint32_t>(altitude,0.01);
+        rc &= data.unpack<uint16_t>(vario,0.01);
+        if (data.unpacking_remaining()) {
+            baro_altitude_set = true;
+            rc &= data.unpack<uint32_t>(baro_altitude,0.01);
+        }
+        return rc;
     }
 };
 
+//TODO check amperage units
 // MSP_ANALOG: 110
-struct Analog : public Request {
+struct Analog : public Message {
     ID id() const { return ID::MSP_ANALOG; }
 
     float	vbat;           // Volt
     float	powerMeterSum;  // Ah
-	size_t	rssi;  // Received Signal Strength Indication [0; 1023]
+	uint16_t	rssi;  // Received Signal Strength Indication [0; 1023]
     float	amperage;       // Ampere
 
     bool decode(ByteVector &data) {
-        vbat          = data[0]/10.0f;
-        powerMeterSum = deserialise_uint16(data, 1)/1000.0f;
-        rssi          = deserialise_uint16(data, 3);
-        amperage      = deserialise_uint16(data, 5)/10.0f;
+        bool rc = true;
+        rc &= data.unpack<uint8_t>(vbat,0.1);
+        rc &= data.unpack<uint16_t>(powerMeterSum,0.001);
+        rc &= data.unpack(rssi);
+        rc &= data.unpack<int8_t>(amperage,0.1);
+        return rc;
     }
 };
 
+struct RcTuningSettings {
+    // RPY sequence
+    std::array<uint8_t,3> rates;
+    std::array<uint8_t,3> rcRates;
+    std::array<uint8_t,3> rcExpo;
+    
+    value<uint8_t> dynamic_throttle_pid;
+    value<uint8_t> throttle_mid;
+    value<uint8_t> throttle_expo;
+    value<uint16_t> tpa_breakpoint;
+    
+    bool extended_contents;
+};
+
+//Differences between iNav and BF/CF
 // MSP_RC_TUNING: 111
-struct RcTuning : Request {
+struct RcTuning : public RcTuningSettings, public Message {
     ID id() const { return ID::MSP_RC_TUNING; }
 
-    double RC_RATE;
-    double RC_EXPO;
-    double RollPitchRate;
-    double YawRate;
-    double DynThrPID;
-    double Throttle_MID;
-    double Throttle_EXPO;
-
     bool decode(ByteVector &data) {
-        RC_RATE         = data[0] / 100.0;
-        RC_EXPO         = data[1] / 100.0;
-        RollPitchRate   = data[2] / 100.0;
-        YawRate         = data[3] / 100.0;
-        DynThrPID       = data[4] / 100.0;
-        Throttle_MID    = data[5] / 100.0;
-        Throttle_EXPO   = data[6] / 100.0;
+        bool rc = true;
+        rc &= data.unpack(rcRates[0]);
+        rc &= data.unpack(rcExpo[0]);
+        for (size_t i = 0; i < 3; ++i) {
+            rc &= data.unpack(rates[0]);
+        }
+        rc &= data.unpack(dynamic_throttle_pid);
+        rc &= data.unpack(throttle_mid);
+        rc &= data.unpack(throttle_expo);
+        rc &= data.unpack(tpa_breakpoint);
+        rc &= data.unpack(rcExpo[2]);
+        rc &= data.unpack(rcRates[2]);
+        rc &= data.unpack(rcRates[1]);
+        rc &= data.unpack(rcExpo[1]);
+        return rc;
     }
 };
 
 // PID struct for messages 112 and 204
 struct PidTerms {
-    float P;
-    float I;
-    float D;
+    value<uint8_t> P;
+    value<uint8_t> I;
+    value<uint8_t> D;
 
-    PidTerms() { }
-
-    PidTerms(const uint8_t P, const uint8_t I, const uint8_t D)
-        : P(P/10.0f), I(I/10.0f), D(D/10.0f)
-    { }
+    bool unpack_from(ByteVector &data)
+    {
+        bool rc = true;
+        rc &= data.unpack(P);
+        rc &= data.unpack(I);
+        rc &= data.unpack(D);
+        return rc;
+    }
 };
 
 // MSP_PID: 112
-struct Pid : public Request {
+struct Pid : public Message {
     ID id() const { return ID::MSP_PID; }
 
     PidTerms roll, pitch, yaw, alt;
     PidTerms pos, posr, navr, level, mag, vel;
 
     bool decode(ByteVector &data) {
-        roll  = PidTerms(data[0], data[1], data[2]);
-        pitch = PidTerms(data[3], data[4], data[5]);
-        yaw   = PidTerms(data[6], data[7], data[8]);
-        alt   = PidTerms(data[9], data[10], data[11]);
-        pos   = PidTerms(data[12], data[13], data[14]);
-        posr  = PidTerms(data[15], data[16], data[17]);
-        navr  = PidTerms(data[18], data[19], data[20]);
-        level = PidTerms(data[21], data[22], data[23]);
-        mag   = PidTerms(data[24], data[25], data[26]);
-        vel   = PidTerms(data[27], data[28], data[29]);
+        bool rc = true;
+        rc &= roll.unpack_from(data);
+        rc &= pitch.unpack_from(data);
+        rc &= yaw.unpack_from(data);
+        rc &= alt.unpack_from(data);
+        rc &= pos.unpack_from(data);
+        rc &= posr.unpack_from(data);
+        rc &= navr.unpack_from(data);
+        rc &= level.unpack_from(data);
+        rc &= mag.unpack_from(data);
+        rc &= vel.unpack_from(data);
+        return rc;
     }
 };
 
-// MSP_BOX: 113
-struct Box : public Request {
-    ID id() const { return ID::MSP_BOX; }
+// MSP_ACTIVEBOXES: 113
+struct ActiveBoxes : public Message {
+    ID id() const { return ID::MSP_ACTIVEBOXES; }
 
     // box activation pattern
     std::vector<std::array<std::set<SwitchPosition>,NAUX>> box_pattern;
 
     bool decode(ByteVector &data) {
         box_pattern.clear();
-        for(size_t i(0); i<data.size(); i+=2) {
-            const uint16_t box_conf = deserialise_uint16(data, i);
-            //box_conf.push_back(deser16(data, i));
-
+        bool rc = true;
+        while (rc && data.unpacking_remaining()>1) {
+            value<uint16_t> box_conf;
+            rc &= data.unpack(box_conf);
             std::array<std::set<SwitchPosition>,NAUX> aux_sp;
             for(size_t iaux(0); iaux<NAUX; iaux++) {
                 for(size_t ip(0); ip<3; ip++) {
-                    if(box_conf & (1<<(iaux*3+ip)))
+                    if(box_conf() & (1<<(iaux*3+ip)))
                         aux_sp[iaux].insert(SwitchPosition(ip));
                 } // each position (L,M,H)
             } // each aux switch
             box_pattern.push_back(aux_sp);
-        } // each box
+        }// each box
+        return rc;
     }
 };
 
 // MSP_MISC: 114
-struct Misc : public Request {
+struct Misc : public Message {
     ID id() const { return ID::MSP_MISC; }
 
-	size_t powerTrigger;
-	size_t minThrottle, maxThrottle, failsafeThrottle;
-	size_t minCommand;
-	size_t arm, lifetime;
-    float mag_declination; // degree
-    float vbatScale, vbatLevelWarn1, vbatLevelWarn2, vbatLevelCrit;
+	value<uint16_t> mid_rc;
+    value<uint16_t> min_throttle;
+    value<uint16_t> max_throttle;
+    value<uint16_t> min_command;
+    value<uint16_t> failsafe_throttle;
+    value<uint8_t> gps_provider;
+    value<uint8_t> gps_baudrate;
+    value<uint8_t> gps_usb_sbas;
+    value<uint8_t> multiwii_current_meter_output;
+    value<uint8_t> rssi_channel;
+    value<uint8_t> reserved;
+    value<float> mag_declination; // degree
+    value<float> voltage_scale, cell_min, cell_max, cell_warning;
 
     bool decode(ByteVector &data) {
-        powerTrigger     = deserialise_uint16(data, 0);
-        minThrottle         = deserialise_uint16(data, 2);
-        maxThrottle         = deserialise_uint16(data, 4);
-        minCommand          = deserialise_uint16(data, 6);
-
-        failsafeThrottle    = deserialise_uint16(data, 8);
-        arm                 = deserialise_uint16(data, 10);
-        lifetime            = deserialise_uint32(data, 12);
-        mag_declination     = deserialise_uint16(data, 16) / 10.0f;
-
-        vbatScale           = data[18] / 10.0f;
-        vbatLevelWarn1      = data[19] / 10.0f;
-        vbatLevelWarn2      = data[20] / 10.0f;
-        vbatLevelCrit       = data[21] / 10.0f;
+        bool rc = true;
+        rc &= data.unpack(mid_rc);
+        rc &= data.unpack(min_throttle);
+        rc &= data.unpack(max_throttle);
+        rc &= data.unpack(min_command);
+        rc &= data.unpack(failsafe_throttle);
+        rc &= data.unpack(gps_provider);
+        rc &= data.unpack(gps_baudrate);
+        rc &= data.unpack(gps_usb_sbas);
+        rc &= data.unpack(multiwii_current_meter_output);
+        rc &= data.unpack(rssi_channel);
+        rc &= data.unpack(reserved);
+        
+        rc &= data.unpack<uint16_t>(mag_declination,0.1);
+        rc &= data.unpack<uint8_t>(voltage_scale,0.1);
+        rc &= data.unpack<uint8_t>(cell_min,0.1);
+        rc &= data.unpack<uint8_t>(cell_max,0.1);
+        rc &= data.unpack<uint8_t>(cell_warning,0.1);
+        return rc;
     }
 };
 
 // MSP_MOTOR_PINS: 115
-struct MotorPins : public Request {
+struct MotorPins : public Message {
     ID id() const { return ID::MSP_MOTOR_PINS; }
 
-    uint8_t pwm_pin[N_MOTOR];
+    value<uint8_t> pwm_pin[N_MOTOR];
 
     bool decode(ByteVector &data) {
-        for(size_t i(0); i<N_MOTOR; i++)
-            pwm_pin[i] = data[i];
+        bool rc = true;
+        for (auto pin : pwm_pin)
+            rc &= data.unpack(pin);
+        return rc;
     }
 };
 
 // MSP_BOXNAMES: 116
-struct BoxNames : public Request {
+struct BoxNames : public Message {
     ID id() const { return ID::MSP_BOXNAMES; }
 
     std::vector<std::string> box_names;
 
     bool decode(ByteVector &data) {
         box_names.clear();
-
-        std::stringstream ss(std::string(data.begin(), data.end()));
+        bool rc = true;
+        std::string str;
+        rc &= data.unpack(str);
+        std::stringstream ss(str);
         std::string bname;
         while(getline(ss, bname, ';')) {
             box_names.push_back(bname);
         }
+        return rc;
     }
 };
 
 // MSP_PIDNAMES: 117
-struct PidNames : public Request {
+struct PidNames : public Message {
     ID id() const { return ID::MSP_PIDNAMES; }
 
     std::vector<std::string> pid_names;
 
     bool decode(ByteVector &data) {
         pid_names.clear();
-
-        std::stringstream ss(std::string(data.begin(), data.end()));
+        bool rc = true;
+        std::string str;
+        rc &= data.unpack(str);
+        std::stringstream ss(str);
         std::string pname;
         while(getline(ss, pname, ';')) {
             pid_names.push_back(pname);
         }
+        return rc;
     }
 };
 
 // MSP_WP: 118
-struct WayPoint : public Request {
+struct WayPoint : public Message {
     ID id() const { return ID::MSP_WP; }
 
-    uint8_t wp_no;
-    uint32_t lat;
-    uint32_t lon;
-    uint32_t altHold;
-    uint16_t heading;
-    uint16_t staytime;
-    uint8_t navflag;
+    value<uint8_t> wp_no;
+    value<uint32_t> lat;
+    value<uint32_t> lon;
+    value<uint32_t> altHold;
+    value<uint16_t> heading;
+    value<uint16_t> staytime;
+    value<uint8_t> navflag;
 
     bool decode(ByteVector &data) {
-        wp_no = data[0];
-        lat = deserialise_uint32(data, 1);
-        lon = deserialise_uint32(data, 5);
-        altHold = deserialise_uint32(data, 9);
-        heading = deserialise_uint16(data, 13);
-        staytime = deserialise_uint16(data, 15);
-        navflag = data[18];
+        bool rc = true;
+        rc &= data.unpack(wp_no);
+        rc &= data.unpack(lat);
+        rc &= data.unpack(lon);
+        rc &= data.unpack(altHold);
+        rc &= data.unpack(heading);
+        rc &= data.unpack(staytime);
+        rc &= data.unpack(navflag);
+        return rc;
     }
 };
 
 // MSP_BOXIDS: 119
-struct BoxIds : public Request {
+struct BoxIds : public Message {
     ID id() const { return ID::MSP_BOXIDS; }
 
     ByteVector box_ids;
@@ -2075,50 +2528,57 @@ struct BoxIds : public Request {
 
         for(uint8_t bi : data)
             box_ids.push_back(bi);;
+            
+        return true;
     }
 };
 
 struct ServoConfRange {
-    uint16_t min;
-    uint16_t max;
-    uint16_t middle;
-    uint8_t rate;
+    value<uint16_t> min;
+    value<uint16_t> max;
+    value<uint16_t> middle;
+    value<uint8_t> rate;
 };
 
 // MSP_SERVO_CONF: 120
-struct ServoConf : public Request {
+struct ServoConf : public Message {
     ID id() const { return ID::MSP_SERVO_CONF; }
 
     ServoConfRange servo_conf[N_SERVO];
 
     bool decode(ByteVector &data) {
+        bool rc = true;
         for(size_t i(0); i<N_SERVO; i++) {
-            servo_conf[i].min = deserialise_uint16(data, 7*i);
-            servo_conf[i].max = deserialise_uint16(data, 7*i+2);
-            servo_conf[i].middle = deserialise_uint16(data, 7*i+4);
-            servo_conf[i].rate = data[7*i+6];
+            rc &= data.unpack(servo_conf[i].min);
+            rc &= data.unpack(servo_conf[i].max);
+            rc &= data.unpack(servo_conf[i].middle);
+            rc &= data.unpack(servo_conf[i].rate);
         }
+        return rc;
     }
 };
 
 // MSP_NAV_STATUS: 121
-struct NavStatus: public Request {
+struct NavStatus: public Message {
     ID id() const { return ID::MSP_NAV_STATUS; }
 
-    uint8_t GPS_mode;
-    uint8_t NAV_state;
-    uint8_t mission_action;
-    uint8_t mission_number;
-    uint8_t NAV_error;
+    value<uint8_t> GPS_mode;
+    value<uint8_t> NAV_state;
+    value<uint8_t> mission_action;
+    value<uint8_t> mission_number;
+    value<uint8_t> NAV_error;
     int16_t target_bearing; // degrees
 
     bool decode(ByteVector &data) {
-        GPS_mode = data[0];
-        NAV_state = data[1];
-        mission_action = data[2];
-        mission_number = data[3];
-        NAV_error = data[4];
-        target_bearing = deserialise_int16(data, 5);
+        bool rc = true;
+        rc &= data.unpack(GPS_mode);
+        rc &= data.unpack(NAV_state);
+        rc &= data.unpack(mission_action);
+        rc &= data.unpack(mission_number);
+        rc &= data.unpack(NAV_error);
+        rc &= data.unpack(target_bearing);
+        return rc;
+        
     }
 };
 
@@ -2155,70 +2615,345 @@ struct GpsConf {
 };
 
 // MSP_NAV_CONFIG: 122
-struct NavConfig: public Request {
+struct NavConfig: public Message, public GpsConf {
     ID id() const { return ID::MSP_NAV_CONFIG; }
 
-    GpsConf gps_conf;
 
     bool decode(ByteVector &data) {
-        gps_conf.filtering = data[0];
-        gps_conf.lead_filter = data[1];
-        gps_conf.dont_reset_home_at_arm = data[2];
-        gps_conf.nav_controls_heading = data[3];
-
-        gps_conf.nav_tail_first = data[4];
-        gps_conf.nav_rth_takeoff_heading = data[5];
-        gps_conf.slow_nav = data[6];
-        gps_conf.wait_for_rth_alt = data[7];
-
-        gps_conf.ignore_throttle = data[8];
-        gps_conf.takeover_baro = data[9];
-
-        gps_conf.wp_radius = deserialise_uint16(data, 10);
-        gps_conf.safe_wp_distance = deserialise_uint16(data, 12);
-        gps_conf.nav_max_altitude = deserialise_uint16(data, 14);
-        gps_conf.nav_speed_max = deserialise_uint16(data, 16);
-        gps_conf.nav_speed_min = deserialise_uint16(data, 18);
-
-        gps_conf.crosstrack_gain = data[20];
-        gps_conf.nav_bank_max = deserialise_uint16(data, 21);
-        gps_conf.rth_altitude = deserialise_uint16(data, 23);
-        gps_conf.land_speed = data[25];
-        gps_conf.fence = deserialise_uint16(data, 26);
-
-        gps_conf.max_wp_number = data[28];
-
-        gps_conf.checksum = data[29];
+        bool rc = true;
+        rc &= data.unpack(filtering);
+        rc &= data.unpack(lead_filter);
+        rc &= data.unpack(dont_reset_home_at_arm);
+        rc &= data.unpack(nav_controls_heading);
+        
+        rc &= data.unpack(nav_tail_first);
+        rc &= data.unpack(nav_rth_takeoff_heading);
+        rc &= data.unpack(slow_nav);
+        rc &= data.unpack(wait_for_rth_alt);
+        
+        rc &= data.unpack(ignore_throttle);
+        rc &= data.unpack(takeover_baro);
+        
+        rc &= data.unpack(wp_radius);
+        rc &= data.unpack(safe_wp_distance);
+        rc &= data.unpack(nav_max_altitude);
+        rc &= data.unpack(nav_speed_max);
+        rc &= data.unpack(nav_speed_min);
+        
+        rc &= data.unpack(crosstrack_gain);
+        rc &= data.unpack(nav_bank_max);
+        rc &= data.unpack(rth_altitude);
+        rc &= data.unpack(land_speed);
+        rc &= data.unpack(fence);
+        
+        rc &= data.unpack(max_wp_number);
+        rc &= data.unpack(checksum);
+        
+        return rc;
     }
 };
 
-// MSP_DEBUGMSG: 253
-struct DebugMessage : public Request {
-    ID id() const { return ID::MSP_DEBUGMSG; }
 
-    std::string msg;
+struct Motor3dConfig: public Message {
+    ID id() const { return ID::MSP_MOTOR_3D_CONFIG; }
+
+    value<uint16_t> deadband3d_low;
+    value<uint16_t> deadband3d_high;
+    value<uint16_t> neutral_3d;
 
     bool decode(ByteVector &data) {
-        msg = std::string((data).begin(), (data).end());
+        bool rc = true;
+        rc &= data.unpack(deadband3d_low);
+        rc &= data.unpack(deadband3d_high);
+        rc &= data.unpack(neutral_3d);
+        return rc;
     }
 };
 
-// MSP_DEBUG: 254
-struct Debug : public Request {
-    ID id() const { return ID::MSP_DEBUG; }
+struct RcDeadband: public Message {
+    ID id() const { return ID::MSP_RC_DEADBAND; }
 
-    uint16_t debug1;
-    uint16_t debug2;
-    uint16_t debug3;
-    uint16_t debug4;
+    value<uint8_t> deadband;
+    value<uint8_t> yaw_deadband;
+    value<uint8_t> alt_hold_deadband;
+    value<uint16_t> deadband3d_throttle;
 
     bool decode(ByteVector &data) {
-        debug1 = deserialise_uint16(data, 0);
-        debug2 = deserialise_uint16(data, 2);
-        debug3 = deserialise_uint16(data, 4);
-        debug4 = deserialise_uint16(data, 6);
+        bool rc = true;
+        rc &= data.unpack(deadband);
+        rc &= data.unpack(yaw_deadband);
+        rc &= data.unpack(alt_hold_deadband);
+        rc &= data.unpack(deadband3d_throttle);
+        return rc;
     }
 };
+
+
+struct SensorAlignment: public Message {
+    ID id() const { return ID::MSP_SENSOR_ALIGNMENT; }
+
+    value<uint8_t> gyro_align;
+    value<uint8_t> acc_align;
+    value<uint8_t> mag_align;
+
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(gyro_align);
+        rc &= data.unpack(acc_align);
+        rc &= data.unpack(mag_align);
+        return rc;
+    }
+};
+
+
+struct LedStripModecolor: public Message {
+    ID id() const { return ID::MSP_LED_STRIP_MODECOLOR; }
+
+    std::array<std::array<uint8_t,LED_DIRECTION_COUNT>,LED_MODE_COUNT> mode_colors;
+    std::array<uint8_t,LED_SPECIAL_COLOR_COUNT> special_colors;
+    value<uint8_t> led_aux_channel;
+    value<uint8_t> reserved;
+    value<uint8_t> led_strip_aux_channel;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        for (auto mode : mode_colors) {
+            for (auto color : mode) {
+                rc &= data.unpack(color);
+            }
+        }
+        for (auto special : special_colors) {
+            rc &= data.unpack(special);
+        }
+        
+        rc &= data.unpack(led_aux_channel);
+        rc &= data.unpack(reserved);
+        rc &= data.unpack(led_strip_aux_channel);
+        return rc;
+    }
+};
+
+
+struct VoltageMeter {
+    value<uint8_t> id;
+    value<uint8_t> val;
+};
+
+struct VoltageMeters: public Message {
+    ID id() const { return ID::MSP_VOLTAGE_METERS; }
+
+    std::vector<VoltageMeter> meters;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        for (auto meter : meters) {
+            rc &= data.unpack(meter.id);
+            rc &= data.unpack(meter.val);
+        }
+        return rc;
+    }
+};
+
+struct CurrentMeter {
+    value<uint8_t> id;
+    value<uint16_t> mAh_drawn;
+    value<uint16_t> mA;
+};
+
+struct CurrentMeters: public Message {
+    ID id() const { return ID::MSP_CURRENT_METERS; }
+
+    std::vector<CurrentMeter> meters;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        for (auto meter : meters) {
+            rc &= data.unpack(meter.id);
+            rc &= data.unpack(meter.mAh_drawn);
+            rc &= data.unpack(meter.mA);
+        }
+        return rc;
+    }
+};
+
+
+struct BatteryState: public Message {
+    ID id() const { return ID::MSP_BATTERY_STATE; }
+
+    value<uint8_t> cell_count;
+    value<uint16_t> capacity_mAh;
+    value<uint8_t> voltage;
+    value<uint16_t> mAh_drawn;
+    value<uint16_t> current;
+    value<uint8_t> state;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(cell_count);
+        rc &= data.unpack(capacity_mAh);
+        rc &= data.unpack(voltage);
+        rc &= data.unpack(mAh_drawn);
+        rc &= data.unpack(current);
+        rc &= data.unpack(state);
+        return rc;
+    }
+};
+
+
+
+
+struct MotorConfig: public Message {
+    ID id() const { return ID::MSP_MOTOR_CONFIG; }
+
+    value<uint16_t> min_throttle;
+    value<uint16_t> max_throttle;
+    value<uint16_t> min_command;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(min_throttle);
+        rc &= data.unpack(max_throttle);
+        rc &= data.unpack(min_command);
+        return rc;
+    }
+};
+
+
+struct GpsConfig: public Message {
+    ID id() const { return ID::MSP_GPS_CONFIG; }
+
+    value<uint8_t> provider;
+    value<uint8_t> sbas_mode;
+    value<uint8_t> auto_config;
+    value<uint8_t> auto_baud;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(provider);
+        rc &= data.unpack(sbas_mode);
+        rc &= data.unpack(auto_config);
+        rc &= data.unpack(auto_baud);
+        return rc;
+    }
+};
+
+struct CompassConfig: public Message {
+    ID id() const { return ID::MSP_COMPASS_CONFIG; }
+
+    value<uint16_t> mag_declination;
+    
+    bool decode(ByteVector &data) {
+        return data.unpack(mag_declination);
+    }
+};
+
+struct EscData {
+    value<uint8_t> temperature;
+    value<uint16_t> rpm;
+};
+
+struct EscSensorData: public Message {
+    ID id() const { return ID::MSP_ESC_SENSOR_DATA; }
+
+    value<uint8_t> motor_count;
+    std::vector<EscData> esc_data;
+    
+    bool decode(ByteVector &data) {
+        if (data.empty()) {
+            motor_count = 0;
+            return true;
+        }
+        bool rc = true;
+        rc &= data.unpack(motor_count);
+        for (int i = 0; i < motor_count(); ++i) {
+            EscData esc;
+            rc &= data.unpack(esc.temperature);
+            rc &= data.unpack(esc.rpm);
+            esc_data.push_back(esc);
+        }
+        return rc;
+    }
+};
+
+
+struct StatusEx: public Status {
+    ID id() const { return ID::MSP_STATUS_EX; }
+    //bf/cf fields
+    value<uint8_t> max_profiles;
+    value<uint8_t> control_rate_profile;
+    //iNav fields
+    value<uint16_t> avg_system_load_pct;
+    value<uint16_t> arming_flags;
+    value<uint8_t> acc_calibration_axis_flags;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= Status::decode(data);
+        if (variant_ == variant::INAV) {
+            rc &= data.unpack(avg_system_load_pct);
+            rc &= data.unpack(arming_flags);
+            rc &= data.unpack(acc_calibration_axis_flags);
+        } else {
+            
+            rc &= data.unpack(max_profiles);
+            rc &= data.unpack(control_rate_profile);
+        }
+        return rc;
+    }
+    
+};
+
+
+struct SensorStatus: public Message {
+    ID id() const { return ID::MSP_SENSOR_STATUS; }
+    
+    value<uint8_t> hardware_healthy;
+    value<uint8_t> hw_gyro_status;
+    value<uint8_t> hw_acc_status;
+    value<uint8_t> hw_compass_status;
+    value<uint8_t> hw_baro_status;
+    value<uint8_t> hw_gps_status;
+    value<uint8_t> hw_rangefinder_status;
+    value<uint8_t> hw_pitometer_status;
+    value<uint8_t> hw_optical_flow_status;
+    
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(hardware_healthy);
+        rc &= data.unpack(hw_gyro_status);
+        rc &= data.unpack(hw_acc_status);
+        rc &= data.unpack(hw_compass_status);
+        rc &= data.unpack(hw_baro_status);
+        rc &= data.unpack(hw_gps_status);
+        rc &= data.unpack(hw_rangefinder_status);
+        rc &= data.unpack(hw_pitometer_status);
+        rc &= data.unpack(hw_optical_flow_status);
+        return rc;
+    }
+};
+
+
+
+
+
+// MSP_SENSOR_STATUS               = 151,
+// MSP_UID                         = 160,
+// MSP_GPSSVINFO                   = 164,
+// MSP_GPSSTATISTICS               = 166,
+
+// MSP_OSD_VIDEO_CONFIG            = 180,
+// MSP_SET_OSD_VIDEO_CONFIG        = 181,
+
+// MSP_DISPLAYPORT                 = 182,
+
+// Not available in iNav (183-185)
+// MSP_COPY_PROFILE                = 183,
+
+// MSP_BEEPER_CONFIG               = 184,
+// MSP_SET_BEEPER_CONFIG           = 185,
+
+// MSP_SET_TX_INFO                 = 186, // in message           Used to send runtime information from TX lua scripts to the firmware
+// MSP_TX_INFO                     = 187, // out message          Used by TX lua scripts to read information from the firmware
 
 
 /////////////////////////////////////////////////////////////////////
@@ -2228,7 +2963,7 @@ struct Debug : public Request {
 // This message is accepted but ignored on betaflight 3.0.1 onwards
 // if "USE_RX_MSP" is not defined for the target. In this case, you can manually
 // add "#define USE_RX_MSP" to your 'target.h'.
-struct SetRc : public Response {
+struct SetRawRc : public Message {
     ID id() const { return ID::MSP_SET_RAW_RC; }
 
     std::vector<uint16_t> channels;
@@ -2236,77 +2971,68 @@ struct SetRc : public Response {
     ByteVector encode() const {
         ByteVector data;
         for(const uint16_t c : channels) {
-            serialise_uint16(c, data);
+            data.pack(c);
         }
         return data;
     }
 };
 
 // MSP_SET_RAW_GPS: 201
-struct SetRawGPS : public Response {
+struct SetRawGPS : public Message {
     ID id() const { return ID::MSP_SET_RAW_GPS; }
 
-    uint8_t fix;
-    uint8_t numSat;
-    uint32_t lat;
-    uint32_t lon;
-    uint16_t altitude;
-    uint16_t speed;
+    value<uint8_t> fix;
+    value<uint8_t> numSat;
+    value<uint32_t> lat;
+    value<uint32_t> lon;
+    value<uint16_t> altitude;
+    value<uint16_t> speed;
 
     ByteVector encode() const {
         ByteVector data;
-        data.push_back(fix);
-        data.push_back(numSat);
-        serialise_uint32(lat, data);
-        serialise_uint32(lon, data);
-        serialise_uint16(altitude, data);
-        serialise_uint16(speed, data);
+        data.pack(fix);
+        data.pack(numSat);
+        data.pack(lat);
+        data.pack(lon);
+        data.pack(altitude);
+        data.pack(speed);
         assert(data.size()==14);
         return data;
     }
 };
 
+// MSP_SET_PID: 202,
+//Depricated - still available in iNav
+// MSP_SET_BOX: 203,
+
+
+
+//Differences between iNav and BF/CF - this is BF/CF variant
 // MSP_SET_RC_TUNING: 204
-struct SetRcTuning : public Response {
+struct SetRcTuning : public RcTuningSettings, public Message {
     ID id() const { return ID::MSP_SET_RC_TUNING; }
-
-    double RC_RATE;
-    double RC_EXPO;
-    double RollPitchRate;
-    double YawRate;
-    double DynThrPID;
-    double Throttle_MID;
-    double Throttle_EXPO;
-
-    /**
-     * @brief SetRcTuning construct a RC tuning response from a request
-     * @param rc_tuning RcTuning response
-     */
-    SetRcTuning(const RcTuning &rc_tuning) {
-        RC_RATE         = rc_tuning.RC_RATE;
-        RC_EXPO         = rc_tuning.RC_EXPO;
-        RollPitchRate   = rc_tuning.RollPitchRate;
-        YawRate         = rc_tuning.YawRate;
-        DynThrPID       = rc_tuning.DynThrPID;
-        Throttle_MID    = rc_tuning.Throttle_MID;
-        Throttle_EXPO   = rc_tuning.Throttle_EXPO;
-    }
-
+    
     ByteVector encode() const {
-        ByteVector data(7);
-        data[0] = uint8_t(RC_RATE * 100);
-        data[1] = uint8_t(RC_EXPO * 100);
-        data[2] = uint8_t(RollPitchRate * 100);
-        data[3] = uint8_t(YawRate * 100);
-        data[4] = uint8_t(DynThrPID * 100);
-        data[5] = uint8_t(Throttle_MID * 100);
-        data[6] = uint8_t(Throttle_EXPO * 100);
+        ByteVector data;
+        data.pack(rcRates[0]);
+        data.pack(rcExpo[0]);
+        for (auto r : rates) {
+            data.pack(r);
+        }
+        data.pack(dynamic_throttle_pid);
+        data.pack(throttle_mid);
+        data.pack(throttle_expo);
+        data.pack(tpa_breakpoint);
+        data.pack(rcExpo[2]);
+        data.pack(rcRates[2]);
+        data.pack(rcRates[1]);
+        data.pack(rcExpo[1]);
         return data;
     }
 };
 
 // MSP_ACC_CALIBRATION: 205
-struct AccCalibration : public Response {
+struct AccCalibration : public Message {
     ID id() const { return ID::MSP_ACC_CALIBRATION; }
     ByteVector encode() const {
         return ByteVector();
@@ -2314,23 +3040,27 @@ struct AccCalibration : public Response {
 };
 
 // MSP_MAG_CALIBRATION: 206
-struct MagCalibration : public Response {
+struct MagCalibration : public Message {
     ID id() const { return ID::MSP_MAG_CALIBRATION; }
     ByteVector encode() const {
         return ByteVector();
     }
 };
 
+//MSP_SET_MISC: 207
+
 // MSP_RESET_CONF: 208
-struct ResetConfig : public Response {
+struct ResetConfig : public Message {
     ID id() const { return ID::MSP_RESET_CONF; }
     ByteVector encode() const {
         return ByteVector();
     }
 };
 
+//MSP_SET_WP: 209
+
 // MSP_SELECT_SETTING: 210
-struct SelectSetting : public Response {
+struct SelectSetting : public Message {
     ID id() const { return ID::MSP_SELECT_SETTING; }
 
 	size_t current_setting;
@@ -2342,22 +3072,24 @@ struct SelectSetting : public Response {
     }
 };
 
-// MSP_SET_HEAD: 211
-struct SetHeading : public Response {
-    ID id() const { return ID::MSP_SET_HEAD; }
+// MSP_SET_HEADING: 211
+struct SetHeading : public Message {
+    ID id() const { return ID::MSP_SET_HEADING; }
 
-    int heading;
+    int16_t heading;
 
     ByteVector encode() const {
         ByteVector data;
-        serialise_int16(int16_t(heading), data);
+        data.pack(heading);
         assert(data.size()==2);
         return data;
     }
 };
 
+//MSP_SET_SERVO_CONF: 212
+
 // MSP_SET_MOTOR: 214
-struct SetMotor : public Response {
+struct SetMotor : public Message {
     ID id() const { return ID::MSP_SET_MOTOR; }
 
     std::array<uint16_t,N_MOTOR> motor;
@@ -2365,19 +3097,83 @@ struct SetMotor : public Response {
     ByteVector encode() const {
         ByteVector data;
         for(size_t i(0); i<N_MOTOR; i++)
-            serialise_uint16(motor[i], data);
+            data.pack(motor[i]);
         assert(data.size()==N_MOTOR*2);
         return data;
     }
 };
 
+
+// MSP_SET_NAV_CONFIG              = 215
+
+// MSP_SET_MOTOR_3D_CONF           = 217
+// MSP_SET_RC_DEADBAND             = 218
+// MSP_SET_RESET_CURR_PID          = 219
+// MSP_SET_SENSOR_ALIGNMENT        = 220
+// MSP_SET_LED_STRIP_MODECOLOR     = 221
+//Not available in iNav (222-224)
+// MSP_SET_MOTOR_CONFIG            = 222    //out message         Motor configuration (min/max throttle, etc)
+// MSP_SET_GPS_CONFIG              = 223    //out message         GPS configuration
+// MSP_SET_COMPASS_CONFIG          = 224    //out message         Compass configuration
+
+// MSP_SET_ACC_TRIM                = 239    //in message          set acc angle trim values
+// MSP_ACC_TRIM                    = 240    //out message         get acc angle trim values
+// MSP_SERVO_MIX_RULES             = 241    //out message         Returns servo mixer configuration
+
+// MSP_SET_SERVO_MIX_RULE          = 242    //in message          Sets servo mixer configuration
+//not used in CF, BF, iNav
+// MSP_PASSTHROUGH_SERIAL          = 244
+// MSP_SET_4WAY_IF                 = 245    //in message          Sets 4way interface
+// MSP_SET_RTC                     = 246    //in message          Sets the RTC clock
+// MSP_RTC                         = 247    //out message         Gets the RTC clock
+
+
+
+
 // MSP_EEPROM_WRITE: 250
-struct WriteEEPROM : public Response {
+struct WriteEEPROM : public Message {
     ID id() const { return ID::MSP_EEPROM_WRITE; }
     ByteVector encode() const {
         return ByteVector();
     }
 };
+
+// MSP_RESERVE_1: 251,    //reserved for system usage
+// MSP_RESERVE_2: 252,    //reserved for system usage
+    
+// MSP_DEBUGMSG: 253
+struct DebugMessage : public Message {
+    ID id() const { return ID::MSP_DEBUGMSG; }
+
+    value<std::string> debug_msg;
+
+    bool decode(ByteVector &data) {
+        return data.unpack(debug_msg);
+        
+    }
+};
+
+// MSP_DEBUG: 254
+struct Debug : public Message {
+    ID id() const { return ID::MSP_DEBUG; }
+
+    value<uint16_t> debug1;
+    value<uint16_t> debug2;
+    value<uint16_t> debug3;
+    value<uint16_t> debug4;
+
+    bool decode(ByteVector &data) {
+        bool rc = true;
+        rc &= data.unpack(debug1);
+        rc &= data.unpack(debug2);
+        rc &= data.unpack(debug3);
+        rc &= data.unpack(debug4);
+        return rc;
+    }
+};
+
+// MSP_V2_FRAME: 255,    //reserved for system usage
+
 
 } // namespace msg
 } // namespace msp

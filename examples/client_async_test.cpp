@@ -49,7 +49,7 @@ struct SubCallbacks {
         std::cout<<pid;
     }
 
-    void onBox(msp::msg::Box& box) {
+    void onBox(msp::msg::ActiveBoxes& box) {
         std::cout<<box;
     }
 
@@ -79,7 +79,7 @@ struct SubCallbacks {
 
     void onDebugMessage(msp::msg::DebugMessage& debug_msg) {
         std::cout<<"#Debug message:"<<std::endl;
-        std::cout<<debug_msg.msg<<std::endl;
+        std::cout<<debug_msg.debug_msg<<std::endl;
     }
 
     void onDebug(msp::msg::Debug& debug) {

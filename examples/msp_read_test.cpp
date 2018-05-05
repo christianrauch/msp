@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     std::cout<<"Connecting FCU..."<<std::endl;
     msp::msg::Ident ident;
     if(msp.request_wait(ident, 10)) {
-        std::cout<<"MSP version "<< size_t(ident.version)<<" ready"<<std::endl;
+        std::cout<<"MSP version "<< size_t(ident.version())<<" ready"<<std::endl;
     }
     }
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<< size_t(pid.id())<<std::endl;
 
-    msp::msg::Box box;
+    msp::msg::ActiveBoxes box;
     if(msp.request_block(box))
         std::cout<<box;
     else
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     msp::msg::DebugMessage debug_msg;
     if(msp.request_block(debug_msg)) {
         std::cout<<"#Debug message:"<<std::endl;
-        std::cout<<debug_msg.msg<<std::endl;
+        std::cout<<debug_msg.debug_msg<<std::endl;
     }
     else
         std::cerr<<"unsupported: "<< size_t(debug_msg.id())<<std::endl;

@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<< size_t(pid.id())<<std::endl;
 
-    msp::msg::Box box;
+    msp::msg::ActiveBoxes box;
     if(client.request(box)==1)
         std::cout<<box;
     else
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
     msp::msg::DebugMessage debug_msg;
     if(client.request(debug_msg)==1) {
             std::cout<<"#Debug message:"<<std::endl;
-            std::cout<<debug_msg.msg<<std::endl;
+            std::cout<<debug_msg.debug_msg<<std::endl;
     }
     else
         std::cerr<<"unsupported: "<< size_t(debug_msg.id())<<std::endl;

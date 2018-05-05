@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     msp::msg::Ident ident;
     if(msp.request_wait(ident, 10)) {
         auto end = std::chrono::steady_clock::now();
-        std::cout<<"MSP version "<<(int)ident.version<<" ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
+        std::cout<<"MSP version "<<(int)ident.version()<<" ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
     }
     else {
         std::cout << "error getting MSP version" << std::endl;

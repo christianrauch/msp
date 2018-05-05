@@ -64,7 +64,7 @@ start:
 
     msp::msg::RxConfig rxcfg;
     fcu.request(rxcfg);
-    std::cout << "rx config: " << (uint32_t)rxcfg.serialrx_provider << std::endl;
+    std::cout << "rx config: " << (uint32_t)rxcfg.serialrx_provider() << std::endl;
     
 
     std::cout<<"Armed? "<<fcu.isArmed()<<std::endl;

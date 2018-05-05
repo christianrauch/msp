@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-struct MyIdent : public msp::Request {
+struct MyIdent : public msp::Message {
     msp::ID id() const { return msp::ID::MSP_IDENT; }
 
     msp::ByteVector raw_data;

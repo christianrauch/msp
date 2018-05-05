@@ -17,7 +17,7 @@ void FlightController::waitForConnection() {
     std::cout<<"Wait for FC..."<<std::endl;
     msp::msg::Ident ident;
     while(!client.request(ident, 0.5));
-    std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
+    std::cout<<"MultiWii version "<< size_t(ident.version())<<" ready"<<std::endl;
 }
 
 void FlightController::initialise() {
@@ -28,17 +28,17 @@ void FlightController::initialise() {
     
     while(client.request(ident, 0.5)==-1);
     
-    std::cout << "ident ver: " << ident.version << " msp ver: " << ident.msp_version <<std::endl;
+    std::cout << "ident ver: " << ident.version() << " msp ver: " << ident.msp_version() <<std::endl;
 
     if(client.request(apiVersion)) {
         // this is Cleanflight
         firmware = FirmwareType::CLEANFLIGHT;
-        std::cout<<"Cleanflight API "<<(uint32_t)apiVersion.major<<"."<<(uint32_t)apiVersion.minor<<" protocol: "<<(uint32_t)apiVersion.protocol<<" ready"<<std::endl;
+        std::cout<<"Cleanflight API "<<(uint32_t)apiVersion.major()<<"."<<(uint32_t)apiVersion.minor()<<" protocol: "<<(uint32_t)apiVersion.protocol()<<" ready"<<std::endl;
     }
     else {
         // this is MultiWii
         firmware = FirmwareType::MULTIWII;
-        std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
+        std::cout<<"MultiWii version "<< size_t(ident.version())<<" ready"<<std::endl;
     }
     /*
     if(firmware == FirmwareType::CLEANFLIGHT) {
@@ -50,21 +50,21 @@ void FlightController::initialise() {
     msp::msg::FcVariant fcvar;
     rc = client.request(fcvar);
     if ( rc == 1)
-    std::cout << fcvar.identifier << std::endl;
+    std::cout << fcvar.identifier() << std::endl;
     else std::cout << rc << std::endl;
     
     std::cout << "FcVersion ";
     msp::msg::FcVersion fcver;
     rc = client.request(fcver);
     if (rc == 1)
-    std::cout << (uint32_t)fcver.major << "." << (uint32_t)fcver.minor << "." << (uint32_t)fcver.patch_level << std::endl;
+    std::cout << (uint32_t)fcver.major() << "." << (uint32_t)fcver.minor() << "." << (uint32_t)fcver.patch_level() << std::endl;
     else std::cout << rc << std::endl;
     
     std::cout << "BoardInfo ";
     msp::msg::BoardInfo boardinfo;
     rc = client.request(boardinfo);
     if (rc == 1)
-    std::cout << boardinfo.identifier << " " << uint32_t(boardinfo.version) << " " << boardinfo.name <<std::endl;
+    std::cout << boardinfo.identifier() << " " << uint32_t(boardinfo.version()) << " " << boardinfo.name() <<std::endl;
     else std::cout << rc << std::endl;
     
     std::cout << "BuildInfo ";
@@ -86,9 +86,8 @@ void FlightController::initialise() {
     // determine channel mapping
     if(isFirmwareMultiWii()) {
         // default mapping
-        channel_map.clear();
-        for(uint8_t i(0); i<MAX_MAPPABLE_RX_INPUTS; i++) {
-            channel_map.push_back(i);
+        for(uint8_t i(0); i<MAX_MAPPABLE_RX_INPUTS; ++i) {
+            channel_map[i] = i;
         }
     }
     else {
@@ -142,7 +141,7 @@ bool FlightController::isStatusActive(const std::string& status_name) {
     client.request(status);
 
     // check if ARM box id is amongst active box IDs
-    return status.active_box_id.count(box_name_ids.at(status_name));
+    return status.box_mode_flags.count(box_name_ids.at(status_name));
 }
 
 bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
@@ -157,7 +156,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
             "RC commands will have no effect on motors.");
     }
 
-    msp::msg::SetRc rc;
+    msp::msg::SetRawRc rc;
     // insert mappable channels
     rc.channels.resize(MAX_MAPPABLE_RX_INPUTS);
     rc.channels[channel_map[0]] = roll;
@@ -177,7 +176,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
 }
 
 bool FlightController::setRc(const std::vector<uint16_t> channels) {
-    msp::msg::SetRc rc;
+    msp::msg::SetRawRc rc;
     rc.channels = channels;
     return client.respond(rc, false);
 }

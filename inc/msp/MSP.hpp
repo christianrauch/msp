@@ -110,14 +110,14 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool request(msp::Request &request);
+    bool request(msp::Message &request);
 
     /**
      * @brief request_block continuously send command and request data until data has been received
      * @param request request message
      * @return true when data has been received
      */
-    bool request_block(msp::Request &request);
+    bool request_block(msp::Message &request);
 
     /**
      * @brief request_wait wait for data while continuously sending command
@@ -126,7 +126,7 @@ public:
      * @param min_payload_size minimum amount of payload (bytes) that needs to be available before reading and decoding of a message starts
      * @return true when data has been received
      */
-    bool request_wait(msp::Request &request, const size_t wait_ms, const size_t min_payload_size = 0);
+    bool request_wait(msp::Message &request, const size_t wait_ms, const size_t min_payload_size = 0);
 
     /**
      * @brief respond send data to FC and read acknowledge
@@ -134,14 +134,14 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool respond(const msp::Response &response);
+    bool respond(const msp::Message &response);
 
     /**
      * @brief respond_block send data to FC until acknowledge has been received
      * @param response response message with data
      * @return true when acknowledge has been received
      */
-    bool respond_block(const msp::Response &response);
+    bool respond_block(const msp::Message &response);
 
     /**
      * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
@@ -169,7 +169,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool send(const msp::Response &response) {
+    bool send(const msp::Message &response) {
         return sendData(response.id(), response.encode());
     }
 

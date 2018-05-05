@@ -85,7 +85,7 @@ public:
         return client.sendRequest(id);
     }
 
-    bool request(msp::Request &request, const double timeout = 0) {
+    bool request(msp::Message &request, const double timeout = 0) {
         return client.request(request, timeout);
     }
 
@@ -93,7 +93,7 @@ public:
         return client.request_raw(id, data, timeout);
     }
 
-    bool respond(const msp::Response &response, const bool wait_ack=true) {
+    bool respond(const msp::Message &response, const bool wait_ack=true) {
         return client.respond(response, wait_ack);
     }
 
@@ -245,7 +245,7 @@ private:
 
     FirmwareType firmware;
 
-    std::vector<uint8_t> channel_map;
+    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> channel_map;
 };
 
 } // namespace msp

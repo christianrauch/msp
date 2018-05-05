@@ -53,7 +53,7 @@ namespace client {
 Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false), version(1) { }
 
 Client::~Client() {
-    for(const std::pair<msp::ID, msp::Request*> d : subscribed_requests)
+    for(const std::pair<msp::ID, msp::Message*> d : subscribed_requests)
         delete d.second;
 
     for(const std::pair<msp::ID, SubscriptionBase*> s : subscriptions)
@@ -96,7 +96,7 @@ uint8_t Client::read() {
     return rc;
 }
 
-int Client::request(msp::Request &request, const double timeout) {
+int Client::request(msp::Message &request, const double timeout) {
     msp::ByteVector data;
     const int success = request_raw(uint8_t(request.id()), data, timeout);
     if(success==1) { request.decode(data); }
@@ -133,7 +133,7 @@ int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout
     return success;
 }
 
-bool Client::respond(const msp::Response &response, const bool wait_ack) {
+bool Client::respond(const msp::Message &response, const bool wait_ack) {
     return respond_raw(uint8_t(response.id()), response.encode(), wait_ack);
 }
 
@@ -219,7 +219,7 @@ void Client::processOneMessage() {
     mutex_callbacks.lock();
     if(request_received->status==OK && subscriptions.count(ID(request_received->id))) {
         // fetch message type, decode payload
-        msp::Request *const req = subscribed_requests.at(ID(request_received->id));
+        msp::Message *const req = subscribed_requests.at(ID(request_received->id));
         req->decode(request_received->data);
         // call callback
         subscriptions.at(ID(request_received->id))->call(*req);
@@ -275,7 +275,7 @@ ReceivedMessage Client::processOneMessageV2() {
     ReceivedMessage ret;
     
     ret.status = OK;
-    
+
     uint8_t exp_crc = 0;
     
     // message direction
@@ -285,7 +285,6 @@ ReceivedMessage Client::processOneMessageV2() {
     // flag
     const uint8_t flag = read();
     exp_crc = crcV2(exp_crc, flag);
-    
     
     // message ID
     const uint8_t id_low = read();
@@ -310,8 +309,6 @@ ReceivedMessage Client::processOneMessageV2() {
     for(size_t i(0); i<len; i++) {
         ret.data.push_back(read());
     }
-    
-    //std::cout << "-got a v2 msg with id " << std::dec << ret.id << " of length " << ret.data.size() << std::endl;
     
     exp_crc = crcV2(exp_crc,ret.data);
 
@@ -377,13 +374,7 @@ bool Client::sendDataV2(const uint16_t id, const ByteVector &data) {
     
     msg.insert(msg.end(), data.begin(), data.end());    // data
     msg.push_back( crcV2( 0, ByteVector(msg.begin()+3,msg.end()) ) );                     // crc
-    /*
-    std::cout << "sending v2 raw array (" << msg.size() << "): ";
-    for (const uint8_t& p : msg) {
-        std::cout << std::hex << (uint32_t)p << " ";
-    }
-    std::cout << std::dec << std::endl;
-    */
+
     asio::error_code ec;
     const std::size_t bytes_written = asio::write(pimpl->port, asio::buffer(msg.data(), msg.size()), ec);
     if (ec == asio::error::operation_aborted) {
