@@ -3,13 +3,11 @@
 
 #include "Client.hpp"
 #include "msp_msg.hpp"
+#include "variants.hpp"
+#include "msp_msg_maker.hpp"
 
 namespace fcu {
 
-enum class FirmwareType {
-    MULTIWII,
-    CLEANFLIGHT
-};
 
 class FlightController {
 public:
@@ -27,11 +25,11 @@ public:
      * @return true if firmware is firmware_type
      * @return false if firmware is not firmware_type
      */
-    bool isFirmware(const FirmwareType firmware_type);
+    bool isFirmware(const msp::FirmwareVariant firmware_type);
 
-    bool isFirmwareMultiWii() { return isFirmware(FirmwareType::MULTIWII); }
+    bool isFirmwareMultiWii() { return isFirmware(msp::FirmwareVariant::MWII); }
 
-    bool isFirmwareCleanflight() { return isFirmware(FirmwareType::CLEANFLIGHT); }
+    bool isFirmwareCleanflight() { return isFirmware(msp::FirmwareVariant::CLFL); }
 
     /**
      * @brief subscribe register callback function that is called when type is received
@@ -106,7 +104,7 @@ public:
     std::map<std::string, size_t> &getBoxNames() {
         return box_name_ids;
     }
-
+/*
     bool hasCapability(const msp::msg::Capability &cap) const {
         return ident.capabilities.count(cap);
     }
@@ -122,7 +120,7 @@ public:
     bool hasFlap() const {
         return hasCapability(msp::msg::Capability::FLAP);
     }
-
+*/
     bool hasSensor(const msp::msg::Sensor &sensor) const {
         return sensors.count(sensor);
     }
@@ -238,12 +236,11 @@ private:
 
     std::map<std::string, size_t> box_name_ids;
 
-    msp::msg::Ident ident;
-    msp::msg::ApiVersion apiVersion;
-
     std::set<msp::msg::Sensor> sensors;
 
-    FirmwareType firmware;
+    msp::FirmwareVariant fw_variant;
+    int msp_version;
+    
 
     std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> channel_map;
 };

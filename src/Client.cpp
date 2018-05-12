@@ -50,7 +50,7 @@ void PeriodicTimer::setPeriod(const double period_seconds) {
 namespace msp {
 namespace client {
 
-Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false), version(1) { }
+Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false), msp_ver(1), fw_variant(FirmwareVariant::INAV) { }
 
 Client::~Client() {
     for(const std::pair<msp::ID, msp::Message*> d : subscribed_requests)
@@ -170,7 +170,7 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
 }
 */
 bool Client::sendData(const uint32_t id, const ByteVector &data) {
-    switch (version) {
+    switch (msp_ver) {
     case 1:
         return sendDataV1(uint8_t(id),data);
     case 2:

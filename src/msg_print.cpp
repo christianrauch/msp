@@ -202,23 +202,45 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::RcTuning& rc_tuning) {
 
     return s;
 }
-
+/*
+    PID_ROLL,
+    PID_PITCH,
+    PID_YAW,
+    PID_POS_Z,
+    PID_POS_XY,
+    PID_VEL_XY,
+    PID_SURFACE,
+    PID_LEVEL,
+    PID_HEADING,
+    PID_VEL_Z,
+*/
 std::ostream& operator<<(std::ostream& s, const msp::msg::Pid& pid) {
+    uint8_t PID_ROLL = static_cast<uint8_t>(msp::msg::PID_Element::PID_ROLL);
+    uint8_t PID_PITCH = static_cast<uint8_t>(msp::msg::PID_Element::PID_PITCH);
+    uint8_t PID_YAW = static_cast<uint8_t>(msp::msg::PID_Element::PID_YAW);
+    uint8_t PID_POS_Z = static_cast<uint8_t>(msp::msg::PID_Element::PID_POS_Z);
+    uint8_t PID_POS_XY = static_cast<uint8_t>(msp::msg::PID_Element::PID_POS_XY);
+    uint8_t PID_VEL_XY = static_cast<uint8_t>(msp::msg::PID_Element::PID_VEL_XY);
+    uint8_t PID_SURFACE = static_cast<uint8_t>(msp::msg::PID_Element::PID_SURFACE);
+    uint8_t PID_LEVEL = static_cast<uint8_t>(msp::msg::PID_Element::PID_LEVEL);
+    uint8_t PID_HEADING = static_cast<uint8_t>(msp::msg::PID_Element::PID_HEADING);
+    uint8_t PID_VEL_Z = static_cast<uint8_t>(msp::msg::PID_Element::PID_VEL_Z);
+    
     s << std::setprecision(3);
     s << "#PID:" << std::endl;
     s << "Name      P     | I     | D     |" << std::endl;
     s << "----------------|-------|-------|" << std::endl;
-    s << "Roll:      " << pid.roll.P << "\t| " << pid.roll.I << "\t| " << pid.roll.D << std::endl;
-    s << "Pitch:     " << pid.pitch.P << "\t| " << pid.pitch.I << "\t| " << pid.pitch.D << std::endl;
-    s << "Yaw:       " << pid.yaw.P << "\t| " << pid.yaw.I << "\t| " << pid.yaw.D << std::endl;
-    s << "Altitude:  " << pid.alt.P << "\t| " << pid.alt.I << "\t| " << pid.alt.D << std::endl;
+    s << "Roll:      " << pid.entry[PID_ROLL]().P << "\t| " << pid.entry[PID_ROLL]().I << "\t| " << pid.entry[PID_ROLL]().D << std::endl;
+    s << "Pitch:     " << pid.entry[PID_PITCH]().P << "\t| " << pid.entry[PID_PITCH]().I << "\t| " << pid.entry[PID_PITCH]().D << std::endl;
+    s << "Yaw:       " << pid.entry[PID_YAW]().P << "\t| " << pid.entry[PID_YAW]().I << "\t| " << pid.entry[PID_YAW]().D << std::endl;
+    s << "Altitude:  " << pid.entry[PID_POS_Z]().P << "\t| " << pid.entry[PID_POS_Z]().I << "\t| " << pid.entry[PID_POS_Z]().D << std::endl;
 
-    s << "Position:  " << pid.pos.P << "\t| " << pid.pos.I << "\t| " << pid.pos.D << std::endl;
-    s << "PositionR: " << pid.posr.P << "\t| " << pid.posr.I << "\t| " << pid.posr.D << std::endl;
-    s << "NavR:      " << pid.navr.P << "\t| " << pid.navr.I << "\t| " << pid.navr.D << std::endl;
-    s << "Level:     " << pid.level.P << "\t| " << pid.level.I << "\t| " << pid.level.D << std::endl;
-    s << "Magn:      " << pid.mag.P << "\t| " << pid.mag.I << "\t| " << pid.mag.D << std::endl;
-    s << "Vel:       " << pid.vel.P << "\t| " << pid.vel.I << "\t| " << pid.vel.D << std::endl;
+    s << "Position:  " << pid.entry[PID_POS_XY]().P << "\t| " << pid.entry[PID_POS_XY]().I << "\t| " << pid.entry[PID_POS_XY]().D << std::endl;
+    s << "PositionR: " << pid.entry[PID_VEL_XY]().P << "\t| " << pid.entry[PID_VEL_XY]().I << "\t| " << pid.entry[PID_VEL_XY]().D << std::endl;
+    s << "NavR:      " << pid.entry[PID_SURFACE]().P << "\t| " << pid.entry[PID_SURFACE]().I << "\t| " << pid.entry[PID_SURFACE]().D << std::endl;
+    s << "Level:     " << pid.entry[PID_LEVEL]().P << "\t| " << pid.entry[PID_LEVEL]().I << "\t| " << pid.entry[PID_LEVEL]().D << std::endl;
+    s << "Magn:      " << pid.entry[PID_HEADING]().P << "\t| " << pid.entry[PID_HEADING]().I << "\t| " << pid.entry[PID_HEADING]().D << std::endl;
+    s << "Vel:       " << pid.entry[PID_VEL_Z]().P << "\t| " << pid.entry[PID_VEL_Z]().I << "\t| " << pid.entry[PID_VEL_Z]().D << std::endl;
 
     return s;
 }
@@ -248,19 +270,7 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::ActiveBoxes& box) {
 
     return s;
 }
-uint16_t mid_rc;
-    uint16_t min_throttle;
-    uint16_t max_throttle;
-    uint16_t min_command;
-    uint16_t failsafe_throttle;
-    uint8_t gps_provider;
-    uint8_t gps_baudrate;
-    uint8_t gps_usb_sbas;
-    uint8_t multiwii_current_meter_output;
-    uint8_t rssi_channel;
-    uint8_t reserved;
-    float mag_declination; // degree
-    float voltage_scale, cell_min, cell_max, cell_warning;
+
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::Misc& misc) {
     s << "#Miscellaneous:" << std::endl;

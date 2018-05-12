@@ -10,12 +10,12 @@ int main(int argc, char *argv[]) {
 
     msp::MSP msp(device, baudrate);
     msp.setWait(1);
-
+    msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
     // try connecting until first package is received
     {
     std::cout<<"Waiting for flight controller to become ready..."<<std::endl;
     auto start = std::chrono::steady_clock::now();
-    msp::msg::Ident ident;
+    msp::msg::Ident ident(fw_variant);
     if(msp.request_wait(ident, 10)) {
         auto end = std::chrono::steady_clock::now();
         std::cout<<"MSP version "<<(int)ident.version()<<" ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     unsigned int n_msg = 0;
     auto start = std::chrono::steady_clock::now();
     while(n_msg!=max_msg) {
-        msp::msg::ImuRaw status;
+        msp::msg::ImuRaw status(fw_variant);
         msp.request_block(status);
         n_msg++;
     }

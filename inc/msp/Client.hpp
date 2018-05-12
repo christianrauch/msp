@@ -143,10 +143,14 @@ public:
     
     bool setVersion(int ver) {
         if (ver == 1 || ver == 2) {
-            version = ver;
+            msp_ver = ver;
             return true;
         }
         return false;
+    }
+    
+    void setVariant(FirmwareVariant v) {
+        fw_variant = v;
     }
 
     /**
@@ -267,13 +271,13 @@ public:
         if(!(tp>=0.0))
             throw std::runtime_error("Period must be positive!");
 
-        const msp::ID id = T().id();
+        const msp::ID id = T(fw_variant).id();
 
         std::lock_guard<std::mutex> lock(mutex_callbacks);
 
         // register message
         if(subscribed_requests.count(id)) { delete subscribed_requests[id]; }
-        subscribed_requests[id] = new T();
+        subscribed_requests[id] = new T(fw_variant);
 
         // register subscription
         subscriptions[id] = new Subscription<T>(callback,
@@ -341,7 +345,8 @@ protected:
     // debugging
     bool print_warnings;
     
-    int version;
+    int msp_ver;
+    FirmwareVariant fw_variant;
 
     bool sendDataV1(const uint8_t id, const ByteVector &data = ByteVector(0));
     uint8_t crcV1(const uint8_t id, const ByteVector &data);

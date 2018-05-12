@@ -1,24 +1,19 @@
 #ifndef MSP_MSG_MAKER_HPP
 #define MSP_MSG_MAKER_HPP
-#include "msp_msg_ptr.hpp"
+#include "msp_msg.hpp"
 
 namespace msp {
 
 class message_maker {
 public:
-    message_maker(variant v = variant::INAV) : v_(v);
+    message_maker(FirmwareVariant v = FirmwareVariant::INAV) : fw_variant(v) {};
 
-    void set_default_variant(variant v) {
-        v_ = v;
+    void set_default_variant(FirmwareVariant v) {
+        fw_variant = v;
     }
     
     
-    std::shared_ptr<Message> operator() (ID id)
-    {
-        return message_maker::operator()(id,v_);
-    }
-
-    static std::shared_ptr<Message> operator() (ID id, variant v)
+    std::shared_ptr<Message> operator() (ID& id, FirmwareVariant& v)
     {
         std::shared_ptr<Message> msg_ptr;
         switch(id) {
@@ -37,7 +32,6 @@ public:
         case ID::MSP_BUILD_INFO:
             msg_ptr.reset(new msg::BuildInfo(v));
             break;
-        
         
         
         case ID::MSP_INAV_PID:
@@ -435,10 +429,10 @@ public:
             msg_ptr.reset(new msg::SetRcTuning(v));
             break;
         case ID::MSP_ACC_CALIBRATION:
-            msg_ptr.reset(new msg::SetAccCalibration(v));
+            msg_ptr.reset(new msg::AccCalibration(v));
             break;
         case ID::MSP_MAG_CALIBRATION:
-            msg_ptr.reset(new msg::SetMagCalibration(v));
+            msg_ptr.reset(new msg::MagCalibration(v));
             break;
         
         case ID::MSP_SET_MISC:
@@ -458,7 +452,7 @@ public:
             msg_ptr.reset(new msg::SetHeading(v));
             break;
         case ID::MSP_SET_SERVO_CONF:
-            msg_ptr.reset(new msg::SetServoConfig(v));
+            msg_ptr.reset(new msg::SetServoConf(v));
             break;
         case ID::MSP_SET_MOTOR:
             msg_ptr.reset(new msg::SetMotor(v));
@@ -468,13 +462,13 @@ public:
             break;
         
         case ID::MSP_SET_MOTOR_3D_CONF:
-            msg_ptr.reset(new msg::SetMotor3dConfig(v));
+            msg_ptr.reset(new msg::SetMotor3dConf(v));
             break;
         case ID::MSP_SET_RC_DEADBAND:
             msg_ptr.reset(new msg::SetRcDeadband(v));
             break;
         case ID::MSP_SET_RESET_CURR_PID:
-            msg_ptr.reset(new msg::SetResetCurrPID(v));
+            msg_ptr.reset(new msg::SetResetCurrPid(v));
             break;
         case ID::MSP_SET_SENSOR_ALIGNMENT:
             msg_ptr.reset(new msg::SetSensorAlignment(v));
@@ -510,7 +504,7 @@ public:
             msg_ptr.reset(new msg::PassthroughSerial(v));
             break;
         case ID::MSP_SET_4WAY_IF:
-            msg_ptr.reset(new msg::Set4wayIF(v));
+            msg_ptr.reset(new msg::Set4WayIF(v));
             break;
         case ID::MSP_SET_RTC:
             msg_ptr.reset(new msg::SetRtc(v));
@@ -522,7 +516,7 @@ public:
         
         
         case ID::MSP_EEPROM_WRITE:
-            msg_ptr.reset(new msg::EepronWrite(v));
+            msg_ptr.reset(new msg::WriteEEPROM(v));
             break;
         case ID::MSP_RESERVE_1:
             msg_ptr.reset(new msg::Reserve1(v));
@@ -545,7 +539,7 @@ public:
             msg_ptr.reset(new msg::CommonTz(v));
             break;
         case ID::MSP2_COMMON_SET_TZ:
-            msg_ptr.reset(new msg::CommmonSetTz(v));
+            msg_ptr.reset(new msg::CommonSetTz(v));
             break;
         case ID::MSP2_COMMON_SETTING:
             msg_ptr.reset(new msg::CommonSetting(v));
@@ -599,16 +593,22 @@ public:
         
         
         default:
-            break
+            break;
         
         }
         
         return msg_ptr;
     }
+    
+    std::shared_ptr<Message> operator() (ID id)
+    {
+        return this->operator()(id,fw_variant);
+    }
+
 
 
 private:
-    variant v_;
+    FirmwareVariant fw_variant;
 };
 
 }

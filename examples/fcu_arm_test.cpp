@@ -61,8 +61,8 @@ start:
         }
     }
 */
-
-    msp::msg::RxConfig rxcfg;
+    msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
+    msp::msg::RxConfig rxcfg(fw_variant);
     fcu.request(rxcfg);
     std::cout << "rx config: " << (uint32_t)rxcfg.serialrx_provider() << std::endl;
     

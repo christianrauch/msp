@@ -3,6 +3,8 @@
 #include <iostream>
 
 struct MyIdent : public msp::Message {
+    MyIdent(msp::FirmwareVariant v) : Message(v) {}
+    
     msp::ID id() const { return msp::ID::MSP_IDENT; }
 
     msp::ByteVector raw_data;
