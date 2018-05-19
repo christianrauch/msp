@@ -293,7 +293,7 @@ public:
             msg_ptr.reset(new msg::Status(v));
             break;
         case ID::MSP_RAW_IMU:
-            msg_ptr.reset(new msg::ImuRaw(v));
+            msg_ptr.reset(new msg::RawImu(v));
             break;
         case ID::MSP_SERVO:
             msg_ptr.reset(new msg::Servo(v));

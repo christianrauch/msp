@@ -41,7 +41,8 @@ void FlightController::initialise() {
         if(client.request(api_version)) {
             msp_version = api_version.major();
             client.setVersion(msp_version);
-            std::cout<<"Cleanflight API "<<(uint32_t)api_version.major()<<"."<<(uint32_t)api_version.minor()<<" protocol: "<<(uint32_t)api_version.protocol()<<" ready"<<std::endl;
+            std::cout<<"Cleanflight API "<<(uint32_t)api_version.major()<<"."<<(uint32_t)api_version.minor()
+                     <<" protocol: "<<(uint32_t)api_version.protocol()<< std::endl;
         }
         
     }
@@ -83,6 +84,7 @@ void FlightController::initialise() {
     
 
     // get sensors
+    std::cout << "sensors ";
     msp::msg::Status status(fw_variant);
     client.request(status);
     sensors = status.sensors;
@@ -98,11 +100,13 @@ void FlightController::initialise() {
         }
     }
     else {
+        std::cout << "rxmap ";
         // get channel mapping from MSP_RX_MAP
         msp::msg::RxMap rx_map(fw_variant);
         client.request(rx_map);
         channel_map = rx_map.map;
     }
+    std::cout << "init finished " << std::endl;
 }
 
 bool FlightController::isFirmware(const msp::FirmwareVariant firmware_type) {

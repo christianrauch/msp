@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <msp_msg.hpp>
-#include <msg_print.hpp>
+//#include <msg_print.hpp>
 
 struct SubCallbacks {
     void onIdent(msp::msg::Ident& ident) {
@@ -13,8 +13,9 @@ struct SubCallbacks {
         std::cout<<status;
     }
 
-    void onImu(msp::msg::ImuRaw& imu) {
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    void onImu(msp::msg::RawImu& imu) {
+        std::cout << imu;
+        //std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     }
 
     void onServo(msp::msg::Servo& servo) {
@@ -111,8 +112,9 @@ int main(int argc, char *argv[]) {
 //    client.subscribe<msp::msg::ImuRaw>(imu_cb1, 0.1);
 
     // using lambda callback with stored function object
-    const std::function<void(msp::msg::ImuRaw&)> imu_cb2 = [](msp::msg::ImuRaw& imu){
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    const std::function<void(msp::msg::RawImu&)> imu_cb2 = [](msp::msg::RawImu& imu){
+        std::cout << imu;
+        //std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     };
     client.subscribe(imu_cb2, 0.1);
 

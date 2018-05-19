@@ -179,6 +179,11 @@ public:
      * @return false on failure
      */
     bool sendData(const uint32_t id, const ByteVector &data = ByteVector(0));
+    bool sendData(const uint32_t id, const ByteVector_uptr data = ByteVector_uptr())
+    {
+        if (!data) return false;
+        return sendData(id,*data);
+    }
 
     /**
      * @brief sendRequest request payload from FC
@@ -243,6 +248,11 @@ public:
      * @return false on failure
      */
     bool respond_raw(const uint8_t id, const ByteVector &data, const bool wait_ack=true);
+    bool respond_raw(const uint8_t id, const ByteVector_uptr &data, const bool wait_ack=true)
+    {
+        if (!data) return false;
+        return respond_raw(id, *data,wait_ack);
+    }
 
     /**
      * @brief subscribe register callback function that is called when type is received

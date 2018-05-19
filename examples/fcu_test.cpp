@@ -1,6 +1,6 @@
 #include <FlightController.hpp>
 #include <msp_msg.hpp>
-#include <msg_print.hpp>
+//#include <msg_print.hpp>
 
 #include <iostream>
 
@@ -20,8 +20,8 @@ public:
         std::cout<<status;
     }
 
-    void onImu(msp::msg::ImuRaw& imu_raw) {
-        std::cout<<msp::msg::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
+    void onImu(msp::msg::RawImu& imu_raw) {
+        std::cout<< imu_raw;   //msp::msg::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
     }
 
     void onServo(msp::msg::Servo& servo) {
@@ -110,6 +110,7 @@ int main(int argc, char *argv[]) {
     fcu.initialise();
 
     App app("MultiWii", 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    std::cout << "made app" << std::endl;
     // define subscriptions with specific period
     fcu.subscribe(&App::onIdent, &app, 10);
     fcu.subscribe(&App::onStatus, &app, 1);
@@ -118,10 +119,12 @@ int main(int argc, char *argv[]) {
     //fcu.subscribe(&App::onImu, &app, 0.1);
 
     // using lambda callback
-    fcu.subscribe<msp::msg::ImuRaw>([](const msp::msg::ImuRaw& imu){
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    /*
+    fcu.subscribe<msp::msg::RawImu>([](const msp::msg::RawImu& imu){
+        std::cout<<imu;
+        //std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     }, 0.1);
-
+    */
     fcu.subscribe(&App::onServo, &app, 0.1);
     fcu.subscribe(&App::onMotor, &app, 0.1);
     fcu.subscribe(&App::onRc, &app, 0.1);

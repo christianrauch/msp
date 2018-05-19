@@ -22,9 +22,9 @@ std::ostream& operator<<(std::ostream& s, const msp::msg::Ident& ident);
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::Status& status);
 
-std::ostream& operator<<(std::ostream& s, const msp::msg::ImuRaw& imu);
+std::ostream& operator<<(std::ostream& s, const msp::msg::RawImu& imu);
 
-std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& imu);
+std::ostream& operator<<(std::ostream& s, const msp::msg::ScaledImu& imu);
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::Servo& servo);
 

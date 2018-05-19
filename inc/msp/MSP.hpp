@@ -151,6 +151,10 @@ public:
      * @return false on failure
      */
     bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
+    bool sendData(const uint8_t id, const ByteVector_ptr data = ByteVector_ptr())
+    {
+        return sendData(id,*data.get());
+    }
 
     /**
      * @brief sendData send raw data and ID to flight controller, only accepts registered message ID
@@ -161,6 +165,10 @@ public:
      */
     bool sendData(const msp::ID id, const ByteVector &data = ByteVector(0)) {
         return sendData(uint8_t(id), data);
+    }
+    bool sendData(const msp::ID id, const ByteVector_ptr data = ByteVector_ptr())
+    {
+        return sendData(id,*data.get());
     }
 
     /**

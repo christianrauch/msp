@@ -11,6 +11,7 @@
 #include <utility>
 #include <iostream>
 #include <limits>
+#include <type_traits>
 
 //because the gnu c std lib is stupid... 
 #undef major
@@ -21,15 +22,21 @@ namespace msp {
 template<class T>
 class value {
 public:
-    value& operator= (T rhs) {
+    value<T>& operator= (value<T>& rhs) {
+        data.first = rhs();
+        data.second = rhs.set();
+        return *this;
+    }
+    /*
+    value<T>& operator= (T& rhs) {
         data.first = rhs;
         data.second = true;
         return *this;
     }
-    
-    value& operator= (value rhs) {
-        data.first = rhs.first;
-        data.second = rhs.second;
+    */
+    value<T>& operator= (T rhs) {
+        data.first = rhs;
+        data.second = true;
         return *this;
     }
     
@@ -52,6 +59,7 @@ private:
     std::pair<T,bool> data;
 };
 
+struct Packable;
 /**
  * @brief ByteVector vector of bytes
  */
@@ -70,160 +78,113 @@ public:
     ByteVector(T1 arg1, T2 arg2) : std::vector<uint8_t>(arg1,arg2), offset(0)
     {}
     
-    //pack raw types types
-    void pack(const bool val) {
-        this->push_back((uint8_t)val);
+    
+    
+    template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr> 
+    bool pack(const T& val) {
+        //little endian packing
+        for (size_t i(0); i < sizeof(val) ; ++i) {
+            this->push_back( val>>(i*8) & 0xFF);
+        }
+        return true;
     }
     
-    void pack(const uint8_t val) {
-        this->push_back(val);
-    }
-    
-    void pack(const uint16_t val) {
-        this->push_back(val>>0 && 0xFF);
-        this->push_back(val>>8 && 0xFF);
-    }
-    
-    void pack(const uint32_t val) {
-        this->push_back(val>>0 && 0xFF);
-        this->push_back(val>>8 && 0xFF);
-        this->push_back(val>>16 && 0xFF);
-        this->push_back(val>>24 && 0xFF);
-    }
-    void pack(const int8_t val) {
-        this->push_back(val);
-    }
-    
-    void pack(const int16_t val) {
-        this->push_back(val>>0 && 0xFF);
-        this->push_back(val>>8 && 0xFF);
-    }
-    
-    void pack(const int32_t val) {
-        this->push_back(val>>0 && 0xFF);
-        this->push_back(val>>8 && 0xFF);
-        this->push_back(val>>16 && 0xFF);
-        this->push_back(val>>24 && 0xFF);
-    }
-    
-    void pack(const float val) {
-        const uint32_t v = *reinterpret_cast<const uint32_t*>(&val);
-        this->push_back(v>>24 && 0xFF);
-        this->push_back(v>>16 && 0xFF);
-        this->push_back(v>>8 && 0xFF);
-        this->push_back(v>>0 && 0xFF);
+    template<typename T, typename std::enable_if<std::is_floating_point<T>::value, T>::type* = nullptr>
+    bool pack(const T& val) {
+        ByteVector b(sizeof(val));
+        reinterpret_cast<T&>(b.front()) = val;
+        return this->pack(b);
     }
     
     //pack scaled floating point types into int types
     //offset is the shift applied to the value before scaling
     //scale is the coefficent by which the value is multipied before encoding
-    template<class T>
-    void pack(const double val, const double scale = 1.d, const double offset = 0.d) {
-        pack(static_cast<T>((val+offset)*scale));
-    }
-    
-    template<class T>
-    void pack(const float val, const float scale = 1.f, const float offset = 0.f) {
-        pack<T>((const double)val,(const double)scale,(const double)offset);
+    template< typename encoding_T, typename T1, typename T2, 
+                typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
+                typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
+    bool pack(const T1 val, const T2 scale, const T2 offset = 0) {
+        auto tmp = (val+offset)*scale;
+        if (tmp <= std::numeric_limits<encoding_T>::min()) return pack(std::numeric_limits<encoding_T>::min());
+        else if (tmp >= std::numeric_limits<encoding_T>::max()) return pack(std::numeric_limits<encoding_T>::max());
+        return pack(static_cast<encoding_T>(tmp));
     }
     
     
     //pack string data
-    void pack(const std::string& val, size_t max_len = std::numeric_limits<size_t>::max()) {
+    bool pack(const std::string& val, size_t max_len = std::numeric_limits<size_t>::max()) {
         size_t count = 0;
         for (auto c : val) {
             this->push_back(c);
             if (++count == max_len) break;
         }
+        return true;
     }
     
     //pack ByteVector data
-    void pack(const ByteVector& data, size_t max_len = std::numeric_limits<size_t>::max()) {
+    bool pack(const ByteVector& data, size_t max_len = std::numeric_limits<size_t>::max()) {
         size_t count = 0;
         for (auto c : data) {
             this->push_back(c);
             if (++count == max_len) break;
         }
+        return true;
     }
     
-    template<class T>
-    void pack(const value<float> val, const float scale = 1.f, const float offset = 0.f) {
-        pack<T>(val(),scale,offset);
+    template<typename T, typename std::enable_if<std::is_base_of<Packable,T>::value, T>::type* = nullptr>
+    bool pack(const T& val) {
+        return val.pack_into(*this);
     }
     
-    template<class T>
-    void pack(const value<double> val, const double scale = 1.d, const double offset = 0.d) {
-        pack<T>(val(),scale,offset);
+    
+    template< typename encoding_T, typename T1, typename T2, 
+                typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
+                typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
+    bool pack(const value<T1> val, const T2 scale, const T2 offset = 0) {
+        if (!val.set()) return false;
+        return pack<encoding_T>(val(),scale,offset);
     }
     
-    //pack string value
-    void pack(const value<std::string>& val, size_t max_len = std::numeric_limits<size_t>::max()) {
-        pack(val(),max_len);
+    //pack array type value
+    bool pack(const value<ByteVector>& val, size_t max_len = std::numeric_limits<size_t>::max()) {
+        if (!val.set()) return false;
+        return pack(val(),max_len);
     }
     
-    //pack ByteVector value
-    void pack(const value<ByteVector>& val, size_t max_len = std::numeric_limits<size_t>::max()) {
-        pack(val(),max_len);
-    }
-
-    template<class T>
-    void pack(const T& val) {
-        val.pack_into(*this);
+    bool pack(const value<std::string>& val, size_t max_len = std::numeric_limits<size_t>::max()) {
+        if (!val.set()) return false;
+        return pack(val(),max_len);
     }
     
     //pack value types other than string and ByteVector
     template<class T>
-    void pack(const value<T>& val) {
-        pack(val());
+    bool pack(const value<T>& val) {
+        if (!val.set()) return false;
+        return pack(val());
     }
 
 
 
 
     //unpack integer types
-    bool unpack(bool& val) {
-        if (unpacking_remaining() < 1) return false;
-        val = (*this)[offset++];
+    template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr> 
+    bool unpack(T& val) {
+        if (unpacking_remaining() < sizeof(val)) return false;
+        val = 0;
+        for (size_t i(0); i < sizeof(val); ++i) {
+            val |= (*this)[offset++]<<(8*i);
+        }
         return true;
     }
-    
-    bool unpack(uint8_t& val) {
-        if (unpacking_remaining() < 1) return false;
-        val = (*this)[offset++];
-        return true;
-    }
-    
-    bool unpack(uint16_t& val) {
-        if (unpacking_remaining() < 2) return false;
-        val = ((*this)[offset]<<0) | ((*this)[offset +1]<<8);
-        offset += 2;
-        return true;
-    }
-    
-    bool unpack(uint32_t& val) {
-        if (unpacking_remaining() < 4) return false;
-        val = ((*this)[offset]<<0) | ((*this)[offset+1]<<8) | ((*this)[offset+2]<<16) | ((*this)[offset+3]<<24);
-        offset += 4;
-        return true;
-    }
-    
-    bool unpack(int8_t& val)  {
-        if (unpacking_remaining() < 1) return false;
-        val = (*this)[offset++];
-        return true;
-    }
-    
-    bool unpack(int16_t& val) {
-        if (unpacking_remaining() < 2) return false;
-        val = ((*this)[offset]<<0) | ((*this)[offset +1]<<8);
-        offset += 2;
-        return true;
-    }
-    
-    bool unpack(int32_t& val) {
-        if (unpacking_remaining() < 4) return false;
-        val = reinterpret_cast<int32_t>(((*this)[offset]<<0) | ((*this)[offset+1]<<8) | ((*this)[offset+2]<<16) | ((*this)[offset+3]<<24));
-        offset += 4;
+
+    template<typename T, typename std::enable_if<std::is_floating_point<T>::value, T>::type* = nullptr>
+    bool unpack(T& val) {
+        if (unpacking_remaining() < sizeof(val)) return false;
+        val = reinterpret_cast<T&>((*this)[offset]);
+        offset += sizeof(val);
+        
+        //int32_t bits = reinterpret_cast<int32_t>(((*this)[offset]<<24) | ((*this)[offset+1]<<16) | ((*this)[offset+2]<<8) | ((*this)[offset+3]<<0));
+        //val = reinterpret_cast<float&>(bits);
+        //offset += 4;
         return true;
     }
     
@@ -253,8 +214,10 @@ public:
     //unpack floating point types
     //scale is the scale that already been applied to the value before encoding
     //offset is the shift that was applied to the source value before encoding
-    template<typename encoding_T>
-    bool unpack(double& val, double scale = 1.d, double offset = 0.d) {
+    template< typename encoding_T, typename T1, typename T2, 
+                typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
+                typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
+    bool unpack(T1& val, T2 scale, T2 offset = 0) {
         bool rc = true;
         encoding_T tmp;
         rc &= unpack(tmp);
@@ -263,12 +226,7 @@ public:
         return rc;
     }
     
-    template<typename encoding_T>
-    bool unpack(float& val, float scale = 1.f, float offset = 0.f) {
-        return unpack<encoding_T>((double&)val,(double)scale,(double)offset);
-    }
-    
-    template<class T>
+    template<typename T, typename std::enable_if<std::is_base_of<Packable,T>::value, T>::type* = nullptr>
     bool unpack(T obj) {
         return obj.unpack_from(*this);
     }
@@ -280,23 +238,20 @@ public:
     }
     
     //unpack string value
+    
     bool unpack(value<std::string>& val, size_t count = std::numeric_limits<size_t>::max()) {
         return val.set() = unpack(val(),count); 
     }
     
-    //unpack ByteVector value
     bool unpack(value<ByteVector>& val, size_t count = std::numeric_limits<size_t>::max()) {
         return val.set() = unpack(val(),count); 
     }
     
     //unpack floating point value types
-    template<typename encoding_T>
-    bool unpack(value<float>& val, float scale = 1.f, float offset = 0.f) {
-        return val.set() = unpack<encoding_T>(val(),scale,offset);
-    }
-    
-    template<typename encoding_T>
-    bool unpack(value<double>& val, double scale = 1.d, double offset = 0.d) {
+    template< typename encoding_T, typename T1, typename T2, 
+                typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
+                typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
+    bool unpack(value<T1>& val, T2 scale = 1, T2 offset = 0) {
         return val.set() = unpack<encoding_T>(val(),scale,offset);
     }
     
@@ -326,6 +281,13 @@ protected:
 
 };
 
+struct Packable {
+    virtual bool pack_into(ByteVector &data) const = 0;
+    virtual bool unpack_from(ByteVector &data) = 0;
+};
+
+typedef std::shared_ptr<ByteVector> ByteVector_ptr;
+typedef std::unique_ptr<ByteVector> ByteVector_uptr;
 /////////////////////////////////////////////////////////////////////
 /// Generic message types
 
@@ -346,9 +308,14 @@ public:
         return false;
     };
     
-    virtual ByteVector encode() const 
+    virtual ByteVector_uptr encode() const
     {
-        return ByteVector();
+        return ByteVector_uptr();
+    };
+    
+    virtual std::ostream& print(std::ostream& s) const
+    {
+        return s;
     };
     
 protected:
@@ -358,13 +325,18 @@ protected:
 
 } // namespace msp
 
+
+std::ostream& operator<<(std::ostream& s, const msp::Message& val) {
+    return val.print(s);
+};
+
+
 template<class T>
-std::ostream& operator<<(std::ostream& s, msp::value<T> val) {
+std::ostream& operator<<(std::ostream& s, const msp::value<T>& val) {
     if ( val.set() )
         s << val();
     else
         s << "<unset>";
-    
     return s;
 };
 

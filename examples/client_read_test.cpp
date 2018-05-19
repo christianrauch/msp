@@ -1,6 +1,6 @@
 #include <Client.hpp>
 #include <msp_msg.hpp>
-#include <msg_print.hpp>
+//#include <msg_print.hpp>
 
 #include <iostream>
 
@@ -27,9 +27,10 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<< size_t(status.id())<<std::endl;
 
-    msp::msg::ImuRaw imu_raw(fw_variant);
+    msp::msg::RawImu imu_raw(fw_variant);
     if(client.request(imu_raw)==1) {
-        std::cout<<msp::msg::ImuSI(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+        std::cout << imu_raw;
+        //std::cout<<msp::msg::ScaledImu(imu_raw, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     }
     else
         std::cerr<<"unsupported: "<< size_t(imu_raw.id())<<std::endl;
