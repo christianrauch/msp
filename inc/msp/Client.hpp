@@ -167,12 +167,6 @@ public:
     void stop();
 
     /**
-     * @brief read blocking read a single byte from either the buffer or the serial device
-     * @return byte from buffer or device
-     */
-    uint8_t read();
-
-    /**
      * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
      * @param id message ID
      * @param data raw data
@@ -334,9 +328,8 @@ private:
     std::mutex mutex_request;
     std::mutex mutex_callbacks;
     std::mutex mutex_send;
-    std::mutex mutex_buffer;
     // message for request method
-    std::unique_ptr<ReceivedMessage> request_received;
+    ReceivedMessage request_received;
     // subscriptions
     std::map<msp::ID, SubscriptionBase*> subscriptions;
     std::map<msp::ID, msp::Request*> subscribed_requests;
