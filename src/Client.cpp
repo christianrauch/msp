@@ -93,23 +93,21 @@ uint8_t Client::read() {
 
 bool Client::sendData(const uint8_t id, const ByteVector &data) {
     std::lock_guard<std::mutex> lock(mutex_send);
-    ByteVector msg;
-    msg.push_back('$');                                 // preamble1
-    msg.push_back('M');                                 // preamble2
-    msg.push_back('<');                                 // direction
-    msg.push_back(uint8_t(data.size()));                // data size
-    msg.push_back(id);                                  // message_id
-    msg.insert(msg.end(), data.begin(), data.end());    // data
-    msg.push_back( crc(id, data) );                     // crc
 
-    asio::error_code ec;
-    const std::size_t bytes_written = asio::write(pimpl->port, asio::buffer(msg.data(), msg.size()), ec);
-    if (ec == asio::error::operation_aborted) {
-        //operation_aborted error probably means the client is being closed
-        return false;
+    try {
+        asio::write(pimpl->port, asio::buffer("$M<",3));              // header
+        asio::write(pimpl->port, asio::buffer({uint8_t(data.size())})); // data size
+        asio::write(pimpl->port, asio::buffer({uint8_t(id)}));          // message id
+        asio::write(pimpl->port, asio::buffer(data));                   // data
+        asio::write(pimpl->port, asio::buffer({crc(id, data)}));        // crc
+    } catch (const asio::system_error &ec) {
+        if (ec.code() == asio::error::operation_aborted) {
+            //operation_aborted error probably means the client is being closed
+            return false;
+        }
     }
 
-    return (bytes_written==msg.size());
+    return true;
 }
 
 int Client::request(msp::Request &request, const double timeout) {
