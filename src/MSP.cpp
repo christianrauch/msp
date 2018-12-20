@@ -24,7 +24,7 @@ bool MSP::connect(const std::string &device, const size_t baudrate) {
         throw NoConnection(device, e.what());
     }
 
-    pimpl->port.set_option(asio::serial_port::baud_rate(baudrate));
+    pimpl->port.set_option(asio::serial_port::baud_rate(uint(baudrate)));
     pimpl->port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     pimpl->port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
     pimpl->port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
@@ -273,7 +273,10 @@ size_t MSP::read(std::vector<uint8_t> &data) {
 
 std::vector<uint8_t> MSP::read(std::size_t n_bytes) {
     std::vector<uint8_t> data(n_bytes);
-    const size_t nread = read(data);
+#if !defined(NDEBUG)
+    const size_t nread =
+#endif
+    read(data);
     assert(nread==n_bytes);
     return data;
 }
