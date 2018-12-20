@@ -150,13 +150,6 @@ public:
     void connect(const std::string &device, const size_t baudrate=115200);
 
     /**
-     * @brief waitForOneMessage block until one message has been received
-     */
-    void waitForOneMessage();
-
-    void waitForOneMessageBlock();
-
-    /**
      * @brief start starts the receiver thread that handles incomming messages
      */
     void start();
@@ -304,8 +297,6 @@ public:
         return subscriptions.at(id);
     }
 
-    void processOneMessage();
-
 private:
     /**
      * @brief crc compute checksum of data package
@@ -314,6 +305,15 @@ private:
      * @return checksum
      */
     uint8_t crc(const uint8_t id, const ByteVector &data);
+
+    /**
+     * @brief waitForOneMessage block until one message has been received
+     */
+    void waitForOneMessage();
+
+    void waitForOneMessageBlock();
+
+    void processOneMessage();
 
 private:
     // I/O
