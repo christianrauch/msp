@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     Callbacks cbs;
     fcu::FlightController fcu(device, baudrate);
-    fcu.initialise();
+    fcu.connect();
 
     // subscribe with costum type
     fcu.subscribe(&Callbacks::onIdent, &cbs, 1);

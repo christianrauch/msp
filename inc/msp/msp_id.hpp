@@ -1,6 +1,8 @@
 #ifndef MSP_ID_HPP
 #define MSP_ID_HPP
 
+#include <cstdint>
+
 namespace msp {
 
 enum class ID : uint16_t {
@@ -285,6 +287,69 @@ enum class ID : uint16_t {
     MSP2_INAV_SET_RATE_PROFILE      = 0x2008,
     MSP2_INAV_AIR_SPEED             = 0x2009
 };
+
+enum class ArmingFlags : uint32_t {
+    ARMED                                           = (1 << 2),
+    WAS_EVER_ARMED                                  = (1 << 3),
+
+    ARMING_DISABLED_FAILSAFE_SYSTEM                 = (1 << 7),
+
+    ARMING_DISABLED_NOT_LEVEL                       = (1 << 8),
+    ARMING_DISABLED_SENSORS_CALIBRATING             = (1 << 9),
+    ARMING_DISABLED_SYSTEM_OVERLOADED               = (1 << 10),
+    ARMING_DISABLED_NAVIGATION_UNSAFE               = (1 << 11),
+    ARMING_DISABLED_COMPASS_NOT_CALIBRATED          = (1 << 12),
+    ARMING_DISABLED_ACCELEROMETER_NOT_CALIBRATED    = (1 << 13),
+    ARMING_DISABLED_ARM_SWITCH                      = (1 << 14),
+    ARMING_DISABLED_HARDWARE_FAILURE                = (1 << 15),
+    ARMING_DISABLED_BOXFAILSAFE                     = (1 << 16),
+    ARMING_DISABLED_BOXKILLSWITCH                   = (1 << 17),
+    ARMING_DISABLED_RC_LINK                         = (1 << 18),
+    ARMING_DISABLED_THROTTLE                        = (1 << 19),
+    ARMING_DISABLED_CLI                             = (1 << 20),
+    ARMING_DISABLED_CMS_MENU                        = (1 << 21),
+    ARMING_DISABLED_OSD_MENU                        = (1 << 22),
+    ARMING_DISABLED_ROLLPITCH_NOT_CENTERED	        = (1 << 23),
+    ARMING_DISABLED_SERVO_AUTOTRIM                  = (1 << 24),
+    ARMING_DISABLED_OOM                             = (1 << 25),
+    ARMING_DISABLED_INVALID_SETTING                 = (1 << 26),
+
+    ARMING_DISABLED_ALL_FLAGS                       = (ARMING_DISABLED_FAILSAFE_SYSTEM | ARMING_DISABLED_NOT_LEVEL | ARMING_DISABLED_SENSORS_CALIBRATING | ARMING_DISABLED_SYSTEM_OVERLOADED |
+                                                       ARMING_DISABLED_NAVIGATION_UNSAFE | ARMING_DISABLED_COMPASS_NOT_CALIBRATED | ARMING_DISABLED_ACCELEROMETER_NOT_CALIBRATED |
+                                                       ARMING_DISABLED_ARM_SWITCH | ARMING_DISABLED_HARDWARE_FAILURE | ARMING_DISABLED_BOXFAILSAFE | ARMING_DISABLED_BOXKILLSWITCH |
+                                                       ARMING_DISABLED_RC_LINK | ARMING_DISABLED_THROTTLE | ARMING_DISABLED_CLI | ARMING_DISABLED_CMS_MENU | ARMING_DISABLED_OSD_MENU |
+                                                       ARMING_DISABLED_ROLLPITCH_NOT_CENTERED | ARMING_DISABLED_SERVO_AUTOTRIM | ARMING_DISABLED_OOM | ARMING_DISABLED_INVALID_SETTING)
+} ;
+
+std::string armingFlagToString(uint32_t flag)
+{
+    std::string val;
+    if (flag & (1<<2)) val += "ARMED ";
+    if (flag & (1<<3)) val += "WAS_EVER_ARMED ";
+    if (flag & (1<<7)) val += "ARMING_DISABLED_FAILSAFE_SYSTEM ";
+    if (flag & (1<<8)) val += "ARMING_DISABLED_NOT_LEVEL ";
+    if (flag & (1<<9)) val += "ARMING_DISABLED_SENSORS_CALIBRATING ";
+    if (flag & (1<<10)) val += "ARMING_DISABLED_SYSTEM_OVERLOADED ";
+    if (flag & (1<<11)) val += "ARMING_DISABLED_NAVIGATION_UNSAFE ";
+    if (flag & (1<<12)) val += "ARMING_DISABLED_COMPASS_NOT_CALIBRATED ";
+    if (flag & (1<<13)) val += "ARMING_DISABLED_ACCELEROMETER_NOT_CALIBRATED ";
+    if (flag & (1<<14)) val += "ARMING_DISABLED_ARM_SWITCH ";
+    if (flag & (1<<15)) val += "ARMING_DISABLED_HARDWARE_FAILURE ";
+    if (flag & (1<<16)) val += "ARMING_DISABLED_BOXFAILSAFE ";
+    if (flag & (1<<17)) val += "ARMING_DISABLED_BOXKILLSWITCH ";
+    if (flag & (1<<18)) val += "ARMING_DISABLED_RC_LINK ";
+    if (flag & (1<<19)) val += "ARMING_DISABLED_THROTTLE ";
+    if (flag & (1<<20)) val += "ARMING_DISABLED_CLI ";
+    if (flag & (1<<21)) val += "ARMING_DISABLED_CMS_MENU ";
+    if (flag & (1<<22)) val += "ARMING_DISABLED_OSD_MENU ";
+    if (flag & (1<<23)) val += "ARMING_DISABLED_ROLLPITCH_NOT_CENTERED ";
+    if (flag & (1<<24)) val += "ARMING_DISABLED_SERVO_AUTOTRIM ";
+    if (flag & (1<<25)) val += "ARMING_DISABLED_OOM ";
+    if (flag & (1<<26)) val += "ARMING_DISABLED_INVALID_SETTING ";    
+    return val;
+}
+    
+
 
 } // namespace msp
 

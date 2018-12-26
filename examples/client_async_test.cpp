@@ -135,8 +135,8 @@ int main(int argc, char *argv[]) {
     client.subscribe(&SubCallbacks::onPidNames, &subs, 20);
     client.subscribe(&SubCallbacks::onBoxIds, &subs, 20);
     client.subscribe(&SubCallbacks::onServoConf, &subs, 20);
-    client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
-    client.subscribe(&SubCallbacks::onDebug, &subs, 1);
+    //client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
+    //client.subscribe(&SubCallbacks::onDebug, &subs, 1);
 
     // Ctrl+C to quit
     std::cin.get();

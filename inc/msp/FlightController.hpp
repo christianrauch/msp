@@ -3,34 +3,81 @@
 
 #include "Client.hpp"
 #include "msp_msg.hpp"
-#include "variants.hpp"
-#include "msp_msg_maker.hpp"
+#include "flightmode.hpp"
+#include "periodic_timer.hpp"
 
 namespace fcu {
 
+enum class ControlSource : uint8_t
+{
+    NONE,
+    SBUS,
+    MSP,
+    OTHER
+};
 
 class FlightController {
 public:
     FlightController(const std::string &device, const size_t baudrate=115200);
 
     ~FlightController();
-
-    void waitForConnection();
-
-    void initialise();
-
+    
+    bool connect(bool blocking = false, double timeout = 0.0);
+    bool disconnect(bool blocking = false, double timeout = 0.0);
+    void arm(bool blocking = false);
+    void disarm(bool blocking = false);
+    bool armSet();
+    
+    void setFlightMode(FlightMode mode);
+    FlightMode getFlightMode();
+    
+    void setControlSource(ControlSource source);
+    ControlSource getControlSource();
+    
+    void setRPYT(std::array<double,4>& rpyt);
+    
+    void startMspControl();
+    void stopMspControl();
+    void generateMSP();
+    
+    bool saveSettings();
+    bool reboot();
+    
+    
+    msp::FirmwareVariant getFwVariant();
+    
+    int getProtocol();
+    
+    std::string getBoardName();
+    
+    
     /**
-     * @brief isFirmware determine firmware type (e.g. to distiguish accepted messages)
-     * @param firmware_type type of firmware (enum FirmwareType)
-     * @return true if firmware is firmware_type
-     * @return false if firmware is not firmware_type
+     * @brief setRc set RC channels in order: roll, pitch, yaw, throttle by using channel mapping
+     * @param roll
+     * @param pitch
+     * @param yaw
+     * @param throttle
+     * @param aux1
+     * @param aux2
+     * @param aux3
+     * @param aux4
+     * @param auxs
+     * @return
      */
-    bool isFirmware(const msp::FirmwareVariant firmware_type);
-
-    bool isFirmwareMultiWii() { return isFirmware(msp::FirmwareVariant::MWII); }
-
-    bool isFirmwareCleanflight() { return isFirmware(msp::FirmwareVariant::CLFL); }
-
+    bool setRc(const uint16_t roll, const uint16_t pitch,
+               const uint16_t yaw, const uint16_t throttle,
+               const uint16_t aux1 = 1000, const uint16_t aux2 = 1000,
+               const uint16_t aux3 = 1000, const uint16_t aux4 = 1000,
+               const std::vector<uint16_t> auxs = std::vector<uint16_t>());
+    
+    /**
+     * @brief setRc set RC channels in raw order as it is interpreted by the FC
+     * @param channels list of channel values (1000-2000)
+     * @return
+     */
+    bool setRc(const std::vector<uint16_t> channels);
+    
+    
     /**
      * @brief subscribe register callback function that is called when type is received
      * @param callback pointer to callback function (class method)
@@ -39,8 +86,8 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T, typename C>
-    msp::client::SubscriptionBase* subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
-        return client.subscribe(callback, context, tp);
+    std::shared_ptr<msp::client::SubscriptionBase> subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
+        return client_.subscribe(callback, context, tp);
     }
 
     /**
@@ -50,8 +97,8 @@ public:
      * @return pointer to subscription that is added to internal list
      */
     template<typename T>
-    msp::client::SubscriptionBase* subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
-        return client.subscribe(callback, tp);
+    std::shared_ptr<msp::client::SubscriptionBase> subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
+        return client_.subscribe(callback, tp);
     }
 
     /**
@@ -61,7 +108,7 @@ public:
      * @return false if ID is not subscribed
      */
     bool hasSubscription(const msp::ID& id) {
-        return client.hasSubscription(id);
+        return client_.hasSubscription(id);
     }
 
     /**
@@ -69,40 +116,23 @@ public:
      * @param id message ID
      * @return pointer to subscription
      */
-    msp::client::SubscriptionBase* getSubscription(const msp::ID& id) {
-        return client.getSubscription(id);
+    std::shared_ptr<msp::client::SubscriptionBase> getSubscription(const msp::ID& id) {
+        return client_.getSubscription(id);
     }
-
-    /**
-     * @brief sendRequest send request with ID
-     * @param id message ID of request
-     * @return true on success
-     * @return false on failure
-     */
-    bool sendRequest(const uint8_t id) {
-        return client.sendRequest(id);
+    
+    bool sendMessage(msp::Message &request, const double timeout = 0) {
+        return client_.sendMessage(request, timeout);
     }
+    
+    
+    
 
-    bool request(msp::Message &request, const double timeout = 0) {
-        return client.request(request, timeout);
-    }
 
-    bool request_raw(const uint8_t id, msp::ByteVector &data, const double timeout = 0) {
-        return client.request_raw(id, data, timeout);
-    }
-
-    bool respond(const msp::Message &response, const bool wait_ack=true) {
-        return client.respond(response, wait_ack);
-    }
-
-    bool respond_raw(const uint8_t id, msp::ByteVector &data, const bool wait_ack=true) {
-        return client.respond_raw(id, data, wait_ack);
-    }
-
+    
     void initBoxes();
 
     std::map<std::string, size_t> &getBoxNames() {
-        return box_name_ids;
+        return box_name_ids_;
     }
 /*
     bool hasCapability(const msp::msg::Capability &cap) const {
@@ -122,7 +152,7 @@ public:
     }
 */
     bool hasSensor(const msp::msg::Sensor &sensor) const {
-        return sensors.count(sensor);
+        return sensors_.count(sensor);
     }
 
     bool hasAccelerometer() const {
@@ -151,52 +181,11 @@ public:
 
     bool isStatusFailsafe() { return isStatusActive("FAILSAFE"); }
 
-    /**
-     * @brief setRc set RC channels in order: roll, pitch, yaw, throttle by using channel mapping
-     * @param roll
-     * @param pitch
-     * @param yaw
-     * @param throttle
-     * @param aux1
-     * @param aux2
-     * @param aux3
-     * @param aux4
-     * @param auxs
-     * @return
-     */
-    bool setRc(const uint16_t roll, const uint16_t pitch,
-               const uint16_t yaw, const uint16_t throttle,
-               const uint16_t aux1 = 1000, const uint16_t aux2 = 1000,
-               const uint16_t aux3 = 1000, const uint16_t aux4 = 1000,
-               const std::vector<uint16_t> auxs = std::vector<uint16_t>());
+    
 
-    /**
-     * @brief setRc set RC channels in raw order as it is interpreted by the FC
-     * @param channels list of channel values (1000-2000)
-     * @return
-     */
-    bool setRc(const std::vector<uint16_t> channels);
 
     bool setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &motor_values);
 
-    /**
-     * @brief arm arm or disarm FC
-     * @param arm true: will arm FC, false: will disarm FC
-     * @return true on success
-     */
-    bool arm(const bool arm);
-
-    /**
-     * @brief arm_block attempt to arm and wait for status feedback, e.g. this method will block until the FC is able to aim
-     * @return
-     */
-    bool arm_block();
-
-    /**
-     * @brief disarm_block attempt to disarm and wait for status feedback
-     * @return
-     */
-    bool disarm_block();
 
     /**
      * @brief updateFeatures enable and disable features on the FC
@@ -210,39 +199,38 @@ public:
     int updateFeatures(const std::set<std::string> &add = std::set<std::string>(),
                        const std::set<std::string> &remove = std::set<std::string>());
 
-    /**
-     * @brief enableRxMSP enable the "RX_MSP" feature
-     * The features "RX_MSP", "RX_PARALLEL_PWM", "RX_PPM" and "RX_SERIAL" are
-     * mutually exclusive. Hence one of the features "RX_PARALLEL_PWM", "RX_PPM"
-     * or "RX_SERIAL" will be disabled if active.
-     * @return true on success
-     */
-    bool enableRxMSP() {
-        return updateFeatures(
-            {"RX_MSP"}, // add
-            {"RX_PARALLEL_PWM", "RX_PPM", "RX_SERIAL"} // remove
-        );
-    }
 
-    bool reboot();
-
-    bool writeEEPROM();
+    //bool writeEEPROM();
 
 private:
 
-    static const uint8_t MAX_MAPPABLE_RX_INPUTS = 8;
-
-    msp::client::Client client;
-
-    std::map<std::string, size_t> box_name_ids;
-
-    std::set<msp::msg::Sensor> sensors;
-
-    msp::FirmwareVariant fw_variant;
-    int msp_version;
+    msp::client::Client client_;
     
+    //set by user
+    std::string device_;
+    int baudrate_;
+    
+    //configuration params
+    std::string board_name_;
+    msp::FirmwareVariant fw_variant_;
+    int msp_version_;
+    
+    std::map<std::string, size_t> box_name_ids_;
+    std::set<msp::msg::Sensor> sensors_;
+    static const uint8_t MAX_MAPPABLE_RX_INPUTS = msp::msg::MAX_MAPPABLE_RX_INPUTS;
+    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> channel_map_;
+    
+    
+    //auto updates
+    std::mutex msp_updates_mutex;
+    std::array<double,4> rpyt_;
+    bool connected_;
+    bool armed_;
+    FlightMode flight_mode_;
+    ControlSource control_source_;
+    
+    msp::PeriodicTimer msp_timer_;
 
-    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> channel_map;
 };
 
 } // namespace msp

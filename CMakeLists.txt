@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(msp)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -36,7 +36,7 @@ include_directories(${MSP_INCLUDE_DIR})
 #add_library(msp_msg_print ${MSP_SOURCE_DIR}/msg_print.cpp)
 
 # client library
-add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp)
+add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/periodic_timer.cpp)
 target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
 
 # high-level API
@@ -97,7 +97,7 @@ install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN
 
 SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
 SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/" )
-SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lmspclient -lmsp_msg_print" )
+SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp -lmsp_fcu -lmspclient" )
 SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
 
 CONFIGURE_FILE(

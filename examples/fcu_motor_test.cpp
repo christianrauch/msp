@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     fcu::FlightController fcu(device, baudrate);
-    fcu.initialise();
+    fcu.connect();
 
     // spin motors 1 to 4
     fcu.setMotors({1100,1100,1100,1100,0,0,0,0});

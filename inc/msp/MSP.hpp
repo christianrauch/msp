@@ -1,7 +1,8 @@
 #ifndef MSP_HPP
 #define MSP_HPP
 
-#include "types.hpp"
+#include "message.hpp"
+#include "byte_vector.hpp"
 
 #include <stdexcept>
 #include <chrono>
@@ -151,7 +152,7 @@ public:
      * @return false on failure
      */
     bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
-    bool sendData(const uint8_t id, const ByteVector_ptr data = ByteVector_ptr())
+    bool sendData(const uint8_t id, const ByteVector_ptr data)
     {
         return sendData(id,*data.get());
     }
@@ -166,7 +167,11 @@ public:
     bool sendData(const msp::ID id, const ByteVector &data = ByteVector(0)) {
         return sendData(uint8_t(id), data);
     }
-    bool sendData(const msp::ID id, const ByteVector_ptr data = ByteVector_ptr())
+    bool sendData(const msp::ID id, const ByteVector_ptr& data)
+    {
+        return sendData(id,*data.get());
+    }
+    bool sendData(const msp::ID id, const ByteVector_uptr& data)
     {
         return sendData(id,*data.get());
     }

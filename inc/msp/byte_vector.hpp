@@ -1,63 +1,16 @@
-#ifndef TYPES_HPP
-#define TYPES_HPP
+#ifndef BYTE_VECTOR_HPP
+#define BYTE_VECTOR_HPP
 
-#include "variants.hpp"
-#include "msp_id.hpp"
+#include "value.hpp"
 
 #include <vector>
-#include <string>
-#include <stdint.h>
-#include <memory>
-#include <utility>
-#include <iostream>
 #include <limits>
 #include <type_traits>
-
-//because the gnu c std lib is stupid... 
-#undef major
-#undef minor
+#include <memory>
+#include <cstdint>
 
 namespace msp {
 
-template<class T>
-class value {
-public:
-    value<T>& operator= (value<T>& rhs) {
-        data.first = rhs();
-        data.second = rhs.set();
-        return *this;
-    }
-    /*
-    value<T>& operator= (T& rhs) {
-        data.first = rhs;
-        data.second = true;
-        return *this;
-    }
-    */
-    value<T>& operator= (T rhs) {
-        data.first = rhs;
-        data.second = true;
-        return *this;
-    }
-    
-    T& operator() () {
-        return data.first;
-    }
-    
-    T operator() () const {
-        return data.first;
-    }
-    
-    bool set() const {
-        return data.second;
-    }
-    
-    bool& set() {
-        return data.second;
-    }
-private:
-    std::pair<T,bool> data;
-};
 
 struct Packable;
 /**
@@ -117,6 +70,8 @@ public:
             this->push_back(c);
             if (++count == max_len) break;
         }
+        //TODO validate that this null termination is the right thing to do in all cases
+        this->push_back(0);
         return true;
     }
     
@@ -281,6 +236,8 @@ protected:
 
 };
 
+
+
 struct Packable {
     virtual bool pack_into(ByteVector &data) const = 0;
     virtual bool unpack_from(ByteVector &data) = 0;
@@ -291,55 +248,16 @@ typedef std::unique_ptr<ByteVector> ByteVector_uptr;
 /////////////////////////////////////////////////////////////////////
 /// Generic message types
 
-class Message {
-public:
-    virtual ID id() const = 0;
-    
-    Message(FirmwareVariant v) : fw_variant(v) { };
-    virtual ~Message() { };
-    
-    void set_fw_variant(FirmwareVariant v) 
-    {
-        fw_variant = v;
-    };
-    
-    virtual bool decode(ByteVector &data) 
-    {
-        return false;
-    };
-    
-    virtual ByteVector_uptr encode() const
-    {
-        return ByteVector_uptr();
-    };
-    
-    virtual std::ostream& print(std::ostream& s) const
-    {
-        return s;
-    };
-    
-protected:
-    FirmwareVariant fw_variant;
-};
+}
 
-
-} // namespace msp
-
-
-std::ostream& operator<<(std::ostream& s, const msp::Message& val) {
-    return val.print(s);
-};
-
-
-template<class T>
-std::ostream& operator<<(std::ostream& s, const msp::value<T>& val) {
-    if ( val.set() )
-        s << val();
-    else
-        s << "<unset>";
+std::ostream& operator<<(std::ostream& s, const msp::ByteVector& val) {
+    s << std::hex;
+    for (const auto& v : val) {
+        s << uint32_t(v) << " ";
+    }
+    s << std::dec << std::endl;
     return s;
 };
 
 
-
-#endif // TYPES_HPP
+#endif

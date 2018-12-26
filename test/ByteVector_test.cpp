@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "byte_vector.hpp"
 #include "gtest/gtest.h"
 #include <limits>
 
@@ -22,9 +22,9 @@ TYPED_TEST_CASE(ByteVectorScaledTest, scaleOutputTypes);
 // Tests that the Foo::Bar() method does Abc.
 TEST(ByteVectorBasicTest, Initialzation) {
     ByteVector b;
-    EXPECT_EQ(0, b.size());
-    EXPECT_EQ(0, b.unpacking_offset());
-    EXPECT_EQ(0, b.unpacking_remaining());
+    EXPECT_EQ(std::size_t(0), b.size());
+    EXPECT_EQ(std::size_t(0), b.unpacking_offset());
+    EXPECT_EQ(std::size_t(0), b.unpacking_remaining());
 }
 
 TYPED_TEST(ByteVectorBasicTest, Pack1zero) {
@@ -33,7 +33,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1zero) {
     EXPECT_TRUE(b.pack(ref));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack(ref));
-    EXPECT_EQ(0, ref);
+    EXPECT_EQ(TypeParam(0), ref);
 }
 
 TYPED_TEST(ByteVectorBasicTest, Pack1one) {
@@ -42,7 +42,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1one) {
     EXPECT_TRUE(b.pack(ref));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack(ref));
-    EXPECT_EQ(1, ref);
+    EXPECT_EQ(TypeParam(1), ref);
 }
 
 TYPED_TEST(ByteVectorBasicTest, Pack1max) {
@@ -119,7 +119,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10zero) {
     EXPECT_EQ(10*sizeof(TypeParam),b.size());
     for (int i = 0; i < 10; ++i) {
         EXPECT_TRUE(b.unpack(ref));
-        EXPECT_EQ(0, ref);
+        EXPECT_EQ(TypeParam(0), ref);
     }
 }
 
@@ -132,7 +132,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10one) {
     EXPECT_EQ(10*sizeof(TypeParam),b.size());
     for (int i = 0; i < 10; ++i) {
         EXPECT_TRUE(b.unpack(ref));
-        EXPECT_EQ(1, ref);
+        EXPECT_EQ(TypeParam(1), ref);
     }
 }
 

@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
     fcu::FlightController fcu(device, baudrate);
 
     // wait for connection
-    fcu.initialise();
+    fcu.connect();
 
     App app("MultiWii", 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     std::cout << "made app" << std::endl;
@@ -116,15 +116,8 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&App::onStatus, &app, 1);
 
     // using class method callback
-    //fcu.subscribe(&App::onImu, &app, 0.1);
+    fcu.subscribe(&App::onImu, &app, 0.1);
 
-    // using lambda callback
-    /*
-    fcu.subscribe<msp::msg::RawImu>([](const msp::msg::RawImu& imu){
-        std::cout<<imu;
-        //std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
-    }, 0.1);
-    */
     fcu.subscribe(&App::onServo, &app, 0.1);
     fcu.subscribe(&App::onMotor, &app, 0.1);
     fcu.subscribe(&App::onRc, &app, 0.1);
@@ -138,15 +131,15 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&App::onBox, &app, 1);
     fcu.subscribe(&App::onMisc, &app, 1);
     fcu.subscribe(&App::onMotorPins, &app, 20);
-    fcu.subscribe(&App::onBoxNames, &app, 20);
+    fcu.subscribe(&App::onBoxNames, &app, 1);
     fcu.subscribe(&App::onPidNames, &app, 20);
     // TODO: WayPoint
-    fcu.subscribe(&App::onBoxIds, &app, 20);
+    fcu.subscribe(&App::onBoxIds, &app, 1);
     fcu.subscribe(&App::onServoConf, &app, 20);
     // TODO: NavStatus
     // TODO: NavConfig
-    fcu.subscribe(&App::onDebugMessage, &app,1);
-    fcu.subscribe(&App::onDebug, &app, 1);
+    //fcu.subscribe(&App::onDebugMessage, &app,1);
+    //fcu.subscribe(&App::onDebug, &app, 1);
 
     // Ctrl+C to quit
     std::cin.get();

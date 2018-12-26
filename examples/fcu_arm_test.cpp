@@ -25,15 +25,15 @@ int main(int argc, char *argv[]) {
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     std::chrono::high_resolution_clock::time_point start, end;
-    bool feature_changed = false;
-start:
+    //bool feature_changed = false;
+//start:
     std::cout << "making FC" << std::endl;
     fcu::FlightController fcu(device, baudrate);
 
     // wait until connection is established
     // get unique box IDs
     start = std::chrono::high_resolution_clock::now();
-    fcu.initialise();
+    fcu.connect();
     end = std::chrono::high_resolution_clock::now();
     std::cout<<"ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
 /*
@@ -63,7 +63,7 @@ start:
 */
     msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
     msp::msg::RxConfig rxcfg(fw_variant);
-    fcu.request(rxcfg);
+    fcu.sendMessage(rxcfg);
     std::cout << "rx config: " << (uint32_t)rxcfg.serialrx_provider() << std::endl;
     
 
@@ -72,7 +72,7 @@ start:
     // arm the FC
     std::cout<<"Arming..."<<std::endl;
     start = std::chrono::high_resolution_clock::now();
-    fcu.arm_block();
+    fcu.arm(true);
     end = std::chrono::high_resolution_clock::now();
 
     if(fcu.isArmed()) {
@@ -82,7 +82,7 @@ start:
     // disarm the FC
     std::cout<<"Disarming..."<<std::endl;
     start = std::chrono::high_resolution_clock::now();
-    fcu.disarm_block();
+    fcu.disarm(true);
     end = std::chrono::high_resolution_clock::now();
 
     if(!fcu.isArmed()) {

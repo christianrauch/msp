@@ -1,4 +1,5 @@
-#include "types.hpp"
+#include "value.hpp"
+#include "byte_vector.hpp"
 #include "gtest/gtest.h"
 #include <type_traits>
 
@@ -42,7 +43,7 @@ TYPED_TEST_CASE(valueTest, numTypes);
 // Tests that the Foo::Bar() method does Abc.
 TYPED_TEST(valueTest, Initialzation) {
     value<TypeParam> v;
-    EXPECT_EQ(0, v());
+    EXPECT_EQ(TypeParam(0), v());
     EXPECT_FALSE(v.set());
 }
 
