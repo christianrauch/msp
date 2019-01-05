@@ -15,22 +15,25 @@ bool PeriodicTimer::start() {
         return false;
     //only start once
     if (running_.test_and_set()) return false;
-    //lock mutex so that the running thread always times out
+    //lock mutex so that the try_lock_until in the new thread always times out and loops
     mutex_timer.lock();
     //start the thread
     thread_ptr = std::shared_ptr<std::thread>(new std::thread(
     [this]{
-        //running = true;
+        // log now. 
+        tstart = std::chrono::steady_clock::now();
         while(true) {
-            // call function and wait until end of period or stop is called
-            const auto tstart = std::chrono::high_resolution_clock::now();
+            //call function
             funct();
-            if (mutex_timer.try_lock_until(tstart + period_us)) {
+            // increment the reference time to know when to timeout waiting
+            tstart += period_us;
+            //wait until end of period or stop is called
+            if (mutex_timer.try_lock_until(tstart)) {
                 //gets here if lock was acquired (means someone called stop and manually unlocked the mutex)
                 mutex_timer.unlock();
                 break;
             }
-        } // while running
+        } // function over, return
     }
     ));
     return true;

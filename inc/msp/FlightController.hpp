@@ -43,6 +43,7 @@ public:
     bool saveSettings();
     bool reboot();
     
+    void printDebug(bool on = true);
     
     msp::FirmwareVariant getFwVariant();
     
@@ -85,7 +86,7 @@ public:
      * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T, typename C>
+    template<typename T, typename C, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
     std::shared_ptr<msp::client::SubscriptionBase> subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
         return client_.subscribe(callback, context, tp);
     }
@@ -96,7 +97,7 @@ public:
      * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T>
+    template<typename T, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
     std::shared_ptr<msp::client::SubscriptionBase> subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
         return client_.subscribe(callback, tp);
     }
@@ -123,11 +124,6 @@ public:
     bool sendMessage(msp::Message &request, const double timeout = 0) {
         return client_.sendMessage(request, timeout);
     }
-    
-    
-    
-
-
     
     void initBoxes();
 
@@ -183,7 +179,6 @@ public:
 
     
 
-
     bool setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &motor_values);
 
 
@@ -200,15 +195,9 @@ public:
                        const std::set<std::string> &remove = std::set<std::string>());
 
 
-    //bool writeEEPROM();
-
 private:
 
     msp::client::Client client_;
-    
-    //set by user
-    std::string device_;
-    int baudrate_;
     
     //configuration params
     std::string board_name_;
@@ -217,8 +206,8 @@ private:
     
     std::map<std::string, size_t> box_name_ids_;
     std::set<msp::msg::Sensor> sensors_;
-    static const uint8_t MAX_MAPPABLE_RX_INPUTS = msp::msg::MAX_MAPPABLE_RX_INPUTS;
-    std::array<uint8_t,MAX_MAPPABLE_RX_INPUTS> channel_map_;
+    
+    std::array<uint8_t,msp::msg::MAX_MAPPABLE_RX_INPUTS> channel_map_;
     
     
     //auto updates

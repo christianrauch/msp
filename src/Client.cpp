@@ -8,16 +8,35 @@
 namespace msp {
 namespace client {
 
-Client::Client() : port(io), running(false), print_warnings_(false), 
-                   print_debug_(false), msp_ver_(1), 
-                   fw_variant(FirmwareVariant::INAV)
-                   
+Client::Client(const std::string &device, const size_t baudrate) : 
+    device_name_(device), baud_rate_(baudrate), port(io), running_(ATOMIC_FLAG_INIT), print_warnings_(false), 
+    print_debug_(false), msp_ver_(1), fw_variant(FirmwareVariant::INAV)
 { }
 
 Client::~Client() 
 { }
 
+void Client::setDevice(const std::string& device)
+{
+    device_name_ = device;
+}
 
+std::string Client::getDevice()
+{
+    return device_name_;
+}
+
+void Client::setBaudRate(const size_t& baud)
+{
+    baud_rate_= baud;
+}
+
+size_t Client::getBaudRate()
+{
+    return baud_rate_;
+}
+    
+    
 void Client::printWarnings(const bool& val)
 {
     print_warnings_ = val;
@@ -43,43 +62,75 @@ int Client::getVersion()
 }
     
 
-void Client::setVariant(FirmwareVariant v) {
+void Client::setVariant(FirmwareVariant v) 
+{
     fw_variant = v;
 }
 
-FirmwareVariant Client::getVariant() {
+FirmwareVariant Client::getVariant() 
+{
     return fw_variant;
 }
 
 
-
-void Client::connect(const std::string &device, const size_t baudrate) {
-    
-    port.open(device);
-
-    port.set_option(asio::serial_port::baud_rate(baudrate));
+bool Client::connect() 
+{
+    port.open(device_name_);
+    port.set_option(asio::serial_port::baud_rate(baud_rate_));
     port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
     port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    return start();
     
-    //START READ LOOP
-    running = true;
-    std::cout << "STARTING ASYNC READ" << std::endl;
-    
-    
-    asio::async_read_until(port, buffer, std::bind(&Client::messageReady,this,std::placeholders::_1,std::placeholders::_2),
-        std::bind(&Client::processOneMessage,this,std::placeholders::_1,std::placeholders::_2));
+}
+
+bool Client::disconnect()
+{
+    port.close();
+    return stop();
+}
+
+
+bool Client::start() 
+{
+    if (!port.is_open()) return false;
+    if (running_.test_and_set()) return false;
+    thread = std::thread([this]{
+        asio::async_read_until(port, buffer, 
+            std::bind(&Client::messageReady,this,std::placeholders::_1,std::placeholders::_2),
+            std::bind(&Client::processOneMessage,this,std::placeholders::_1,std::placeholders::_2));
+        io.run();
+        
+    });
+    return true;
+}
+
+bool Client::stop() 
+{
+    bool rc = false;
+    if (running_.test_and_set()) {
+        for (const auto& sub : subscriptions) {
+            sub.second->stop();
+        }
+        
+        io.stop();
+        thread.join();
+        io.reset();
+        rc = true;
+    }
+    running_.clear();
+    return rc;
 }
 
 
 bool Client::sendMessage(msp::Message& message, const double timeout)
 {
-    
+    if (print_debug_) std::cout << "sending message - ID " << (uint32_t)message.id() << std::endl;
     if(!sendData(message.id(), message.encode())) { 
         std::cout << "sendData failed" << std::endl;
         return false; 
     }
-    std::cout << "sendData succeeded" << std::endl;
+
     // wait for thread to received message
     std::unique_lock<std::mutex> lock(cv_response_mtx);
 
@@ -99,9 +150,7 @@ bool Client::sendMessage(msp::Message& message, const double timeout)
         //std::cout << "response received" << std::endl;
     }
     else {
-        std::cout << "waiting for response" << std::endl;
         cv_response.wait(lock, predicate);
-        std::cout << "response received" << std::endl;
     }
 
     // check status
@@ -114,56 +163,26 @@ bool Client::sendMessage(msp::Message& message, const double timeout)
     if (!success) std::cout << "request status not OK" << std::endl; 
     return success;
     
-    //return sendMessage(&message,timeout);
 }
 
 
 bool Client::asyncSendMessage(msp::Message& message)
 {
-    //std::cout << "bool Client::asyncSendMessage(msp::Message& message)" <<std::endl;
+    if (print_debug_) std::cout << "async sending message - ID " << (uint32_t)message.id() << std::endl;
     if(!sendData(message.id(), message.encode())) { 
         std::cout << "async sendData failed" << std::endl;
         return false; 
     }
-    //std::cout << "asyncSendMessage succeeded" << std::endl;
     return true;
 }
 
 
-
-
-
-
-
-void Client::start() {
-    thread = std::thread([this]{
-        running = true;
-        io.run();
-        //while(running) { processOneMessage(); }
-    });
-}
-
-void Client::stop() {
-    running = false;
-    port.cancel();
-    port.close();
-    io.stop();
-    
-    std::cout << "waiting for join" << std::endl;
-    thread.join();
-    std::cout << "join complete" << std::endl;
-}
-
-
-uint8_t Client::read() {
+uint8_t Client::extractChar() {
     if(buffer.sgetc()==EOF) {
-        if (print_debug_) std::cout << "buffer returned EOF; reading char directly from port" << std::endl;
+        std::cout << "buffer returned EOF; reading char directly from port" << std::endl;
         asio::read(port, buffer, asio::transfer_exactly(1));
-        //if (print_debug_) std::cout << "byte read" << std::endl;
     }
-    //if (print_debug_) std::cout << "extracting char" <<std::endl;
     uint8_t rc = uint8_t(buffer.sbumpc());
-    //if (print_debug_) std::cout << "char extracted" <<std::endl;
     return rc;
 }
 
@@ -238,8 +257,8 @@ ByteVector Client::packMessageV2(const msp::ID id, const ByteVector &data)
 
 }
 
-uint8_t Client::crcV2(uint8_t crc, const ByteVector &data) {
-    //std::cout << "crc array len: " << data.size() << std::endl;
+uint8_t Client::crcV2(uint8_t crc, const ByteVector &data) 
+{
     for (const uint8_t& p : data) {
         crc = crcV2(crc,p);
     }
@@ -247,7 +266,8 @@ uint8_t Client::crcV2(uint8_t crc, const ByteVector &data) {
 }
 
 
-uint8_t Client::crcV2(uint8_t crc, const uint8_t& b) {
+uint8_t Client::crcV2(uint8_t crc, const uint8_t& b) 
+{
     crc ^= b;
     for (int ii = 0; ii < 8; ++ii) {
         if (crc & 0x80) {
@@ -266,21 +286,19 @@ void Client::processOneMessage(const asio::error_code& ec,std::size_t bytes_tran
 
     if (ec == asio::error::operation_aborted) {
         //operation_aborted error probably means the client is being closed
-        std::cout << "READ ABORTED" << std::endl;
         // notify waiting request methods
         cv_response.notify_all();
-        
         return;
     } 
     
     // ignore and remove header bytes
     //buffer.consume(bytes_transferred);
-    const uint8_t msg_marker = read();
+    const uint8_t msg_marker = extractChar();
     if (msg_marker != '$') std::cerr << "Message marker " << msg_marker << " is not recognised!" << std::endl;
     
     // message version
     int ver = 0;
-    const uint8_t ver_marker = read();
+    const uint8_t ver_marker = extractChar();
     if (ver_marker == 'M') ver = 1;
     if (ver_marker == 'X') ver = 2;
     if (ver == 0) {
@@ -365,17 +383,15 @@ ReceivedMessage Client::processOneMessageV1() {
     ret.status = OK;
     
     // message direction
-    const uint8_t dir = read();
+    const uint8_t dir = extractChar();
     const bool ok_id = (dir!='!');
     if (!ok_id) std::cout << "id not recognized by FC" << std::endl; 
     
     // payload length
-    uint8_t len;
-    asio::read(pimpl->port, asio::buffer(&len,1));
-    request_received.data.resize(len);
+    const uint8_t len = extractChar();
 
     // message ID
-    ret.id = read();
+    ret.id = extractChar();
 
     if(print_warnings_ && !ok_id) {
         std::cerr << "Message v1 with ID " << size_t(ret.id) << " is not recognised!" << std::endl;
@@ -383,11 +399,11 @@ ReceivedMessage Client::processOneMessageV1() {
     
     // payload
     for(size_t i(0); i<len; i++) {
-        ret.data.push_back(read());
+        ret.data.push_back(extractChar());
     }
 
     // CRC
-    const uint8_t rcv_crc = read();
+    const uint8_t rcv_crc = extractChar();
     const uint8_t exp_crc = crcV1(ret.id,ret.data);
     const bool ok_crc = (rcv_crc==exp_crc);
 
@@ -411,26 +427,26 @@ ReceivedMessage Client::processOneMessageV2() {
     uint8_t exp_crc = 0;
     
     // message direction
-    const uint8_t dir = read();
+    const uint8_t dir = extractChar();
     if (print_debug_) std::cout << "dir: " << dir << std::endl;
     const bool ok_id = (dir!='!');
     
     // flag
-    const uint8_t flag = read();
+    const uint8_t flag = extractChar();
     if (print_debug_) std::cout << "flag: " << flag << std::endl;
     exp_crc = crcV2(exp_crc, flag);
     
     // message ID
-    const uint8_t id_low = read();
-    const uint8_t id_high = read();
+    const uint8_t id_low = extractChar();
+    const uint8_t id_high = extractChar();
     ret.id = uint32_t(id_low) | (uint32_t(id_high) << 8);
     if (print_debug_) std::cout << "id: " << ret.id << std::endl;
     exp_crc = crcV2(exp_crc, id_low);
     exp_crc = crcV2(exp_crc, id_high);
     
     // payload length
-    const uint8_t len_low = read();
-    const uint8_t len_high = read();
+    const uint8_t len_low = extractChar();
+    const uint8_t len_high = extractChar();
     uint32_t len = uint32_t(len_low) | (uint32_t(len_high) << 8);
     exp_crc = crcV2(exp_crc, len_low);
     exp_crc = crcV2(exp_crc, len_high);
@@ -443,13 +459,13 @@ ReceivedMessage Client::processOneMessageV2() {
     // payload
     ByteVector data;
     for(size_t i(0); i<len; i++) {
-        ret.data.push_back(read());
+        ret.data.push_back(extractChar());
     }
     
     exp_crc = crcV2(exp_crc,ret.data);
 
     // CRC
-    const uint8_t rcv_crc = read();
+    const uint8_t rcv_crc = extractChar();
     
     const bool ok_crc = (rcv_crc==exp_crc);
 

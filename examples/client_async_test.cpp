@@ -98,9 +98,8 @@ int main(int argc, char *argv[]) {
 
     SubCallbacks subs;
 
-    msp::client::Client client;
-    client.connect(device, baudrate);
-    client.start();
+    msp::client::Client client(device, baudrate);
+    client.connect();
 
     // using class method callback
 //    client.subscribe(&SubCallbacks::onImu, &subs, 0.1);
@@ -141,7 +140,7 @@ int main(int argc, char *argv[]) {
     // Ctrl+C to quit
     std::cin.get();
 
-    client.stop();
+    client.disconnect();
 
     std::cout << "DONE" << std::endl;
 }

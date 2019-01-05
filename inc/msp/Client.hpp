@@ -38,9 +38,15 @@ struct ReceivedMessage {
 
 class Client {
 public:
-    Client();
+    Client(const std::string &device, const size_t baudrate=115200);
 
     ~Client();
+    
+    void setDevice(const std::string& device);
+    std::string getDevice();
+    
+    void setBaudRate(const size_t& baud);
+    size_t getBaudRate();
     
     void printWarnings(const bool& val = true);
     void printDebug(const bool& val = true);
@@ -57,19 +63,13 @@ public:
      * @param baudrate serial baudrate (default: 115200)
      * @return true on success
      */
-    void connect(const std::string &device, const size_t baudrate=115200);
+    bool connect();
+    bool disconnect();
 
-
+    
     //synchronous message (wait for ack or response)
     bool sendMessage(msp::Message& message, const double timeout = 0);
-    //bool sendMessage(msp::Message* message, const double timeout = 0);
-    /*
-    template<typename T, typename C>
-    bool asyncSendMessage(T& message, void (C::*callback)(T&), C *context, const double timeout = 0); 
     
-    template<typename T>
-    bool asyncSendMessage(T& message, std::function<void(T&)>, const double timeout = 0); 
-    */
     bool asyncSendMessage(msp::Message& message);
     
     std::pair<iterator, bool> messageReady(iterator begin, iterator end);
@@ -83,7 +83,7 @@ public:
      * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T, typename C>
+    template<typename T, typename C, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
     std::shared_ptr<SubscriptionBase> subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
         return subscribe<T>(std::bind(callback, context, std::placeholders::_1), tp);
     }
@@ -94,11 +94,8 @@ public:
      * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T>
+    template<typename T, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
     std::shared_ptr<SubscriptionBase> subscribe(const std::function<void(T&)> &recv_callback, const double tp = 0.0) {
-
-        if(!std::is_base_of<msp::Message, T>::value)
-            throw std::runtime_error("Callback parameter needs to be of Request type!");
 
         if(!(tp>=0.0))
             throw std::runtime_error("Period must be positive!");
@@ -110,11 +107,8 @@ public:
         //generate the callback for sending messages
         std::function<void(T&)> send_callback = std::bind( &Client::asyncSendMessage, this, std::placeholders::_1);
         //create a shared pointer to a new Subscription and set all properties
-        auto subscription = std::make_shared<Subscription<T>>(  );
-        subscription->setReceiveCallback(recv_callback);
-        subscription->setSendCallback(send_callback);
-        subscription->setIoObject( std::make_unique<T>(fw_variant) );
-        subscription->setTimerPeriod(tp);
+        auto subscription = std::make_shared<Subscription<T>>(recv_callback, send_callback, std::make_unique<T>(fw_variant), tp);
+
         //gonna modify the subscription map, so lock the mutex
         std::lock_guard<std::mutex> lock(mutex_subscriptions);
         //move the new subscription into the subscription map
@@ -144,24 +138,12 @@ public:
 
     void processOneMessage(const asio::error_code& ec,std::size_t bytes_transferred);
 
-    void startRead();
-
-
-    /**
-     * @brief start starts the receiver thread that handles incomming messages
-     */
-    void start();
-
-    /**
-     * @brief stop stops the receiver thread
-     */
-    void stop();
 
     /**
      * @brief read blocking read a single byte from either the buffer or the serial device
      * @return byte from buffer or device
      */
-    uint8_t read();
+    uint8_t extractChar();
 
     /**
      * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
@@ -183,6 +165,15 @@ public:
     
 
 protected:
+    /**
+     * @brief start starts the receiver thread that handles incomming messages
+     */
+    bool start();
+
+    /**
+     * @brief stop stops the receiver thread
+     */
+    bool stop();
    
     ReceivedMessage processOneMessageV1();
     ReceivedMessage processOneMessageV2();
@@ -196,13 +187,16 @@ protected:
 
 protected:
     // I/O
+    std::string device_name_;
+    size_t baud_rate_;
+    
     //std::unique_ptr<SerialPortImpl> pimpl;
     asio::io_service io;     ///<! io service
     asio::serial_port port;  ///<! port for serial device
     asio::streambuf buffer;
     // threading
     std::thread thread;
-    bool running;
+    std::atomic_flag running_;
     
     //synchronous messaging
     std::condition_variable cv_response;
@@ -226,8 +220,6 @@ protected:
     int msp_ver_;
     FirmwareVariant fw_variant;
     
-    
-
 };
 
 } // namespace client

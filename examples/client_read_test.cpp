@@ -8,12 +8,12 @@ int main(int argc, char *argv[]) {
     const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-    msp::client::Client client;
+    msp::client::Client client(device, baudrate);
     client.printWarnings(true);
     client.setVariant(msp::FirmwareVariant::INAV);
     client.setVersion(2);
-    client.connect(device, baudrate);
-    client.start();
+    client.connect();
+
 
     msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
     
@@ -144,6 +144,6 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<< size_t(debug.id())<<std::endl;
 
-    client.stop();
+    client.disconnect();
     std::cout << "PROGRAM COMPLETE" << std::endl;
 }

@@ -53,7 +53,7 @@ private:
     std::function<void()> funct;
     std::chrono::duration<size_t, std::micro> period_us;
     std::timed_mutex mutex_timer;
-    //bool running;
+    std::chrono::steady_clock::time_point tstart;
     
     std::atomic_flag running_;
     

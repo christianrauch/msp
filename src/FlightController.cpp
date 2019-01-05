@@ -5,7 +5,7 @@
 namespace fcu {
 
 FlightController::FlightController(const std::string &device, const size_t baudrate) : 
-    device_(device), baudrate_(baudrate), msp_version_(1), connected_(false),armed_(false), control_source_(ControlSource::NONE),
+    client_(device,baudrate), msp_version_(1), connected_(false),armed_(false), control_source_(ControlSource::NONE),
     msp_timer_(std::bind(&FlightController::generateMSP,this),0.1)
 {
     
@@ -13,19 +13,15 @@ FlightController::FlightController(const std::string &device, const size_t baudr
 
 FlightController::~FlightController() 
 {
-    if (connected_) disconnect();
+    disconnect();
 }
 
 
 bool FlightController::connect(bool blocking, double timeout)
 {
-    // wait for connection to be established
-    //client_.setVersion(2);
     
-    client_.connect(device_, baudrate_);
-    client_.start();
-    //client_.printDebug(true);
-    std::cout << "bool FlightController::connect(bool blocking, double timeout)" <<std::endl;
+    if (!client_.connect()) return false;
+    
     client_.printWarnings(true);
 
     int rc;
@@ -79,12 +75,10 @@ bool FlightController::connect(bool blocking, double timeout)
     // get boxes
     initBoxes();
 
-    std::cout << "GETTING CHANNEL MAP, fw variant " << msp::firmwareVariantToString(getFwVariant()) << std::endl;
-
     // determine channel mapping
     if (getFwVariant() == msp::FirmwareVariant::MWII) {
         // default mapping
-        for(uint8_t i(0); i<MAX_MAPPABLE_RX_INPUTS; ++i) {
+        for(uint8_t i(0); i<msp::msg::MAX_MAPPABLE_RX_INPUTS; ++i) {
             channel_map_[i] = i;
         }
     }
@@ -101,8 +95,9 @@ bool FlightController::connect(bool blocking, double timeout)
 
 bool FlightController::disconnect(bool blocking, double timeout)
 {
-    client_.stop();
-    return false;
+    stopMspControl();
+    return client_.disconnect();
+
 }    
     
 void FlightController::arm(bool blocking) {
@@ -117,15 +112,20 @@ bool FlightController::armSet() {
     return armed_;
 }
 
+
+void FlightController::printDebug(bool on)
+{
+    client_.printDebug(on);
+}
+
+
 void FlightController::setFlightMode(FlightMode mode)
 {
-    std::cout << "void FlightController::setFlightMode(FlightMode mode)" << std::endl;
     {
         std::lock_guard<std::mutex> lock(msp_updates_mutex);
         flight_mode_ = mode;
     }
     generateMSP();
-    std::cout << "setFlightMode finished" << std::endl;
 }
 
 FlightMode FlightController::getFlightMode()
@@ -136,8 +136,8 @@ FlightMode FlightController::getFlightMode()
 void FlightController::setControlSource(ControlSource source)
 {
     if (source == control_source_) return;
-    client_.printDebug(true);
-    std::cout << "void FlightController::setControlSource(ControlSource source) " << uint32_t(source) << std::endl;
+    //client_.printDebug(true);
+    
     msp::msg::RxConfig rxConfig(fw_variant_);
     if (!client_.sendMessage(rxConfig)) std::cout << "client_.sendMessage(rxConfig) failed" << std::endl;
     std::cout << rxConfig;
@@ -158,18 +158,14 @@ void FlightController::setControlSource(ControlSource source)
     else stopMspControl();
     
     control_source_ = source;
-    client_.printDebug(false);
-    std::cout << "setControlSource finished" << std::endl;
+    //client_.printDebug(false);
 }
 
 ControlSource FlightController::getControlSource()
 {
-    std::cout << "ControlSource FlightController::getControlSource()" <<std::endl;
     msp::msg::RxConfig rxConfig(fw_variant_);
     client_.sendMessage(rxConfig);
     
-    //std::cout << rxConfig;
-    std::cout << "getControlSource finished (making response)" << std::endl;
     if (rxConfig.receiverType && rxConfig.receiverType() == 4) return ControlSource::MSP;
     else if (rxConfig.serialrx_provider() == 2) return ControlSource::SBUS;
     return ControlSource::OTHER;
@@ -189,19 +185,18 @@ void FlightController::setRPYT(std::array<double,4>& rpyt)
 
 void FlightController::startMspControl()
 {
-    std::cout << "void FlightController::startMspControl()" << std::endl;
-    std::cout << (msp_timer_.start() ? "success" : "fail") << std::endl;
+    std::cout << "STARTING MSP CONTROL" << std::endl;
+    msp_timer_.start();
 }
 
 void FlightController::stopMspControl()
 {
-    std::cout << "void FlightController::stopMspControl()" << std::endl;
-    std::cout << (msp_timer_.stop() ? "success" : "fail") << std::endl;
+    std::cout << "STOPPING MSP CONTROL" << std::endl;
+    msp_timer_.stop();
 }
 
 void FlightController::generateMSP()
 {
-    std::cout << "void FlightController::generateMSP()" <<std::endl;
     std::vector<uint16_t> cmds(18,1000);
     //manually remapping from RPYT to TAER (american RC)
     {
@@ -230,7 +225,6 @@ void FlightController::generateMSP()
         }
     }
     setRc(cmds);
-    std::cout << "generateMSP done" << std::endl;
 }
     
 bool FlightController::saveSettings() {
@@ -305,17 +299,10 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
                              const uint16_t aux3, const uint16_t aux4,
                              const std::vector<uint16_t> auxs)
 {
-    //std::cout << "FlightController::setRc : " << roll << " " << pitch << " " << yaw << " " << throttle << " " << aux1 << " " << aux2 << " " << aux3 << " " << aux4 <<std::endl;
-    /*
-    std::cout << "using channel map ";
-    for (auto& v : channel_map_) {
-        std::cout << (uint32_t)v << " ";
-    } 
-    std::cout << std::endl;
-    */
+    
     msp::msg::SetRawRc rc(fw_variant_);
     // insert mappable channels
-    rc.channels.resize(MAX_MAPPABLE_RX_INPUTS);
+    rc.channels.resize(msp::msg::MAX_MAPPABLE_RX_INPUTS);
     rc.channels[channel_map_[0]] = roll;
     rc.channels[channel_map_[1]] = pitch;
     rc.channels[channel_map_[2]] = yaw;
@@ -328,7 +315,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
 
     // insert remaining aux channels
     rc.channels.insert(std::end(rc.channels), std::begin(auxs), std::end(auxs));
-//std::cout << "publishing rc message" << std::endl;
+
     // send MSP_SET_RAW_RC without waiting for ACK
     return client_.asyncSendMessage(rc);
 }

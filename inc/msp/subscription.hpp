@@ -34,6 +34,16 @@ public:
     {
         return timer_ ? true : false;
     }
+    
+    bool start()
+    {
+        return this->timer_->start();
+    }
+    
+    bool stop()
+    {
+        return this->timer_->stop();
+    }
 
     /**
      * @brief setTimerPeriod change the period of the timer
@@ -81,6 +91,27 @@ public:
     
     Subscription() {}
     
+    Subscription(const Callback& recv_callback, const Callback& send_callback, std::unique_ptr<T>&& io_object, const double& period = 0.0)
+        : recv_callback_(recv_callback), send_callback_(send_callback), io_object_(std::move(io_object))
+    {
+        if (period > 0.0) {
+            timer_ = std::unique_ptr<PeriodicTimer>(new PeriodicTimer(std::bind(&Subscription<T>::makeRequest,this),period));
+            this->timer_->start();
+        }
+    }
+    
+    Subscription(const Callback& recv_callback, const std::function<void(msp::Message&)>& send_callback, std::unique_ptr<T>&& io_object, const double& period = 0.0)
+        : recv_callback_(recv_callback), send_callback_(send_callback), io_object_(std::move(io_object))
+    {
+        
+        if (period > 0.0) {
+            timer_ = std::unique_ptr<PeriodicTimer>(new PeriodicTimer(std::bind(&Subscription<T>::makeRequest,this),period));
+            this->timer_->start();
+        }
+    }
+    
+    
+    
     virtual void decode(msp::ByteVector& data) override
     {
         io_object_->decode(data);
@@ -88,12 +119,12 @@ public:
     }
     
     
-    void setIoObject(std::unique_ptr<T> obj)
+    void setIoObject(std::unique_ptr<T>&& obj)
     {
         io_object_ = std::move(obj);
     }
     
-    T& getIoObject(std::unique_ptr<T> obj)
+    T& getIoObject()
     {
         return *io_object_;
     }
@@ -124,30 +155,6 @@ public:
         if (send_callback_) send_callback_( *io_object_ );
     }
     
-    
-    Subscription(const Callback& recv_callback, const Callback& send_callback, T& io_object, const double& period = 0.0)
-        : recv_callback_(recv_callback), send_callback_(send_callback)
-    {
-        this->setIoObject(io_object);
-        if (period > 0.0) {
-            timer_ = std::unique_ptr<PeriodicTimer>(new PeriodicTimer(std::bind(&Subscription<T>::makeRequest,this),period));
-            this->timer_->start();
-        }
-    }
-    
-    Subscription(const Callback& recv_callback, const std::function<void(msp::Message&)>& send_callback, T& io_object, const double& period = 0.0)
-        : recv_callback_(recv_callback), send_callback_(send_callback)
-    {
-        this->setIoObject(io_object);
-        if (period > 0.0) {
-            timer_ = std::unique_ptr<PeriodicTimer>(new PeriodicTimer(std::bind(&Subscription<T>::makeRequest,this),period));
-            this->timer_->start();
-        }
-    }
-    
-    
-
-
 protected:
     
     Callback recv_callback_;

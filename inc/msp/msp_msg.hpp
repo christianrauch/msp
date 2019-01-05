@@ -1456,8 +1456,7 @@ struct RxMap : public RxMapSettings, public Message {
     virtual ID id() const override { return ID::MSP_RX_MAP; }
 
     virtual bool decode(ByteVector& data) override {
-        std::cout << "decoding RX map with " << data.size() << " elements" <<std::endl;
-        std::cout << data << std::endl;
+        
         if (data.size() < MAX_MAPPABLE_RX_INPUTS) return false;
         bool rc = true;
         for (size_t i = 0; i < MAX_MAPPABLE_RX_INPUTS; ++i) {
@@ -3958,17 +3957,12 @@ struct SetRawRc : public Message {
     std::vector<uint16_t> channels;
 
     virtual ByteVector_uptr encode() const override {
-        /*
-        std::cout << "encoding SetRawRc message with " << channels.size() << " channels" <<std::endl; 
-        for (auto& c : channels) { std::cout << " " << c; }
-        std::cout << std::endl;
-        */
+
         ByteVector_uptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for(const uint16_t& c : channels) {
             rc &= data->pack(c);
         }
-        if (!rc) std::cout << "packing failed, resetting ptr" << std::endl;
         if (!rc) data.reset();
         return data;
     }
