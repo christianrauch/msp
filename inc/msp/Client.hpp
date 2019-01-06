@@ -150,13 +150,6 @@ public:
     void connect(const std::string &device, const size_t baudrate=115200);
 
     /**
-     * @brief waitForOneMessage block until one message has been received
-     */
-    void waitForOneMessage();
-
-    void waitForOneMessageBlock();
-
-    /**
      * @brief start starts the receiver thread that handles incomming messages
      */
     void start();
@@ -165,12 +158,6 @@ public:
      * @brief stop stops the receiver thread
      */
     void stop();
-
-    /**
-     * @brief read blocking read a single byte from either the buffer or the serial device
-     * @return byte from buffer or device
-     */
-    uint8_t read();
 
     /**
      * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
@@ -310,8 +297,6 @@ public:
         return subscriptions.at(id);
     }
 
-    void processOneMessage();
-
 private:
     /**
      * @brief crc compute checksum of data package
@@ -320,6 +305,15 @@ private:
      * @return checksum
      */
     uint8_t crc(const uint8_t id, const ByteVector &data);
+
+    /**
+     * @brief waitForOneMessage block until one message has been received
+     */
+    void waitForOneMessage();
+
+    void waitForOneMessageBlock();
+
+    void processOneMessage();
 
 private:
     // I/O
@@ -334,9 +328,8 @@ private:
     std::mutex mutex_request;
     std::mutex mutex_callbacks;
     std::mutex mutex_send;
-    std::mutex mutex_buffer;
     // message for request method
-    std::unique_ptr<ReceivedMessage> request_received;
+    ReceivedMessage request_received;
     // subscriptions
     std::map<msp::ID, SubscriptionBase*> subscriptions;
     std::map<msp::ID, msp::Request*> subscribed_requests;

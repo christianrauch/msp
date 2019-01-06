@@ -50,7 +50,9 @@ void PeriodicTimer::setPeriod(const double period_seconds) {
 namespace msp {
 namespace client {
 
-Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false) { }
+Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false) {
+    request_received.data.reserve(256);
+}
 
 Client::~Client() {
     for(const std::pair<msp::ID, msp::Request*> d : subscribed_requests)
@@ -83,33 +85,23 @@ void Client::stop() {
     thread.join();
 }
 
-uint8_t Client::read() {
-    if(pimpl->buffer.sgetc()==EOF) {
-        asio::read(pimpl->port, pimpl->buffer, asio::transfer_exactly(1));
-    }
-
-    return uint8_t(pimpl->buffer.sbumpc());
-}
-
 bool Client::sendData(const uint8_t id, const ByteVector &data) {
     std::lock_guard<std::mutex> lock(mutex_send);
-    ByteVector msg;
-    msg.push_back('$');                                 // preamble1
-    msg.push_back('M');                                 // preamble2
-    msg.push_back('<');                                 // direction
-    msg.push_back(uint8_t(data.size()));                // data size
-    msg.push_back(id);                                  // message_id
-    msg.insert(msg.end(), data.begin(), data.end());    // data
-    msg.push_back( crc(id, data) );                     // crc
 
-    asio::error_code ec;
-    const std::size_t bytes_written = asio::write(pimpl->port, asio::buffer(msg.data(), msg.size()), ec);
-    if (ec == asio::error::operation_aborted) {
-        //operation_aborted error probably means the client is being closed
-        return false;
+    try {
+        asio::write(pimpl->port, asio::buffer("$M<",3));              // header
+        asio::write(pimpl->port, asio::buffer({uint8_t(data.size())})); // data size
+        asio::write(pimpl->port, asio::buffer({uint8_t(id)}));          // message id
+        asio::write(pimpl->port, asio::buffer(data));                   // data
+        asio::write(pimpl->port, asio::buffer({crc(id, data)}));        // crc
+    } catch (const asio::system_error &ec) {
+        if (ec.code() == asio::error::operation_aborted) {
+            //operation_aborted error probably means the client is being closed
+            return false;
+        }
     }
 
-    return (bytes_written==msg.size());
+    return true;
 }
 
 int Client::request(msp::Request &request, const double timeout) {
@@ -127,7 +119,7 @@ int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout
     std::unique_lock<std::mutex> lock(mutex_cv_request);
     const auto predicate = [&]{
         mutex_request.lock();
-        const bool received = (request_received!=NULL) && (request_received->id==id);
+        const bool received = (request_received.id==id);
         // unlock to wait for next message
         if(!received) { mutex_request.unlock(); }
         return received;
@@ -142,8 +134,8 @@ int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout
     }
 
     // check message status and decode
-    const bool success = request_received->status==OK;
-    if(success) { data = request_received->data; }
+    const bool success = request_received.status==OK;
+    if(success) { data = request_received.data; }
     mutex_request.unlock();
     return success;
 }
@@ -163,14 +155,14 @@ bool Client::respond_raw(const uint8_t id, const ByteVector &data, const bool wa
     std::unique_lock<std::mutex> lock(mutex_cv_ack);
     cv_ack.wait(lock, [&]{
         mutex_request.lock();
-        const bool received = (request_received!=NULL) && (request_received->id==id);
+        const bool received = (request_received.id==id);
         // unlock to wait for next message
         if(!received) { mutex_request.unlock(); }
         return received;
     });
 
     // check status, expect ACK without payload
-    const bool success = request_received->status==OK;
+    const bool success = request_received.status==OK;
     mutex_request.unlock();
     return success;
 }
@@ -182,55 +174,51 @@ uint8_t Client::crc(const uint8_t id, const ByteVector &data) {
 }
 
 void Client::processOneMessage() {
-    std::lock_guard<std::mutex> lck(mutex_buffer);
-    asio::error_code ec;
-    const std::size_t bytes_transferred = asio::read_until(pimpl->port, pimpl->buffer, "$M", ec);
-    if (ec == asio::error::operation_aborted) {
-        //operation_aborted error probably means the client is being closed
-        return;
+    uint8_t c;
+    // find start of header
+    while(true) {
+        // find '$'
+        for(c=0; c!='$'; asio::read(pimpl->port, asio::buffer(&c,1)));
+        // check 'M'
+        asio::read(pimpl->port, asio::buffer(&c,1));
+        if(c=='M') { break; }
     }
-    // ignore and remove header bytes
-    pimpl->buffer.consume(bytes_transferred);
-
-    MessageStatus status = OK;
 
     // message direction
-    const uint8_t dir = read();
-    const bool ok_id = (dir!='!');
+    asio::read(pimpl->port, asio::buffer(&c,1));
+    const bool ok_id = (c!='!');
 
     // payload length
-    const uint8_t len = read();
+    uint8_t len;
+    asio::read(pimpl->port, asio::buffer(&len,1));
+    request_received.data.resize(len);
 
     // message ID
-    const uint8_t id = read();
+    mutex_request.lock();
+    asio::read(pimpl->port, asio::buffer(&request_received.id,1));
+    mutex_request.unlock();
 
     if(print_warnings && !ok_id) {
-        std::cerr << "Message with ID " << size_t(id) << " is not recognised!" << std::endl;
+        std::cerr << "Message with ID " << size_t(request_received.id) << " is not recognised!" << std::endl;
     }
 
     // payload
-    std::vector<uint8_t> data;
-    for(size_t i(0); i<len; i++) {
-        data.push_back(read());
-    }
+    asio::read(pimpl->port, asio::buffer(request_received.data));
 
     // CRC
-    const uint8_t rcv_crc = read();
-    const uint8_t exp_crc = crc(id,data);
+    uint8_t rcv_crc;
+    asio::read(pimpl->port, asio::buffer(&rcv_crc,1));
+    mutex_request.lock();
+    const uint8_t exp_crc = crc(request_received.id, request_received.data);
+    mutex_request.unlock();
     const bool ok_crc = (rcv_crc==exp_crc);
 
     if(print_warnings && !ok_crc) {
-        std::cerr << "Message with ID " << size_t(id) << " has wrong CRC! (expected: " << size_t(exp_crc) << ", received: "<< size_t(rcv_crc) << ")" << std::endl;
+        std::cerr << "Message with ID " << size_t(request_received.id) << " has wrong CRC! (expected: " << size_t(exp_crc) << ", received: "<< size_t(rcv_crc) << ")" << std::endl;
     }
 
-    if(!ok_id) { status = FAIL_ID; }
-    else if(!ok_crc) { status = FAIL_CRC; }
-
     mutex_request.lock();
-    request_received.reset(new ReceivedMessage());
-    request_received->id = id;
-    request_received->data = data;
-    request_received->status = status;
+    request_received.status = !ok_id ? FAIL_ID : (!ok_crc ? FAIL_CRC : OK) ;
     mutex_request.unlock();
 
     // notify waiting request methods
@@ -240,13 +228,16 @@ void Client::processOneMessage() {
 
     // check subscriptions
     mutex_callbacks.lock();
-    if(status==OK && subscriptions.count(ID(id))) {
+    mutex_request.lock();
+    if(request_received.status==OK && subscriptions.count(ID(request_received.id))) {
         // fetch message type, decode payload
-        msp::Request *const req = subscribed_requests.at(ID(id));
-        req->decode(data);
+        msp::Request *const req = subscribed_requests.at(ID(request_received.id));
+        req->decode(request_received.data);
+        mutex_request.unlock();
         // call callback
-        subscriptions.at(ID(id))->call(*req);
+        subscriptions.at(ID(request_received.id))->call(*req);
     }
+    mutex_request.unlock();
     mutex_callbacks.unlock();
 }
 
