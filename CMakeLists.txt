@@ -18,8 +18,8 @@ if(WIN32)
     include_directories(${ASIO_HEADER_PATH})
 endif()
 
-OPTION(BUILD_EXAMPLES "Build Library with examples" OFF)
-OPTION(BUILD_TESTS "Build Library with tests" OFF)
+OPTION(BUILD_EXAMPLES "Build Library with examples" ON)
+OPTION(BUILD_TESTS "Build Library with tests" ON)
 
 find_package(Threads)
 

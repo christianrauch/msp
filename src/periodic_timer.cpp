@@ -1,11 +1,10 @@
-#include "periodic_timer.hpp"
+#include "PeriodicTimer.hpp"
 
 namespace msp {
 
 PeriodicTimer::PeriodicTimer(std::function<void()> funct, const double period_seconds)
-    : funct(funct), running_(ATOMIC_FLAG_INIT)//, running(false)
+    : funct(funct), running_(ATOMIC_FLAG_INIT)
 {
-//    running_ = ATOMIC_FLAG_INIT;
     period_us = std::chrono::duration<size_t, std::micro>(size_t(period_seconds*1e6));
 }
 

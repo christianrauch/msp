@@ -1,4 +1,4 @@
-#include "byte_vector.hpp"
+#include "ByteVector.hpp"
 #include "gtest/gtest.h"
 #include <limits>
 
@@ -67,7 +67,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1min) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack1valzero) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = 0;
     v = ref;
     EXPECT_TRUE(b.pack(v));
@@ -78,7 +78,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1valzero) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack1valone) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = 1;
     v = ref;
     EXPECT_TRUE(b.pack(v));
@@ -89,7 +89,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1valone) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack1valmax) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = std::numeric_limits<TypeParam>::max();
     v = ref;
     EXPECT_TRUE(b.pack(v));
@@ -101,7 +101,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack1valmax) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack1valmin) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = std::numeric_limits<TypeParam>::min();
     v = ref;
     EXPECT_TRUE(b.pack(v));
@@ -165,7 +165,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10min) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack10valzero) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = 0;
     v = ref;
     for (int i = 0; i < 10; ++i)
@@ -179,7 +179,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10valzero) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack10valone) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = 1;
     v = ref;
     for (int i = 0; i < 10; ++i)
@@ -193,7 +193,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10valone) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack10valmax) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = std::numeric_limits<TypeParam>::max();
     v = ref;
     for (int i = 0; i < 10; ++i)
@@ -208,7 +208,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10valmax) {
 
 TYPED_TEST(ByteVectorBasicTest, Pack10valmin) {
     ByteVector b;
-    value<TypeParam> v;
+    Value<TypeParam> v;
     TypeParam ref = std::numeric_limits<TypeParam>::min();
     v = ref;
     for (int i = 0; i < 10; ++i)
@@ -224,7 +224,7 @@ TYPED_TEST(ByteVectorBasicTest, Pack10valmin) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1DoubleZero) {
     ByteVector b;
-    double ref = 0.d;
+    double ref = 0.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -233,7 +233,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1DoubleZero) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1DoubleTen) {
     ByteVector b;
-    double ref = 10.d;
+    double ref = 10.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -242,7 +242,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1DoubleTen) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1DoubleSaturationMax) {
     ByteVector b;
-    double ref = (double)std::numeric_limits<TypeParam>::max()+1.d;
+    double ref = (double)std::numeric_limits<TypeParam>::max()+1.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -252,7 +252,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1DoubleSaturationMax) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1DoubleSaturationMin) {
     ByteVector b;
-    double ref = (double)std::numeric_limits<TypeParam>::min()-1.d;
+    double ref = (double)std::numeric_limits<TypeParam>::min()-1.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -262,7 +262,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1DoubleSaturationMin) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1FloatZero) {
     ByteVector b;
-    float ref = 0.f;
+    float ref = 0.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -272,7 +272,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1FloatZero) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1FloatTen) {
     ByteVector b;
-    float ref = 10.f;
+    float ref = 10.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -282,7 +282,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1FloatTen) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1FloatSaturationMax) {
     ByteVector b;
-    float ref = (float)std::numeric_limits<TypeParam>::max()+1.f;
+    float ref = (float)std::numeric_limits<TypeParam>::max()+1.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));
@@ -292,7 +292,7 @@ TYPED_TEST(ByteVectorScaledTest, Pack1FloatSaturationMax) {
 
 TYPED_TEST(ByteVectorScaledTest, Pack1FloatSaturationMin) {
     ByteVector b;
-    float ref = (float)std::numeric_limits<TypeParam>::min()-1.f;
+    float ref = (float)std::numeric_limits<TypeParam>::min()-1.0;
     EXPECT_TRUE(b.pack<TypeParam>(ref,1));
     EXPECT_EQ(sizeof(TypeParam),b.size());
     EXPECT_TRUE(b.unpack<TypeParam>(ref,1));

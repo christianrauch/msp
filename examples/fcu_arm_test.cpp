@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     // arm the FC
     std::cout<<"Arming..."<<std::endl;
     start = std::chrono::high_resolution_clock::now();
-    fcu.arm(true);
+    fcu.arm();
     end = std::chrono::high_resolution_clock::now();
 
     if(fcu.isArmed()) {
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     // disarm the FC
     std::cout<<"Disarming..."<<std::endl;
     start = std::chrono::high_resolution_clock::now();
-    fcu.disarm(true);
+    fcu.disarm();
     end = std::chrono::high_resolution_clock::now();
 
     if(!fcu.isArmed()) {

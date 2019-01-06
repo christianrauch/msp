@@ -1,6 +1,5 @@
 #include <Client.hpp>
 #include <msp_msg.hpp>
-//#include <msg_print.hpp>
 
 #include <iostream>
 
@@ -9,10 +8,10 @@ int main(int argc, char *argv[]) {
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     msp::client::Client client(device, baudrate);
-    client.printWarnings(true);
+    client.setLoggingLevel(msp::client::LoggingLevel::WARNING);
     client.setVariant(msp::FirmwareVariant::INAV);
     client.setVersion(2);
-    client.connect();
+    client.start();
 
 
     msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
@@ -144,6 +143,6 @@ int main(int argc, char *argv[]) {
     else
         std::cerr<<"unsupported: "<< size_t(debug.id())<<std::endl;
 
-    client.disconnect();
+    client.stop();
     std::cout << "PROGRAM COMPLETE" << std::endl;
 }

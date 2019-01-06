@@ -21,6 +21,9 @@ public:
      */
     PeriodicTimer(const std::function<void()> funct, const double period_seconds);
     
+    /**
+     * @brief PeriodicTimer destructor
+     */
     ~PeriodicTimer() { stop(); }
 
     /**

@@ -2,6 +2,8 @@
 #define MSP_ID_HPP
 
 #include <cstdint>
+#include <string>
+#include <iostream>
 
 namespace msp {
 
@@ -349,8 +351,11 @@ std::string armingFlagToString(uint32_t flag)
     return val;
 }
     
-
-
 } // namespace msp
+
+std::ostream& operator<<(std::ostream& s, const msp::ID& id) {
+    s << (int)id;
+    return s;
+}
 
 #endif // MSP_ID_HPP

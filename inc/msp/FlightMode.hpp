@@ -5,7 +5,6 @@ namespace fcu {
     
 struct FlightMode
 {
-    
     enum class PRIMARY_MODE : uint32_t
     {
         UNSET = 0,

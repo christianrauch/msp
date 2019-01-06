@@ -17,10 +17,10 @@ struct MyIdent : public msp::Message {
 };
 
 struct Callbacks {
-    void onIdent(MyIdent &ident) {
+    void onIdent(const MyIdent &ident) {
         std::cout << "Raw Ident data: ";
         for(auto d : ident.raw_data) {
-            std::cout << int(d) << ",";
+            std::cout << int(d) << " ";
         }
         std::cout << std::endl;
     }

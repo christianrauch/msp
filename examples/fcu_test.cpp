@@ -1,6 +1,5 @@
 #include <FlightController.hpp>
 #include <msp_msg.hpp>
-//#include <msg_print.hpp>
 
 #include <iostream>
 
@@ -12,84 +11,84 @@ public:
         this->name = name;
     }
 
-    void onIdent(msp::msg::Ident& ident) {
+    void onIdent(const msp::msg::Ident& ident) {
         std::cout<<ident;
     }
 
-    void onStatus(msp::msg::Status& status) {
+    void onStatus(const msp::msg::Status& status) {
         std::cout<<status;
     }
 
-    void onImu(msp::msg::RawImu& imu_raw) {
+    void onImu(const msp::msg::RawImu& imu_raw) {
         std::cout<< imu_raw;   //msp::msg::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
     }
 
-    void onServo(msp::msg::Servo& servo) {
+    void onServo(const msp::msg::Servo& servo) {
         std::cout<<servo;
     }
 
-    void onMotor(msp::msg::Motor& motor) {
+    void onMotor(const msp::msg::Motor& motor) {
         std::cout<<motor;
     }
 
-    void onRc(msp::msg::Rc& rc) {
+    void onRc(const msp::msg::Rc& rc) {
         std::cout<<rc;
     }
 
-    void onAttitude(msp::msg::Attitude& attitude) {
+    void onAttitude(const msp::msg::Attitude& attitude) {
         std::cout<<attitude;
     }
 
-    void onAltitude(msp::msg::Altitude& altitude) {
+    void onAltitude(const msp::msg::Altitude& altitude) {
         std::cout<<altitude;
     }
 
-    void onAnalog(msp::msg::Analog& analog) {
+    void onAnalog(const msp::msg::Analog& analog) {
         std::cout<<analog;
     }
 
-    void onRcTuning(msp::msg::RcTuning& rc_tuning) {
+    void onRcTuning(const msp::msg::RcTuning& rc_tuning) {
         std::cout<<rc_tuning;
     }
 
-    void onPID(msp::msg::Pid& pid) {
+    void onPID(const msp::msg::Pid& pid) {
         std::cout<<pid;
     }
 
-    void onBox(msp::msg::ActiveBoxes& box) {
+    void onBox(const msp::msg::ActiveBoxes& box) {
         std::cout<<box;
     }
 
-    void onMisc(msp::msg::Misc& misc) {
+    void onMisc(const msp::msg::Misc& misc) {
         std::cout<<misc;
     }
 
-    void onMotorPins(msp::msg::MotorPins& motor_pins) {
+    void onMotorPins(const msp::msg::MotorPins& motor_pins) {
         std::cout<<motor_pins;
     }
 
-    void onBoxNames(msp::msg::BoxNames& box_names) {
+    void onBoxNames(const msp::msg::BoxNames& box_names) {
         std::cout<<box_names;
     }
 
-    void onPidNames(msp::msg::PidNames& pid_names) {
+    void onPidNames(const msp::msg::PidNames& pid_names) {
         std::cout<<pid_names;
     }
 
-    void onBoxIds(msp::msg::BoxIds& box_ids) {
+    void onBoxIds(const msp::msg::BoxIds& box_ids) {
         std::cout<<box_ids;
     }
 
-    void onServoConf(msp::msg::ServoConf& servo_conf) {
+    void onServoConf(const msp::msg::ServoConf& servo_conf) {
         std::cout<<servo_conf;
     }
 
-    void onDebugMessage(msp::msg::DebugMessage& debug_msg) {
+    void onDebugMessage(const msp::msg::DebugMessage& debug_msg) {
         std::cout<<"#Debug message:"<<std::endl;
         std::cout<<debug_msg.debug_msg<<std::endl;
     }
 
-    void onDebug(msp::msg::Debug& debug) {
+    void onDebug(const msp::msg::Debug& debug) {
         std::cout<<debug;
     }
 
@@ -105,7 +104,7 @@ int main(int argc, char *argv[]) {
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     fcu::FlightController fcu(device, baudrate);
-
+    fcu.setLoggingLevel(msp::client::LoggingLevel::INFO);
     // wait for connection
     fcu.connect();
 

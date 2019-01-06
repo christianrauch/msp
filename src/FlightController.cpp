@@ -5,38 +5,32 @@
 namespace fcu {
 
 FlightController::FlightController(const std::string &device, const size_t baudrate) : 
-    client_(device,baudrate), msp_version_(1), connected_(false),armed_(false), control_source_(ControlSource::NONE),
+    client_(device,baudrate), msp_version_(1), armed_(false), control_source_(ControlSource::NONE),
     msp_timer_(std::bind(&FlightController::generateMSP,this),0.1)
 {
     
 }
 
-FlightController::~FlightController() 
-{
+FlightController::~FlightController() {
     disconnect();
 }
 
 
-bool FlightController::connect(bool blocking, double timeout)
-{
+bool FlightController::connect(const double& timeout) {
+    if (!client_.start()) return false;
     
-    if (!client_.connect()) return false;
-    
-    client_.printWarnings(true);
-
     int rc;
     msp::msg::FcVariant fcvar(fw_variant_);
-    rc = client_.sendMessage(fcvar);
+    rc = client_.sendMessage(fcvar,timeout);
     if ( rc == 1) {
         fw_variant_ = msp::variant_map[fcvar.identifier()];
         std::cout << fcvar;
     }
     else std::cout << rc << std::endl;
     
-    
     if (fw_variant_ != msp::FirmwareVariant::MWII) {
         msp::msg::ApiVersion api_version(fw_variant_);
-        if(client_.sendMessage(api_version)) {
+        if(client_.sendMessage(api_version,timeout)) {
             std::cout << api_version;
             msp_version_ = api_version.major();
             client_.setVersion(msp_version_);
@@ -44,34 +38,36 @@ bool FlightController::connect(bool blocking, double timeout)
     }
     
     msp::msg::FcVersion fcver(fw_variant_);
-    rc = client_.sendMessage(fcver);
+    rc = client_.sendMessage(fcver,timeout);
     if (rc == 1) {
         std::cout << fcver;
     }
     else std::cout << rc << std::endl;
     
-    
     msp::msg::BoardInfo boardinfo(fw_variant_);
-    rc = client_.sendMessage(boardinfo);
+    rc = client_.sendMessage(boardinfo,timeout);
     if (rc == 1) {
         std::cout << boardinfo;
         board_name_ == boardinfo.name();
     }
     else std::cout << rc << std::endl;
     
-    
     msp::msg::BuildInfo buildinfo(fw_variant_);
-    rc = client_.sendMessage(buildinfo);
+    rc = client_.sendMessage(buildinfo,timeout);
     if (rc == 1)
     std::cout << buildinfo;
     else std::cout << rc << std::endl;
     
-
     msp::msg::Status status(fw_variant_);
-    client_.sendMessage(status);
+    client_.sendMessage(status,timeout);
     std::cout << status;
     sensors_ = status.sensors;
 
+    msp::msg::Ident ident(fw_variant_);
+    client_.sendMessage(ident,timeout);
+    std::cout << ident;
+    capabilities_ = ident.capabilities;
+    
     // get boxes
     initBoxes();
 
@@ -85,7 +81,7 @@ bool FlightController::connect(bool blocking, double timeout)
     else {
         // get channel mapping from MSP_RX_MAP
         msp::msg::RxMap rx_map(fw_variant_);
-        client_.sendMessage(rx_map);
+        client_.sendMessage(rx_map,timeout);
         std::cout << rx_map;
         channel_map_ = rx_map.map;
     }
@@ -93,18 +89,15 @@ bool FlightController::connect(bool blocking, double timeout)
     return true;
 }
 
-bool FlightController::disconnect(bool blocking, double timeout)
-{
-    stopMspControl();
-    return client_.disconnect();
-
+bool FlightController::disconnect() {
+    return client_.stop();
 }    
     
-void FlightController::arm(bool blocking) {
+void FlightController::arm() {
     armed_ = true;
 }
 
-void FlightController::disarm(bool blocking) {
+void FlightController::disarm() {
     armed_ = false;
 }
 
@@ -112,12 +105,9 @@ bool FlightController::armSet() {
     return armed_;
 }
 
-
-void FlightController::printDebug(bool on)
-{
-    client_.printDebug(on);
+void FlightController::setLoggingLevel(const msp::client::LoggingLevel& level) {
+    client_.setLoggingLevel(level);
 }
-
 
 void FlightController::setFlightMode(FlightMode mode)
 {
@@ -128,15 +118,12 @@ void FlightController::setFlightMode(FlightMode mode)
     generateMSP();
 }
 
-FlightMode FlightController::getFlightMode()
-{
+FlightMode FlightController::getFlightMode() {
     return flight_mode_;
 }
 
-void FlightController::setControlSource(ControlSource source)
-{
+void FlightController::setControlSource(ControlSource source) {
     if (source == control_source_) return;
-    //client_.printDebug(true);
     
     msp::msg::RxConfig rxConfig(fw_variant_);
     if (!client_.sendMessage(rxConfig)) std::cout << "client_.sendMessage(rxConfig) failed" << std::endl;
@@ -151,18 +138,12 @@ void FlightController::setControlSource(ControlSource source)
     } else if (source == ControlSource::MSP) {
         setRxConfig.receiverType = 4;
     }
-    //std::cout << setRxConfig;
     client_.sendMessage(setRxConfig);
     
-    if (source == ControlSource::MSP) startMspControl();
-    else stopMspControl();
-    
     control_source_ = source;
-    //client_.printDebug(false);
 }
 
-ControlSource FlightController::getControlSource()
-{
+ControlSource FlightController::getControlSource() {
     msp::msg::RxConfig rxConfig(fw_variant_);
     client_.sendMessage(rxConfig);
     
@@ -172,9 +153,7 @@ ControlSource FlightController::getControlSource()
     
 }
 
-void FlightController::setRPYT(std::array<double,4>& rpyt)
-{
-    //std::cout << "void FlightController::setRPYT(std::array<double,4>& rpyt)" << std::endl;
+void FlightController::setRPYT(std::array<double,4>& rpyt) {
     {
         std::lock_guard<std::mutex> lock(msp_updates_mutex);
         rpyt_.swap(rpyt);
@@ -183,20 +162,7 @@ void FlightController::setRPYT(std::array<double,4>& rpyt)
     //std::cout << "finished setRPYT" << std::endl;
 }
 
-void FlightController::startMspControl()
-{
-    std::cout << "STARTING MSP CONTROL" << std::endl;
-    msp_timer_.start();
-}
-
-void FlightController::stopMspControl()
-{
-    std::cout << "STOPPING MSP CONTROL" << std::endl;
-    msp_timer_.stop();
-}
-
-void FlightController::generateMSP()
-{
+void FlightController::generateMSP() {
     std::vector<uint16_t> cmds(18,1000);
     //manually remapping from RPYT to TAER (american RC)
     {
@@ -237,7 +203,6 @@ bool FlightController::reboot() {
     return client_.sendMessage(reboot);
 }
 
-
 msp::FirmwareVariant FlightController::getFwVariant() {
     return fw_variant_;
 }
@@ -250,9 +215,8 @@ std::string FlightController::getBoardName() {
     return board_name_;
 }
 
-
 void FlightController::initBoxes() {
-    client_.printWarnings(true);
+    
     // get box names
     msp::msg::BoxNames box_names(fw_variant_);
     if(!client_.sendMessage(box_names))
@@ -277,7 +241,6 @@ void FlightController::initBoxes() {
             box_name_ids_[box_names.box_names[ibox]] = box_ids.box_ids[ibox];
         }
     }
-    //client_.printWarnings(false);
 }
 
 bool FlightController::isStatusActive(const std::string& status_name) {
@@ -317,17 +280,16 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
     rc.channels.insert(std::end(rc.channels), std::begin(auxs), std::end(auxs));
 
     // send MSP_SET_RAW_RC without waiting for ACK
-    return client_.asyncSendMessage(rc);
+    return client_.sendMessageNoWait(rc);
 }
 
 bool FlightController::setRc(const std::vector<uint16_t> channels) {
     msp::msg::SetRawRc rc(fw_variant_);
     rc.channels = channels;
-    return client_.asyncSendMessage(rc);
+    return client_.sendMessageNoWait(rc);
 }
 
 bool FlightController::setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &motor_values) {
-    
     msp::msg::SetMotor motor(fw_variant_);
     motor.motor = motor_values;
     return client_.sendMessage(motor);
@@ -369,6 +331,5 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
 
     return 1;
 }
-
 
 } // namespace msp

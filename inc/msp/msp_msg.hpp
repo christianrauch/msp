@@ -4,7 +4,7 @@
 #ifndef MSP_MSG_HPP
 #define MSP_MSG_HPP
 
-#include "message.hpp"
+#include "Message.hpp"
 
 #include <string>
 #include <array>
@@ -138,9 +138,9 @@ struct ApiVersion : public Message {
     
     virtual ID id() const override { return ID::MSP_API_VERSION; }
 
-	value<uint8_t> protocol;
-	value<uint8_t> major;
-	value<uint8_t> minor;
+	Value<uint8_t> protocol;
+	Value<uint8_t> major;
+	Value<uint8_t> minor;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -165,7 +165,7 @@ struct FcVariant : public Message {
     
     virtual ID id() const override { return ID::MSP_FC_VARIANT; }
 
-    value<std::string> identifier;
+    Value<std::string> identifier;
 
     virtual bool decode(ByteVector& data) override {
         return data.unpack(identifier,data.size());
@@ -185,9 +185,9 @@ struct FcVersion : public Message {
     
     virtual ID id() const override { return ID::MSP_FC_VERSION; }
 
-	value<uint8_t> major;
-	value<uint8_t> minor;
-	value<uint8_t> patch_level;
+	Value<uint8_t> major;
+	Value<uint8_t> minor;
+	Value<uint8_t> patch_level;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -212,11 +212,11 @@ struct BoardInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_BOARD_INFO; }
 
-    value<std::string> identifier;
-    value<uint16_t> version;
-    value<uint8_t> osd_support;
-    value<uint8_t> comms_capabilites;
-    value<std::string> name;
+    Value<std::string> identifier;
+    Value<uint16_t> version;
+    Value<uint8_t> osd_support;
+    Value<uint8_t> comms_capabilites;
+    Value<std::string> name;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -224,7 +224,7 @@ struct BoardInfo : public Message {
         rc &= data.unpack(version);
         rc &= data.unpack(osd_support);
         rc &= data.unpack(comms_capabilites);
-        uint8_t name_len;
+        uint8_t name_len = 0;
         rc &= data.unpack(name_len);
         rc &= data.unpack(name,name_len);
         return rc;
@@ -249,9 +249,9 @@ struct BuildInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_BUILD_INFO; }
 
-    value<std::string> buildDate;
-    value<std::string> buildTime;
-    value<std::string> shortGitRevision;
+    Value<std::string> buildDate;
+    Value<std::string> buildTime;
+    Value<std::string> shortGitRevision;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -274,14 +274,14 @@ struct BuildInfo : public Message {
 
 struct InavPidSettings {
     
-    value<uint8_t> async_mode;
-    value<uint16_t> acc_task_frequency;
-    value<uint16_t> attitude_task_frequency;
-    value<uint8_t> heading_hold_rate_limit;
-    value<uint8_t> heading_hold_error_lpf_freq;
-    value<uint16_t> yaw_jump_prevention_limit;
-    value<uint8_t> gyro_lpf;
-    value<uint8_t> acc_soft_lpf_hz;
+    Value<uint8_t> async_mode;
+    Value<uint16_t> acc_task_frequency;
+    Value<uint16_t> attitude_task_frequency;
+    Value<uint8_t> heading_hold_rate_limit;
+    Value<uint8_t> heading_hold_error_lpf_freq;
+    Value<uint16_t> yaw_jump_prevention_limit;
+    Value<uint8_t> gyro_lpf;
+    Value<uint8_t> acc_soft_lpf_hz;
     
 };
 
@@ -314,8 +314,8 @@ struct SetInavPid : public InavPidSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_INAV_PID; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(async_mode);
         rc &= data->pack(acc_task_frequency);
@@ -339,7 +339,7 @@ struct BoardName : public Message {
     
     virtual ID id() const override { return ID::MSP_NAME; }
     
-    value<std::string> name;
+    Value<std::string> name;
     
     bool decode(ByteVector & data) {
         return data.unpack(name);
@@ -354,24 +354,24 @@ struct SetBoardName : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_NAME; }
     
-    value<std::string> name;
+    Value<std::string> name;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(name,MAX_NAME_LENGTH)) data.reset();
         return data;
     }
 };
 
 struct NavPosHoldSettings {    
-    value<uint8_t> user_control_mode;
-    value<uint16_t> max_auto_speed;
-    value<uint16_t> max_auto_climb_rate;
-    value<uint16_t> max_manual_speed;
-    value<uint16_t> max_manual_climb_rate;
-    value<uint8_t> max_bank_angle;
-    value<uint8_t> use_thr_mid_for_althold;
-    value<uint16_t> hover_throttle;
+    Value<uint8_t> user_control_mode;
+    Value<uint16_t> max_auto_speed;
+    Value<uint16_t> max_auto_climb_rate;
+    Value<uint16_t> max_manual_speed;
+    Value<uint16_t> max_manual_climb_rate;
+    Value<uint8_t> max_bank_angle;
+    Value<uint8_t> use_thr_mid_for_althold;
+    Value<uint16_t> hover_throttle;
 };
 
 // MSP_NAV_POSHOLD: 12
@@ -400,8 +400,8 @@ struct SetNavPosHold : public NavPosHoldSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_NAV_POSHOLD; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(user_control_mode);
         rc &= data->pack(max_auto_speed);
@@ -418,12 +418,12 @@ struct SetNavPosHold : public NavPosHoldSettings, public Message {
 
 struct CalibrationDataSettings {
     
-    value<uint16_t> acc_zero_x;
-    value<uint16_t> acc_zero_y;
-    value<uint16_t> acc_zero_z;
-    value<uint16_t> acc_gain_x;
-    value<uint16_t> acc_gain_y;
-    value<uint16_t> acc_gain_z;
+    Value<uint16_t> acc_zero_x;
+    Value<uint16_t> acc_zero_y;
+    Value<uint16_t> acc_zero_z;
+    Value<uint16_t> acc_gain_x;
+    Value<uint16_t> acc_gain_y;
+    Value<uint16_t> acc_gain_z;
 };
         
 // MSP_CALIBRATION_DATA: 14
@@ -432,7 +432,7 @@ struct CalibrationData : public CalibrationDataSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_CALIBRATION_DATA; }
     
-    value<uint8_t> axis_calibration_flags;
+    Value<uint8_t> axis_calibration_flags;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -453,8 +453,8 @@ struct SetCalibrationData : public CalibrationDataSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_CALIBRATION_DATA; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(acc_zero_x);
         rc &= data->pack(acc_zero_y);
@@ -468,13 +468,13 @@ struct SetCalibrationData : public CalibrationDataSettings, public Message {
 };
 
 struct PositionEstimationConfigSettings {
-    value<float> w_z_baro_p;
-    value<float> w_z_gps_p;
-    value<float> w_z_gps_v;
-    value<float> w_xy_gps_p;
-    value<float> w_xy_gps_v;
-    value<uint8_t> gps_min_sats;
-    value<bool> use_gps_vel_NED;
+    Value<float> w_z_baro_p;
+    Value<float> w_z_gps_p;
+    Value<float> w_z_gps_v;
+    Value<float> w_xy_gps_p;
+    Value<float> w_xy_gps_v;
+    Value<uint8_t> gps_min_sats;
+    Value<bool> use_gps_vel_NED;
 };
 
 
@@ -503,8 +503,8 @@ struct SetPositionEstimationConfig : public PositionEstimationConfigSettings, pu
     
     virtual ID id() const override { return ID::MSP_SET_POSITION_ESTIMATION_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(static_cast<uint16_t>(w_z_baro_p()*100));
         rc &= data->pack(static_cast<uint16_t>(w_z_gps_p()*100));
@@ -524,8 +524,8 @@ struct WpMissionLoad : public Message {
     
     virtual ID id() const override { return ID::MSP_WP_MISSION_LOAD; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(uint8_t(0))) data.reset();
         return data;
     }
@@ -537,8 +537,8 @@ struct WpMissionSave : public Message {
     
     virtual ID id() const override { return ID::MSP_WP_MISSION_SAVE; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(uint8_t(0))) data.reset();
         return data;
     }
@@ -550,10 +550,10 @@ struct WpGetInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_WP_GETINFO; }
     
-    value<uint8_t> wp_capabilites;
-    value<uint8_t> max_waypoints;
-    value<bool> wp_list_valid;
-    value<uint8_t> wp_count;
+    Value<uint8_t> wp_capabilites;
+    Value<uint8_t> max_waypoints;
+    Value<bool> wp_list_valid;
+    Value<uint8_t> wp_count;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -566,18 +566,18 @@ struct WpGetInfo : public Message {
 };
 
 struct RthAndLandConfigSettings {
-    value<uint16_t> min_rth_distance;
-    value<uint8_t> rth_climb_first;
-    value<uint8_t> rth_climb_ignore_emerg;
-    value<uint8_t> rth_tail_first;
-    value<uint8_t> rth_allow_landing;
-    value<uint8_t> rth_alt_control_mode;
-    value<uint16_t> rth_abort_threshold;
-    value<uint16_t> rth_altitude;
-    value<uint16_t> land_descent_rate;
-    value<uint16_t> land_slowdown_minalt;
-    value<uint16_t> land_slowdown_maxalt;
-    value<uint16_t> emerg_descent_rate;
+    Value<uint16_t> min_rth_distance;
+    Value<uint8_t> rth_climb_first;
+    Value<uint8_t> rth_climb_ignore_emerg;
+    Value<uint8_t> rth_tail_first;
+    Value<uint8_t> rth_allow_landing;
+    Value<uint8_t> rth_alt_control_mode;
+    Value<uint16_t> rth_abort_threshold;
+    Value<uint16_t> rth_altitude;
+    Value<uint16_t> land_descent_rate;
+    Value<uint16_t> land_slowdown_minalt;
+    Value<uint16_t> land_slowdown_maxalt;
+    Value<uint16_t> emerg_descent_rate;
     
 };
 
@@ -611,8 +611,8 @@ struct SetRthAndLandConfig : public RthAndLandConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RTH_AND_LAND_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(min_rth_distance);
         rc &= data->pack(rth_climb_first);
@@ -632,14 +632,14 @@ struct SetRthAndLandConfig : public RthAndLandConfigSettings, public Message {
 };
 
 struct FwConfigSettings {
-    value<uint16_t> cruise_throttle;
-    value<uint16_t> min_throttle;
-    value<uint16_t> max_throttle;
-    value<uint8_t> max_bank_angle;
-    value<uint8_t> max_climb_angle;
-    value<uint8_t> max_dive_angle;
-    value<uint8_t> pitch_to_throttle;
-    value<uint16_t> loiter_radius;
+    Value<uint16_t> cruise_throttle;
+    Value<uint16_t> min_throttle;
+    Value<uint16_t> max_throttle;
+    Value<uint8_t> max_bank_angle;
+    Value<uint8_t> max_climb_angle;
+    Value<uint8_t> max_dive_angle;
+    Value<uint8_t> pitch_to_throttle;
+    Value<uint16_t> loiter_radius;
 };
 
 // MSP_FW_CONFIG: 23
@@ -668,8 +668,8 @@ struct SetFwConfig : public FwConfigSettings, public Message  {
     
     virtual ID id() const override { return ID::MSP_SET_FW_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(cruise_throttle);
         rc &= data->pack(min_throttle);
@@ -685,12 +685,12 @@ struct SetFwConfig : public FwConfigSettings, public Message  {
 };
 
 struct BatteryConfigSettings {
-    value<uint8_t> vbatmincellvoltage;
-    value<uint8_t> vbatmaxcellvoltage;
-    value<uint8_t> vbatwarningcellvoltage;
-    value<uint16_t> batteryCapacity;
-    value<uint8_t> voltageMeterSource;
-    value<uint8_t> currentMeterSource;
+    Value<uint8_t> vbatmincellvoltage;
+    Value<uint8_t> vbatmaxcellvoltage;
+    Value<uint8_t> vbatwarningcellvoltage;
+    Value<uint16_t> batteryCapacity;
+    Value<uint8_t> voltageMeterSource;
+    Value<uint8_t> currentMeterSource;
 };
 
 // MSP_BATTERY_CONFIG: 32
@@ -717,8 +717,8 @@ struct SetBatteryConfig : public BatteryConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_BATTERY_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(vbatmincellvoltage);
         rc &= data->pack(vbatmaxcellvoltage);
@@ -734,10 +734,10 @@ struct SetBatteryConfig : public BatteryConfigSettings, public Message {
 
 struct box_description
 {
-    value<uint8_t> id;
-    value<uint8_t> aux_channel_index;
-    value<uint8_t> startStep;
-    value<uint8_t> endStep;
+    Value<uint8_t> id;
+    Value<uint8_t> aux_channel_index;
+    Value<uint8_t> startStep;
+    Value<uint8_t> endStep;
 };
 
 // MSP_MODE_RANGES: 34
@@ -766,11 +766,11 @@ struct SetModeRange : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_MODE_RANGE; }
     
-    value<uint8_t> mode_activation_condition_idx;
+    Value<uint8_t> mode_activation_condition_idx;
     box_description box;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(mode_activation_condition_idx);
         rc &= data->pack(box.id);
@@ -823,8 +823,8 @@ struct SetFeature : public Message {
 
     std::set<std::string> features;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         uint32_t mask = 0;
         for(size_t ifeat(0); ifeat<FEATURES.size(); ifeat++) {
             if(features.count(FEATURES[ifeat]))
@@ -838,9 +838,9 @@ struct SetFeature : public Message {
 //iNav uses decidegrees, BF/CF use degrees
 struct BoardAlignmentSettings {
     
-    value<uint16_t> roll;
-    value<uint16_t> pitch;
-    value<uint16_t> yaw;
+    Value<uint16_t> roll;
+    Value<uint16_t> pitch;
+    Value<uint16_t> yaw;
     
 };
 
@@ -865,8 +865,8 @@ struct SetBoardAlignment : public BoardAlignmentSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_BOARD_ALIGNMENT; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(roll);
         rc &= data->pack(pitch);
@@ -877,10 +877,10 @@ struct SetBoardAlignment : public BoardAlignmentSettings, public Message {
 };
 
 struct CurrentMeterConfigSettings {
-    value<uint16_t> currnet_scale;
-    value<uint16_t> current_offset;
-    value<uint8_t> current_type;
-    value<uint16_t> capacity;
+    Value<uint16_t> currnet_scale;
+    Value<uint16_t> current_offset;
+    Value<uint8_t> current_type;
+    Value<uint16_t> capacity;
 };
 
 // MSP_CURRENT_METER_CONFIG: 40 (differs from Cleanflight/BetaFlight)
@@ -906,8 +906,8 @@ struct SetCurrentMeterConfig : public CurrentMeterConfigSettings, public Message
     
     virtual ID id() const override { return ID::MSP_SET_CURRENT_METER_CONFIG; }
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(currnet_scale);
         rc &= data->pack(current_offset);
@@ -925,7 +925,7 @@ struct Mixer : public Message {
     
     virtual ID id() const override { return ID::MSP_MIXER; }
 
-    value<uint8_t> mode;
+    Value<uint8_t> mode;
 
     virtual bool decode(ByteVector& data) override {
         return data.unpack(mode);
@@ -940,10 +940,10 @@ struct SetMixer : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_MIXER; }
 
-    value<uint8_t> mode;
+    Value<uint8_t> mode;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(mode)) data.reset();
         return data;
     }
@@ -952,26 +952,26 @@ struct SetMixer : public Message {
 struct RxConfigSettings {
     size_t valid_data_groups;
     //group1
-    value<uint8_t> serialrx_provider;
-    value<uint16_t> maxcheck;
-    value<uint16_t> midrc;
-    value<uint16_t> mincheck;
-    value<uint8_t> spektrum_sat_bind;
+    Value<uint8_t> serialrx_provider;
+    Value<uint16_t> maxcheck;
+    Value<uint16_t> midrc;
+    Value<uint16_t> mincheck;
+    Value<uint8_t> spektrum_sat_bind;
     //group 2
-    value<uint16_t> rx_min_usec;
-    value<uint16_t> rx_max_usec;
+    Value<uint16_t> rx_min_usec;
+    Value<uint16_t> rx_max_usec;
     //group 3
-    value<uint8_t> rcInterpolation;
-    value<uint8_t> rcInterpolationInterval;
-    value<uint16_t> airModeActivateThreshold;
+    Value<uint8_t> rcInterpolation;
+    Value<uint8_t> rcInterpolationInterval;
+    Value<uint16_t> airModeActivateThreshold;
     //group 4
-    value<uint8_t> rx_spi_protocol;
-    value<uint32_t> rx_spi_id;
-    value<uint8_t> rx_spi_rf_channel_count;
+    Value<uint8_t> rx_spi_protocol;
+    Value<uint32_t> rx_spi_id;
+    Value<uint8_t> rx_spi_rf_channel_count;
     //group 5
-    value<uint8_t> fpvCamAngleDegrees;
+    Value<uint8_t> fpvCamAngleDegrees;
     //group 6 - iNav only
-    value<uint8_t> receiverType;
+    Value<uint8_t> receiverType;
     
     std::ostream& rxConfigPrint(std::ostream& s) const
     {
@@ -1050,8 +1050,8 @@ struct SetRxConfig : public RxConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RX_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(serialrx_provider);
         rc &= data->pack(maxcheck);
@@ -1085,9 +1085,9 @@ struct SetRxConfig : public RxConfigSettings, public Message {
 };
 
 struct HsvColor : public Packable {
-    value<uint16_t> h;
-    value<uint8_t> s;
-    value<uint8_t> v;
+    Value<uint16_t> h;
+    Value<uint8_t> s;
+    Value<uint8_t> v;
     
     bool unpack_from(ByteVector& data) {
         bool rc = true;
@@ -1132,8 +1132,8 @@ struct SetLedColors : public Message {
 
     std::array<HsvColor,LED_CONFIGURABLE_COLOR_COUNT> colors;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for (size_t i = 0; i < LED_CONFIGURABLE_COLOR_COUNT; ++i) {
             rc &= data->pack(colors[i].h);
@@ -1168,11 +1168,11 @@ struct SetLedStripConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_LED_STRIP_CONFIG; }
 
-    value<uint8_t> cfg_index;
-    value<uint32_t> config;
+    Value<uint8_t> cfg_index;
+    Value<uint32_t> config;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(cfg_index);
         rc &= data->pack(config);
@@ -1187,7 +1187,7 @@ struct RssiConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_RSSI_CONFIG; }
 
-    value<uint8_t> rssi_channel;
+    Value<uint8_t> rssi_channel;
 
     virtual bool decode(ByteVector& data) override {
         return data.unpack(rssi_channel);
@@ -1200,22 +1200,22 @@ struct SetRssiConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RSSI_CONFIG; }
 
-    value<uint8_t> rssi_channel;
+    Value<uint8_t> rssi_channel;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(rssi_channel)) data.reset();
         return data;
     }
 };
 
 struct adjustmentRange {
-    value<uint8_t> adjustmentIndex;
-    value<uint8_t> auxChannelIndex;
-    value<uint8_t> range_startStep;
-    value<uint8_t> range_endStep;
-    value<uint8_t> adjustmentFunction;
-    value<uint8_t> auxSwitchChannelIndex;
+    Value<uint8_t> adjustmentIndex;
+    Value<uint8_t> auxChannelIndex;
+    Value<uint8_t> range_startStep;
+    Value<uint8_t> range_endStep;
+    Value<uint8_t> adjustmentFunction;
+    Value<uint8_t> auxSwitchChannelIndex;
 };
 
 // MSP_ADJUSTMENT_RANGES: 52
@@ -1247,11 +1247,11 @@ struct SetAdjustmentRange : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_ADJUSTMENT_RANGE; }
 
-    value<uint8_t> range_index;
+    Value<uint8_t> range_index;
     adjustmentRange range;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(range_index);
         rc &= data->pack(range.adjustmentIndex);
@@ -1266,12 +1266,12 @@ struct SetAdjustmentRange : public Message {
 };
 
 struct CfSerialConfigSettings {
-    value<uint8_t> identifier;
-    value<uint16_t> functionMask;
-    value<uint8_t> mspBaudrateIndx;
-    value<uint8_t> gpsBaudrateIndx;
-    value<uint8_t> telemetryBaudrateIndx;
-    value<uint8_t> peripheralBaudrateIndx;
+    Value<uint8_t> identifier;
+    Value<uint16_t> functionMask;
+    Value<uint8_t> mspBaudrateIndx;
+    Value<uint8_t> gpsBaudrateIndx;
+    Value<uint8_t> telemetryBaudrateIndx;
+    Value<uint8_t> peripheralBaudrateIndx;
 };
 
 // MSP_CF_SERIAL_CONFIG: 54
@@ -1306,8 +1306,8 @@ struct SetCfSerialConfig : public Message {
     
     std::vector<CfSerialConfigSettings> configs;
  
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for (const auto& config : configs) {
             rc &= data->pack(config.identifier);
@@ -1323,10 +1323,10 @@ struct SetCfSerialConfig : public Message {
 };
 
 struct VoltageMeterConfigSettings {
-    value<uint8_t> scale_dV;
-    value<uint8_t> cell_min_dV;
-    value<uint8_t> cell_max_dV;
-    value<uint8_t> cell_warning_dV;
+    Value<uint8_t> scale_dV;
+    Value<uint8_t> cell_min_dV;
+    Value<uint8_t> cell_max_dV;
+    Value<uint8_t> cell_warning_dV;
 };
 
 // MSP_VOLTAGE_METER_CONFIG: 56 (differs from Cleanflight/BetaFlight)
@@ -1351,8 +1351,8 @@ struct SetVoltageMeterConfig : public VoltageMeterConfigSettings, public Message
     
     virtual ID id() const override { return ID::MSP_SET_VOLTAGE_METER_CONFIG; }
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(scale_dV);
         rc &= data->pack(cell_min_dV);
@@ -1370,7 +1370,7 @@ struct SonarAltitude : public Message {
     
     virtual ID id() const override { return ID::MSP_SONAR_ALTITUDE; }
 
-    value<uint32_t> altitude_cm; // meters
+    Value<uint32_t> altitude_cm; // meters
 
     virtual bool decode(ByteVector& data) override {
         return data.unpack(altitude_cm);
@@ -1383,7 +1383,7 @@ struct PidController : public Message {
     
     virtual ID id() const override { return ID::MSP_PID_CONTROLLER; }
     
-    value<uint8_t> controller_id;
+    Value<uint8_t> controller_id;
     
     virtual bool decode(ByteVector& data) override {
         return data.unpack(controller_id);
@@ -1398,10 +1398,10 @@ struct SetPidController : public Message {
 };
 
 struct ArmingConfigSettings {
-    value<uint8_t> auto_disarm_delay;
-    value<uint8_t> disarm_kill_switch;
+    Value<uint8_t> auto_disarm_delay;
+    Value<uint8_t> disarm_kill_switch;
     bool imu_small_angle_valid;
-    value<uint8_t> imu_small_angle;
+    Value<uint8_t> imu_small_angle;
 };
 
 //MSP_ARMING_CONFIG: 61
@@ -1425,8 +1425,8 @@ struct SetArmingConfig : public ArmingConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_ARMING_CONFIG; }
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(auto_disarm_delay);
         rc &= data->pack(disarm_kill_switch);
@@ -1478,8 +1478,8 @@ struct SetRxMap : public RxMapSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RX_MAP; }
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for (const auto& channel : map) {
             rc &= data->pack(channel);
@@ -1496,14 +1496,14 @@ struct SetRxMap : public RxMapSettings, public Message {
 
 //iNav uses decidegrees, BF/CF use degrees
 struct BfConfigSettings {
-    value<uint8_t> mixer_mode;
-    value<uint32_t> feature_mask;
-    value<uint8_t> serialrx_provider;
-    value<uint16_t> roll;
-    value<uint16_t> pitch;
-    value<uint16_t> yaw;
-    value<uint16_t> current_meter_scale;
-    value<uint16_t> current_meter_offset;
+    Value<uint8_t> mixer_mode;
+    Value<uint32_t> feature_mask;
+    Value<uint8_t> serialrx_provider;
+    Value<uint16_t> roll;
+    Value<uint16_t> pitch;
+    Value<uint16_t> yaw;
+    Value<uint16_t> current_meter_scale;
+    Value<uint16_t> current_meter_offset;
 };
 
 // MSP_BF_CONFIG: 66, //out message baseflight-specific settings that aren't covered elsewhere
@@ -1532,8 +1532,8 @@ struct SetBfConfig : public BfConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_BF_CONFIG; }
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(mixer_mode);
         rc &= data->pack(feature_mask);
@@ -1563,9 +1563,9 @@ struct BfBuildInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_BF_BUILD_INFO; }
 
-    value<std::string> build_date;
-    value<uint32_t> reserved1;
-    value<uint32_t> reserved2;
+    Value<std::string> build_date;
+    Value<uint32_t> reserved1;
+    Value<uint32_t> reserved2;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -1583,9 +1583,9 @@ struct DataflashSummary : public Message {
     virtual ID id() const override { return ID::MSP_DATAFLASH_SUMMARY; }
 
     bool flash_is_ready;
-    value<uint32_t> sectors;
-    value<uint32_t> total_size;
-    value<uint32_t> offset;
+    Value<uint32_t> sectors;
+    Value<uint32_t> total_size;
+    Value<uint32_t> offset;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -1604,13 +1604,13 @@ struct DataflashRead : public Message {
     
     virtual ID id() const override { return ID::MSP_DATAFLASH_READ; }
     
-    value<uint32_t> read_address;
-    value<uint16_t> read_size;
+    Value<uint32_t> read_address;
+    Value<uint16_t> read_size;
     bool allow_compression;
     ByteVector flash_data;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(read_address);
         rc &= data->pack(read_size);
@@ -1646,7 +1646,7 @@ struct LoopTime : public Message {
     
     virtual ID id() const override { return ID::MSP_LOOP_TIME; }
 
-    value<uint16_t> loop_time;
+    Value<uint16_t> loop_time;
     
     virtual bool decode(ByteVector& data) override {
         return data.unpack(loop_time);
@@ -1659,10 +1659,10 @@ struct SetLoopTime : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_LOOP_TIME; }
     
-    value<uint16_t> loop_time;
+    Value<uint16_t> loop_time;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(loop_time)) data.reset();
         return data;
     }
@@ -1670,19 +1670,19 @@ struct SetLoopTime : public Message {
 
 struct FailsafeSettings {
     bool extended_contents;
-    value<uint8_t> delay;
-    value<uint8_t> off_delay;
-    value<uint16_t> throttle;
-    value<uint8_t> kill_switch;
-    value<uint16_t> throttle_low_delay;
-    value<uint8_t> procedure;
-    value<uint8_t> recovery_delay;
-    value<uint16_t> fw_roll_angle;
-    value<uint16_t> fw_pitch_angle;
-    value<uint16_t> fw_yaw_rate;
-    value<uint16_t> stick_motion_threshold;
-    value<uint16_t> min_distance;
-    value<uint8_t> min_distance_procedure;
+    Value<uint8_t> delay;
+    Value<uint8_t> off_delay;
+    Value<uint16_t> throttle;
+    Value<uint8_t> kill_switch;
+    Value<uint16_t> throttle_low_delay;
+    Value<uint8_t> procedure;
+    Value<uint8_t> recovery_delay;
+    Value<uint16_t> fw_roll_angle;
+    Value<uint16_t> fw_pitch_angle;
+    Value<uint16_t> fw_yaw_rate;
+    Value<uint16_t> stick_motion_threshold;
+    Value<uint16_t> min_distance;
+    Value<uint8_t> min_distance_procedure;
 };
 
 // MSP_FAILSAFE_CONFIG: 75
@@ -1719,8 +1719,8 @@ struct SetFailsafeConfig : public FailsafeSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_FAILSAFE_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(delay);
         rc &= data->pack(off_delay);
@@ -1743,8 +1743,8 @@ struct SetFailsafeConfig : public FailsafeSettings, public Message {
 };
 
 struct RxFailChannelSettings {
-    value<uint8_t> mode;
-    value<uint16_t> val;
+    Value<uint8_t> mode;
+    Value<uint16_t> val;
 };
 
 // MSP_RXFAIL_CONFIG: 77
@@ -1774,7 +1774,7 @@ struct SetRxFailConfigs : public RxFailChannelSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RXFAIL_CONFIG; }
     
-    value<uint8_t> channel;
+    Value<uint8_t> channel;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -1791,11 +1791,11 @@ struct SdcardSummary : public Message {
     
     virtual ID id() const override { return ID::MSP_SDCARD_SUMMARY; }
 
-    value<uint8_t> flags;
-    value<uint8_t> state;
-    value<uint8_t> last_error;
-    value<uint32_t> free_space_kb;
-    value<uint32_t> total_space_kb;
+    Value<uint8_t> flags;
+    Value<uint8_t> state;
+    Value<uint8_t> last_error;
+    Value<uint32_t> free_space_kb;
+    Value<uint32_t> total_space_kb;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -1809,11 +1809,11 @@ struct SdcardSummary : public Message {
 };
 
 struct BlackboxConfigSettings {
-    value<uint8_t> device;
-    value<uint8_t> rate_num;
-    value<uint8_t> rate_denom;
+    Value<uint8_t> device;
+    Value<uint8_t> rate_num;
+    Value<uint8_t> rate_denom;
     bool p_ratio_set;
-    value<uint16_t> p_ratio;
+    Value<uint16_t> p_ratio;
 };
 
 // MSP_BLACKBOX_CONFIG: 80
@@ -1822,7 +1822,7 @@ struct BlackboxConfig : public BlackboxConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_BLACKBOX_CONFIG; }
 
-    value<uint8_t> supported;
+    Value<uint8_t> supported;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -1845,8 +1845,8 @@ struct SetBlackboxConfig : public BlackboxConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_BLACKBOX_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(device);
         rc &= data->pack(rate_num);
@@ -1858,8 +1858,8 @@ struct SetBlackboxConfig : public BlackboxConfigSettings, public Message {
 };
 
 struct TransponderConfigSettings {
-    value<uint8_t> provider;
-    value<uint8_t> data_length;
+    Value<uint8_t> provider;
+    Value<uint8_t> data_length;
 };
 
 // MSP_TRANSPONDER_CONFIG: 82
@@ -1868,9 +1868,9 @@ struct TransponderConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_TRANSPONDER_CONFIG; }
     
-    value<uint8_t> transponder_count;
+    Value<uint8_t> transponder_count;
     std::vector<TransponderConfigSettings> transponder_data;
-    value<uint8_t> provider;
+    Value<uint8_t> provider;
     ByteVector provider_data;
     
     virtual bool decode(ByteVector& data) override {
@@ -1899,11 +1899,11 @@ struct SetTransponderConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_TRANSPONDER_CONFIG; }
     
-    value<uint8_t> provider;
+    Value<uint8_t> provider;
     ByteVector provider_data;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(provider);
         rc &= data->pack(provider_data);
@@ -1919,15 +1919,15 @@ struct OsdConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_OSD_CONFIG; }
 
-    value<uint8_t> osd_flags;
-    value<uint8_t> video_system;
-    value<uint8_t> units;
-    value<uint8_t> rssi_alarm;
-    value<uint16_t> battery_cap_warn;
-    value<uint16_t> time_alarm;
-    value<uint16_t> alt_alarm;
-    value<uint16_t> dist_alarm;
-    value<uint16_t> neg_alt_alarm;
+    Value<uint8_t> osd_flags;
+    Value<uint8_t> video_system;
+    Value<uint8_t> units;
+    Value<uint8_t> rssi_alarm;
+    Value<uint16_t> battery_cap_warn;
+    Value<uint16_t> time_alarm;
+    Value<uint16_t> alt_alarm;
+    Value<uint16_t> dist_alarm;
+    Value<uint16_t> neg_alt_alarm;
     std::array<uint16_t,OSD_ITEM_COUNT> item_pos;
     
     virtual bool decode(ByteVector& data) override {
@@ -1957,18 +1957,18 @@ struct SetOsdConfig : public Message {
     virtual ID id() const override { return ID::MSP_SET_OSD_CONFIG; }
     
     int8_t param_idx;
-    value<uint16_t> item_pos;
-    value<uint8_t> video_system;
-    value<uint8_t> units;
-    value<uint8_t> rssi_alarm;
-    value<uint16_t> battery_cap_warn;
-    value<uint16_t> time_alarm;
-    value<uint16_t> alt_alarm;
-    value<uint16_t> dist_alarm;
-    value<uint16_t> neg_alt_alarm;
+    Value<uint16_t> item_pos;
+    Value<uint8_t> video_system;
+    Value<uint8_t> units;
+    Value<uint8_t> rssi_alarm;
+    Value<uint16_t> battery_cap_warn;
+    Value<uint16_t> time_alarm;
+    Value<uint16_t> alt_alarm;
+    Value<uint16_t> dist_alarm;
+    Value<uint16_t> neg_alt_alarm;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(param_idx);
         if (param_idx == -1) {
@@ -1997,11 +1997,11 @@ struct OsdCharWrite : public Message {
     
     virtual ID id() const override { return ID::MSP_OSD_CHAR_WRITE; }
     
-    value<uint8_t> addr;
+    Value<uint8_t> addr;
     std::array<uint8_t,54> font_data;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(addr);
         for (const auto& c : font_data) {
@@ -2019,13 +2019,13 @@ struct VtxConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_VTX_CONFIG; }
 
-    value<uint8_t> device_type;
-    value<uint8_t> band;
-    value<uint8_t> channel;
-    value<uint8_t> power_idx;
-    value<uint8_t> pit_mode;
+    Value<uint8_t> device_type;
+    Value<uint8_t> band;
+    Value<uint8_t> channel;
+    Value<uint8_t> power_idx;
+    Value<uint8_t> pit_mode;
     bool freq_set;
-    value<uint16_t> frequency;
+    Value<uint16_t> frequency;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2051,9 +2051,9 @@ struct SetVtxConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_VTX_CONFIG; }
     
-    value<uint16_t> frequency;
-    value<uint8_t> power;
-    value<uint8_t> pit_mode;
+    Value<uint16_t> frequency;
+    Value<uint8_t> power;
+    Value<uint8_t> pit_mode;
     
     bool set_freq(uint8_t band, uint8_t channel) {
         if (band & 0xF8 || channel & 0xF8) {
@@ -2063,8 +2063,8 @@ struct SetVtxConfig : public Message {
         return true;
     }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(frequency);
         rc &= data->pack(power);
@@ -2076,15 +2076,15 @@ struct SetVtxConfig : public Message {
 
 //Differs between iNav and BF/CF
 struct AdvancedConfigSettings {
-    value<uint8_t> gyro_sync_denom;
-    value<uint8_t> pid_process_denom;
-    value<uint8_t> use_unsynced_pwm;
-    value<uint8_t> motor_pwm_protocol;
-    value<uint16_t> motor_pwm_rate;
-    value<uint16_t> servo_pwm_rate; //digitalIdleOffsetValue in BF/CF
-    value<uint8_t> gyro_sync;
+    Value<uint8_t> gyro_sync_denom;
+    Value<uint8_t> pid_process_denom;
+    Value<uint8_t> use_unsynced_pwm;
+    Value<uint8_t> motor_pwm_protocol;
+    Value<uint16_t> motor_pwm_rate;
+    Value<uint16_t> servo_pwm_rate; //digitalIdleOffsetValue in BF/CF
+    Value<uint8_t> gyro_sync;
     bool pwm_inversion_set;
-    value<uint8_t> pwm_inversion;
+    Value<uint8_t> pwm_inversion;
 };
 
 // Betaflight Additional Commands
@@ -2119,8 +2119,8 @@ struct SetAdvancedConfig : public AdvancedConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_ADVANCED_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(gyro_sync_denom);
         rc &= data->pack(pid_process_denom);
@@ -2136,17 +2136,17 @@ struct SetAdvancedConfig : public AdvancedConfigSettings, public Message {
 };
 
 struct FilterConfigSettings {
-    value<uint8_t> gyro_soft_lpf_hz;
-    value<uint16_t> dterm_lpf_hz;
-    value<uint16_t> yaw_lpf_hz;
-    value<uint16_t> gyro_soft_notch_hz_1;
-    value<uint16_t> gyro_soft_notch_cutoff_1;
-    value<uint16_t> dterm_soft_notch_hz;
-    value<uint16_t> dterm_soft_notch_cutoff;
-    value<uint16_t> gyro_soft_notch_hz_2;
-    value<uint16_t> gyro_soft_notch_cutoff_2;
+    Value<uint8_t> gyro_soft_lpf_hz;
+    Value<uint16_t> dterm_lpf_hz;
+    Value<uint16_t> yaw_lpf_hz;
+    Value<uint16_t> gyro_soft_notch_hz_1;
+    Value<uint16_t> gyro_soft_notch_cutoff_1;
+    Value<uint16_t> dterm_soft_notch_hz;
+    Value<uint16_t> dterm_soft_notch_cutoff;
+    Value<uint16_t> gyro_soft_notch_hz_2;
+    Value<uint16_t> gyro_soft_notch_cutoff_2;
     bool dterm_filter_type_set;
-    value<uint8_t> dterm_filter_type;
+    Value<uint8_t> dterm_filter_type;
 };
 
 // MSP_FILTER_CONFIG: 92
@@ -2181,8 +2181,8 @@ struct SetFilterConfig : public FilterConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_FILTER_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(gyro_soft_lpf_hz);
         rc &= data->pack(dterm_lpf_hz);
@@ -2201,17 +2201,17 @@ struct SetFilterConfig : public FilterConfigSettings, public Message {
 
 
 struct PidAdvancedSettings {
-    value<uint16_t> rollPitchItermIgnoreRate;
-    value<uint16_t> yawItermIgnoreRate;
-    value<uint16_t> yaw_p_limit;
-    value<uint8_t> deltaMethod;
-    value<uint8_t> vbatPidCompensation;
-    value<uint8_t> setpointRelaxRatio;
-    value<float> dterm_setpoint_weight; //TODO scaled value
-    value<uint16_t> pidSumLimit;
-    value<uint8_t> itermThrottleGain;
-    value<uint32_t> axisAccelerationLimitRollPitch; //TODO scaled and clamped value
-    value<uint32_t> axisAccelerationLimitYaw; //TODO scaled and clamped value
+    Value<uint16_t> rollPitchItermIgnoreRate;
+    Value<uint16_t> yawItermIgnoreRate;
+    Value<uint16_t> yaw_p_limit;
+    Value<uint8_t> deltaMethod;
+    Value<uint8_t> vbatPidCompensation;
+    Value<uint8_t> setpointRelaxRatio;
+    Value<float> dterm_setpoint_weight; //TODO scaled value
+    Value<uint16_t> pidSumLimit;
+    Value<uint8_t> itermThrottleGain;
+    Value<uint32_t> axisAccelerationLimitRollPitch; //TODO scaled and clamped value
+    Value<uint32_t> axisAccelerationLimitYaw; //TODO scaled and clamped value
     
 };
 
@@ -2233,7 +2233,7 @@ struct PidAdvanced : public PidAdvancedSettings, public Message {
         rc &= data.unpack<uint8_t>(dterm_setpoint_weight,0.01);
         rc &= data.unpack(pidSumLimit);
         rc &= data.unpack(itermThrottleGain);
-        value<uint16_t> tmp16;
+        Value<uint16_t> tmp16;
         rc &= data.unpack(tmp16);
         axisAccelerationLimitRollPitch = tmp16()*10;
         rc &= data.unpack(tmp16);
@@ -2249,8 +2249,8 @@ struct SetPidAdvanced : public PidAdvancedSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_PID_ADVANCED; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(rollPitchItermIgnoreRate);
         rc &= data->pack(yawItermIgnoreRate);
@@ -2269,13 +2269,13 @@ struct SetPidAdvanced : public PidAdvancedSettings, public Message {
 };
 
 struct SensorConfigSettings {
-    value<uint8_t> acc_hardware;
-    value<uint8_t> baro_hardware;
-    value<uint8_t> mag_hardware;
+    Value<uint8_t> acc_hardware;
+    Value<uint8_t> baro_hardware;
+    Value<uint8_t> mag_hardware;
     bool extended_contents;
-    value<uint8_t> pitot_hardware;
-    value<uint8_t> rangefinder_hardware;
-    value<uint8_t> opflow_hardware;
+    Value<uint8_t> pitot_hardware;
+    Value<uint8_t> rangefinder_hardware;
+    Value<uint8_t> opflow_hardware;
 };
 
 // MSP_SENSOR_CONFIG: 96
@@ -2307,8 +2307,8 @@ struct SetSensorConfig : public SensorConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_SENSOR_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(acc_hardware);
         rc &= data->pack(baro_hardware);
@@ -2329,10 +2329,10 @@ struct CameraControl : public Message {
     
     virtual ID id() const override { return ID::MSP_CAMERA_CONTROL; }
     
-    value<uint8_t> key;
+    Value<uint8_t> key;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(key)) data.reset();
         return data;
     }
@@ -2344,11 +2344,11 @@ struct SetArmingDisabled : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_ARMING_DISABLED; }
     
-    value<uint8_t> command;
-    value<uint8_t> disableRunawayTakeoff;
+    Value<uint8_t> command;
+    Value<uint8_t> disableRunawayTakeoff;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(command);
         rc &= data->pack(disableRunawayTakeoff);
@@ -2369,9 +2369,9 @@ struct Ident : public Message {
     
     virtual ID id() const override { return ID::MSP_IDENT; }
 
-	value<uint8_t> version;
+	Value<uint8_t> version;
     MultiType type;
-	value<uint8_t> msp_version;
+	Value<uint8_t> msp_version;
     std::set<Capability> capabilities;
 
     virtual bool decode(ByteVector& data) override {
@@ -2452,11 +2452,11 @@ struct Ident : public Message {
 };
 
 struct StatusBase {
-    value<uint16_t>    cycle_time;   // in us
-    value<uint16_t>    i2c_errors;
+    Value<uint16_t>    cycle_time;   // in us
+    Value<uint16_t>    i2c_errors;
     std::set<Sensor> sensors;
     std::set<size_t> box_mode_flags;
-	value<uint8_t>      current_profile;
+	Value<uint8_t>      current_profile;
     
     bool unpack_from(ByteVector& data) {
         bool rc = true;
@@ -2465,7 +2465,7 @@ struct StatusBase {
         
         // get sensors
         sensors.clear();
-        uint16_t sensor;
+        uint16_t sensor = 0;
         rc &= data.unpack(sensor);
         if(sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
@@ -2486,7 +2486,7 @@ struct StatusBase {
 
         // check active boxes
         box_mode_flags.clear();
-        uint32_t flag;
+        uint32_t flag = 0;
         rc &= data.unpack(flag);
         for(size_t ibox(0); ibox < sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
@@ -2506,8 +2506,8 @@ struct Status : public StatusBase, public Message {
     
     virtual ID id() const override { return ID::MSP_STATUS; }
     
-    value<uint16_t>     avg_system_load_pct;
-    value<uint16_t>     gyro_cycle_time;
+    Value<uint16_t>     avg_system_load_pct;
+    Value<uint16_t>     gyro_cycle_time;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2585,9 +2585,9 @@ struct RawImu : public Message {
     
     virtual ID id() const override { return ID::MSP_RAW_IMU; }
 
-    std::array<value<int16_t>, 3> acc;
-    std::array<value<int16_t>, 3> gyro;
-    std::array<value<int16_t>, 3> mag;
+    std::array<Value<int16_t>, 3> acc;
+    std::array<Value<int16_t>, 3> gyro;
+    std::array<Value<int16_t>, 3> mag;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2614,9 +2614,9 @@ struct RawImu : public Message {
 };
 
 struct ScaledImu {
-    std::array<value<float>, 3> acc;
-    std::array<value<float>, 3> gyro;
-    std::array<value<float>, 3> mag;
+    std::array<Value<float>, 3> acc;
+    std::array<Value<float>, 3> gyro;
+    std::array<Value<float>, 3> mag;
     
     ScaledImu(RawImu raw, float acc_scale, float gyro_scale, float mag_scale) {
         for (int i = 0; i < 3; ++i) {
@@ -2725,15 +2725,15 @@ struct RawGPS : public Message {
     
     virtual ID id() const override { return ID::MSP_RAW_GPS; }
 
-    value<uint8_t> fix;
-    value<uint8_t> numSat;
-    value<float> lat;
-    value<float> lon;
-    value<float> altitude;
-    value<float> ground_speed;
-    value<float> ground_course;
+    Value<uint8_t> fix;
+    Value<uint8_t> numSat;
+    Value<float> lat;
+    Value<float> lon;
+    Value<float> altitude;
+    Value<float> ground_speed;
+    Value<float> ground_course;
     bool hdop_set;
-    value<float> hdop;
+    Value<float> hdop;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2772,9 +2772,9 @@ struct CompGPS : public Message {
     
     virtual ID id() const override { return ID::MSP_COMP_GPS; }
 
-    value<uint16_t> distanceToHome;    // meter
-    value<uint16_t> directionToHome;   // degree
-    value<uint8_t> update;
+    Value<uint16_t> distanceToHome;    // meter
+    Value<uint16_t> directionToHome;   // degree
+    Value<uint8_t> update;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2802,9 +2802,9 @@ struct Attitude : public Message {
     
     virtual ID id() const override { return ID::MSP_ATTITUDE; }
 
-    value<int16_t> roll;        // degree
-    value<int16_t> pitch;        // degree
-    value<int16_t> yaw;    // degree
+    Value<int16_t> roll;        // degree
+    Value<int16_t> pitch;        // degree
+    Value<int16_t> yaw;    // degree
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2831,10 +2831,10 @@ struct Altitude : public Message {
     
     virtual ID id() const override { return ID::MSP_ALTITUDE; }
 
-    value<float> altitude; // m
-    value<float> vario;    // m/s
+    Value<float> altitude; // m
+    Value<float> vario;    // m/s
     bool baro_altitude_set;
-    value<float> baro_altitude;
+    Value<float> baro_altitude;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2866,10 +2866,10 @@ struct Analog : public Message {
     
     virtual ID id() const override { return ID::MSP_ANALOG; }
 
-    value<float>	vbat;           // Volt
-    value<float>	powerMeterSum;  // Ah
-	value<uint16_t>	rssi;  // Received Signal Strength Indication [0; 1023]
-    value<float>	amperage;       // Ampere
+    Value<float>	vbat;           // Volt
+    Value<float>	powerMeterSum;  // Ah
+	Value<uint16_t>	rssi;  // Received Signal Strength Indication [0; 1023]
+    Value<float>	amperage;       // Ampere
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -2894,14 +2894,14 @@ struct Analog : public Message {
 struct RcTuningSettings {
     
     // RPY sequence
-    std::array<value<uint8_t>,3> rates;
-    std::array<value<uint8_t>,3> rcRates;
-    std::array<value<uint8_t>,3> rcExpo;
+    std::array<Value<uint8_t>,3> rates;
+    std::array<Value<uint8_t>,3> rcRates;
+    std::array<Value<uint8_t>,3> rcExpo;
     
-    value<uint8_t> dynamic_throttle_pid;
-    value<uint8_t> throttle_mid;
-    value<uint8_t> throttle_expo;
-    value<uint16_t> tpa_breakpoint;
+    Value<uint8_t> dynamic_throttle_pid;
+    Value<uint8_t> throttle_mid;
+    Value<uint8_t> throttle_expo;
+    Value<uint16_t> tpa_breakpoint;
     
     
     std::ostream& print(std::ostream& s) const
@@ -2970,7 +2970,7 @@ struct PidTerms : public Packable {
 };
 
 struct PidSettings {
-    std::array<value<PidTerms>,static_cast<uint8_t>(PID_Element::PID_ITEM_COUNT)> entry;
+    std::array<Value<PidTerms>,static_cast<uint8_t>(PID_Element::PID_ITEM_COUNT)> entry;
     
     std::ostream& print(std::ostream& s) const
     {
@@ -3035,7 +3035,7 @@ struct ActiveBoxes : public Message {
         box_pattern.clear();
         bool rc = true;
         while (rc && data.unpacking_remaining()>1) {
-            value<uint16_t> box_conf;
+            Value<uint16_t> box_conf;
             rc &= data.unpack(box_conf);
             std::array<std::set<SwitchPosition>,NAUX> aux_sp;
             for(size_t iaux(0); iaux<NAUX; iaux++) {
@@ -3078,19 +3078,19 @@ struct ActiveBoxes : public Message {
 };
 
 struct MiscSettings {
-    value<uint16_t> mid_rc;
-    value<uint16_t> min_throttle;
-    value<uint16_t> max_throttle;
-    value<uint16_t> min_command;
-    value<uint16_t> failsafe_throttle;
-    value<uint8_t> gps_provider;
-    value<uint8_t> gps_baudrate;
-    value<uint8_t> gps_ubx_sbas;
-    value<uint8_t> multiwii_current_meter_output;
-    value<uint8_t> rssi_channel;
-    value<uint8_t> reserved;
-    value<float> mag_declination; // degree
-    value<float> voltage_scale, cell_min, cell_max, cell_warning;
+    Value<uint16_t> mid_rc;
+    Value<uint16_t> min_throttle;
+    Value<uint16_t> max_throttle;
+    Value<uint16_t> min_command;
+    Value<uint16_t> failsafe_throttle;
+    Value<uint8_t> gps_provider;
+    Value<uint8_t> gps_baudrate;
+    Value<uint8_t> gps_ubx_sbas;
+    Value<uint8_t> multiwii_current_meter_output;
+    Value<uint8_t> rssi_channel;
+    Value<uint8_t> reserved;
+    Value<float> mag_declination; // degree
+    Value<float> voltage_scale, cell_min, cell_max, cell_warning;
     
     std::ostream& print(std::ostream& s) const
     {
@@ -3146,7 +3146,7 @@ struct MotorPins : public Message {
     
     virtual ID id() const override { return ID::MSP_MOTOR_PINS; }
 
-    value<uint8_t> pwm_pin[N_MOTOR];
+    Value<uint8_t> pwm_pin[N_MOTOR];
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3234,13 +3234,13 @@ struct WayPoint : public Message {
     
     virtual ID id() const override { return ID::MSP_WP; }
 
-    value<uint8_t> wp_no;
-    value<uint32_t> lat;
-    value<uint32_t> lon;
-    value<uint32_t> altHold;
-    value<uint16_t> heading;
-    value<uint16_t> staytime;
-    value<uint8_t> navflag;
+    Value<uint8_t> wp_no;
+    Value<uint32_t> lat;
+    Value<uint32_t> lon;
+    Value<uint32_t> altHold;
+    Value<uint16_t> heading;
+    Value<uint16_t> staytime;
+    Value<uint8_t> navflag;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3283,10 +3283,10 @@ struct BoxIds : public Message {
 };
 
 struct ServoConfRange {
-    value<uint16_t> min;
-    value<uint16_t> max;
-    value<uint16_t> middle;
-    value<uint8_t> rate;
+    Value<uint16_t> min;
+    Value<uint16_t> max;
+    Value<uint16_t> middle;
+    Value<uint8_t> rate;
 };
 
 // MSP_SERVO_CONF: 120
@@ -3315,11 +3315,11 @@ struct NavStatus: public Message {
     
     virtual ID id() const override { return ID::MSP_NAV_STATUS; }
 
-    value<uint8_t> GPS_mode;
-    value<uint8_t> NAV_state;
-    value<uint8_t> mission_action;
-    value<uint8_t> mission_number;
-    value<uint8_t> NAV_error;
+    Value<uint8_t> GPS_mode;
+    Value<uint8_t> NAV_state;
+    Value<uint8_t> mission_action;
+    Value<uint8_t> mission_number;
+    Value<uint8_t> NAV_error;
     int16_t target_bearing; // degrees
 
     virtual bool decode(ByteVector& data) override {
@@ -3414,9 +3414,9 @@ struct Motor3dConfig: public Message {
     
     virtual ID id() const override { return ID::MSP_MOTOR_3D_CONFIG; }
 
-    value<uint16_t> deadband3d_low;
-    value<uint16_t> deadband3d_high;
-    value<uint16_t> neutral_3d;
+    Value<uint16_t> deadband3d_low;
+    Value<uint16_t> deadband3d_high;
+    Value<uint16_t> neutral_3d;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3428,10 +3428,10 @@ struct Motor3dConfig: public Message {
 };
 
 struct RcDeadbandSettings {
-    value<uint8_t> deadband;
-    value<uint8_t> yaw_deadband;
-    value<uint8_t> alt_hold_deadband;
-    value<uint16_t> deadband3d_throttle;
+    Value<uint8_t> deadband;
+    Value<uint8_t> yaw_deadband;
+    Value<uint8_t> alt_hold_deadband;
+    Value<uint16_t> deadband3d_throttle;
 };
 
 struct RcDeadband: public RcDeadbandSettings, public Message {
@@ -3450,9 +3450,9 @@ struct RcDeadband: public RcDeadbandSettings, public Message {
 };
 
 struct SensorAlignmentSettings {
-    value<uint8_t> gyro_align;
-    value<uint8_t> acc_align;
-    value<uint8_t> mag_align;
+    Value<uint8_t> gyro_align;
+    Value<uint8_t> acc_align;
+    Value<uint8_t> mag_align;
 };
 
 struct SensorAlignment: public SensorAlignmentSettings, public Message {
@@ -3477,9 +3477,9 @@ struct LedStripModecolor: public Message {
 
     std::array<std::array<uint8_t,LED_DIRECTION_COUNT>,LED_MODE_COUNT> mode_colors;
     std::array<uint8_t,LED_SPECIAL_COLOR_COUNT> special_colors;
-    value<uint8_t> led_aux_channel;
-    value<uint8_t> reserved;
-    value<uint8_t> led_strip_aux_channel;
+    Value<uint8_t> led_aux_channel;
+    Value<uint8_t> reserved;
+    Value<uint8_t> led_strip_aux_channel;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3501,8 +3501,8 @@ struct LedStripModecolor: public Message {
 
 
 struct VoltageMeter {
-    value<uint8_t> id;
-    value<uint8_t> val;
+    Value<uint8_t> id;
+    Value<uint8_t> val;
 };
 
 struct VoltageMeters: public Message {
@@ -3523,9 +3523,9 @@ struct VoltageMeters: public Message {
 };
 
 struct CurrentMeter {
-    value<uint8_t> id;
-    value<uint16_t> mAh_drawn;
-    value<uint16_t> mA;
+    Value<uint8_t> id;
+    Value<uint16_t> mAh_drawn;
+    Value<uint16_t> mA;
 };
 
 struct CurrentMeters: public Message {
@@ -3552,12 +3552,12 @@ struct BatteryState: public Message {
     
     virtual ID id() const override { return ID::MSP_BATTERY_STATE; }
 
-    value<uint8_t> cell_count;
-    value<uint16_t> capacity_mAh;
-    value<uint8_t> voltage;
-    value<uint16_t> mAh_drawn;
-    value<uint16_t> current;
-    value<uint8_t> state;
+    Value<uint8_t> cell_count;
+    Value<uint16_t> capacity_mAh;
+    Value<uint8_t> voltage;
+    Value<uint16_t> mAh_drawn;
+    Value<uint16_t> current;
+    Value<uint8_t> state;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3573,9 +3573,9 @@ struct BatteryState: public Message {
 
 
 struct MotorConfigSettings {
-    value<uint16_t> min_throttle;
-    value<uint16_t> max_throttle;
-    value<uint16_t> min_command;
+    Value<uint16_t> min_throttle;
+    Value<uint16_t> max_throttle;
+    Value<uint16_t> min_command;
 };
 
 struct MotorConfig: public MotorConfigSettings, public Message {
@@ -3593,10 +3593,10 @@ struct MotorConfig: public MotorConfigSettings, public Message {
 };
 
 struct GpsConfigSettings {
-    value<uint8_t> provider;
-    value<uint8_t> sbas_mode;
-    value<uint8_t> auto_config;
-    value<uint8_t> auto_baud;
+    Value<uint8_t> provider;
+    Value<uint8_t> sbas_mode;
+    Value<uint8_t> auto_config;
+    Value<uint8_t> auto_baud;
 };
 
 struct GpsConfig: public GpsConfigSettings, public Message {
@@ -3619,7 +3619,7 @@ struct CompassConfig: public Message {
     
     virtual ID id() const override { return ID::MSP_COMPASS_CONFIG; }
 
-    value<uint16_t> mag_declination;
+    Value<uint16_t> mag_declination;
     
     virtual bool decode(ByteVector& data) override {
         return data.unpack(mag_declination);
@@ -3627,8 +3627,8 @@ struct CompassConfig: public Message {
 };
 
 struct EscData {
-    value<uint8_t> temperature;
-    value<uint16_t> rpm;
+    Value<uint8_t> temperature;
+    Value<uint16_t> rpm;
 };
 
 struct EscSensorData: public Message {
@@ -3636,7 +3636,7 @@ struct EscSensorData: public Message {
     
     virtual ID id() const override { return ID::MSP_ESC_SENSOR_DATA; }
 
-    value<uint8_t> motor_count;
+    Value<uint8_t> motor_count;
     std::vector<EscData> esc_data;
     
     virtual bool decode(ByteVector& data) override {
@@ -3663,12 +3663,12 @@ struct StatusEx: public StatusBase, public Message {
     virtual ID id() const override { return ID::MSP_STATUS_EX; }
     
     //bf/cf fields
-    value<uint8_t> max_profiles;
-    value<uint8_t> control_rate_profile;
+    Value<uint8_t> max_profiles;
+    Value<uint8_t> control_rate_profile;
     //iNav fields
-    value<uint16_t> avg_system_load_pct;
-    value<uint16_t> arming_flags;
-    value<uint8_t> acc_calibration_axis_flags;
+    Value<uint16_t> avg_system_load_pct;
+    Value<uint16_t> arming_flags;
+    Value<uint8_t> acc_calibration_axis_flags;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3693,15 +3693,15 @@ struct SensorStatus: public Message {
     
     virtual ID id() const override { return ID::MSP_SENSOR_STATUS; }
     
-    value<uint8_t> hardware_healthy;
-    value<uint8_t> hw_gyro_status;
-    value<uint8_t> hw_acc_status;
-    value<uint8_t> hw_compass_status;
-    value<uint8_t> hw_baro_status;
-    value<uint8_t> hw_gps_status;
-    value<uint8_t> hw_rangefinder_status;
-    value<uint8_t> hw_pitometer_status;
-    value<uint8_t> hw_optical_flow_status;
+    Value<uint8_t> hardware_healthy;
+    Value<uint8_t> hw_gyro_status;
+    Value<uint8_t> hw_acc_status;
+    Value<uint8_t> hw_compass_status;
+    Value<uint8_t> hw_baro_status;
+    Value<uint8_t> hw_gps_status;
+    Value<uint8_t> hw_rangefinder_status;
+    Value<uint8_t> hw_pitometer_status;
+    Value<uint8_t> hw_optical_flow_status;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3726,9 +3726,9 @@ struct Uid: public Message {
     
     virtual ID id() const override { return ID::MSP_UID; }
     
-    value<uint32_t> u_id_0;
-    value<uint32_t> u_id_1;
-    value<uint32_t> u_id_2;
+    Value<uint32_t> u_id_0;
+    Value<uint32_t> u_id_1;
+    Value<uint32_t> u_id_2;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3753,9 +3753,9 @@ struct GpsSvInfo: public Message {
     
     virtual ID id() const override { return ID::MSP_GPSSVINFO; }
     
-    value<uint8_t> hdop;
+    Value<uint8_t> hdop;
     
-    value<uint8_t> channel_count;
+    Value<uint8_t> channel_count;
     std::vector<GpsSvInfoSettings> sv_info;
     
     virtual bool decode(ByteVector& data) override {
@@ -3784,13 +3784,13 @@ struct GpsStatistics: public Message {
     
     virtual ID id() const override { return ID::MSP_GPSSTATISTICS; }
     
-    value<uint16_t> last_msg_dt;
-    value<uint32_t> errors;
-    value<uint32_t> timeouts;
-    value<uint32_t> packet_count;
-    value<uint16_t> hdop;
-    value<uint16_t> eph;
-    value<uint16_t> epv;
+    Value<uint16_t> last_msg_dt;
+    Value<uint32_t> errors;
+    Value<uint32_t> timeouts;
+    Value<uint32_t> packet_count;
+    Value<uint16_t> hdop;
+    Value<uint16_t> eph;
+    Value<uint16_t> epv;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3830,13 +3830,13 @@ struct Displayport : public Message {
     
     virtual ID id() const override { return ID::MSP_DISPLAYPORT; }
     
-    value<uint8_t> sub_cmd;
-    value<uint8_t> row;
-    value<uint8_t> col;
-    value<std::string> str;
+    Value<uint8_t> sub_cmd;
+    Value<uint8_t> row;
+    Value<uint8_t> col;
+    Value<std::string> str;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(sub_cmd);
         if (sub_cmd() == 3) {
@@ -3858,12 +3858,12 @@ struct CopyProfile : public Message {
     
     virtual ID id() const override { return ID::MSP_COPY_PROFILE; }
     
-    value<uint8_t> profile_type;
-    value<uint8_t> dest_profile_idx;
-    value<uint8_t> src_profile_idx;
+    Value<uint8_t> profile_type;
+    Value<uint8_t> dest_profile_idx;
+    Value<uint8_t> src_profile_idx;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(profile_type);
         rc &= data->pack(dest_profile_idx);
@@ -3874,8 +3874,8 @@ struct CopyProfile : public Message {
 };
 
 struct BeeperConfigSettings {
-    value<uint32_t> beeper_off_mask;
-    value<uint8_t> beacon_tone;
+    Value<uint32_t> beeper_off_mask;
+    Value<uint8_t> beacon_tone;
 };
 
 // MSP_BEEPER_CONFIG               = 184,
@@ -3898,8 +3898,8 @@ struct SetBeeperConfig : public BeeperConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_BEEPER_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(beeper_off_mask);
         if (beacon_tone.set()) {
@@ -3916,10 +3916,10 @@ struct SetTxInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_TX_INFO; }
     
-    value<uint8_t> rssi;
+    Value<uint8_t> rssi;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(rssi)) data.reset();
         return data;
     }
@@ -3931,8 +3931,8 @@ struct TxInfo : public Message {
     
     virtual ID id() const override { return ID::MSP_TX_INFO; }
     
-    value<uint8_t> rssi_source;
-    value<uint8_t> rtc_date_time_status;
+    Value<uint8_t> rssi_source;
+    Value<uint8_t> rtc_date_time_status;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -3956,9 +3956,9 @@ struct SetRawRc : public Message {
 
     std::vector<uint16_t> channels;
 
-    virtual ByteVector_uptr encode() const override {
+    virtual ByteVectorUptr encode() const override {
 
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for(const uint16_t& c : channels) {
             rc &= data->pack(c);
@@ -3974,15 +3974,15 @@ struct SetRawGPS : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RAW_GPS; }
 
-    value<uint8_t> fix;
-    value<uint8_t> numSat;
-    value<uint32_t> lat;
-    value<uint32_t> lon;
-    value<uint16_t> altitude;
-    value<uint16_t> speed;
+    Value<uint8_t> fix;
+    Value<uint8_t> numSat;
+    Value<uint32_t> lat;
+    Value<uint32_t> lon;
+    Value<uint16_t> altitude;
+    Value<uint16_t> speed;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(fix);
         rc &= data->pack(numSat);
@@ -4003,8 +4003,8 @@ struct SetPid : public PidSettings, public Message {
     virtual ID id() const override { return ID::MSP_SET_PID; }
     
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for (uint8_t i = 0; i < static_cast<uint8_t>(PID_Element::PID_ITEM_COUNT); ++i) {
             rc &= data->pack(entry[i]);
@@ -4032,8 +4032,8 @@ struct SetRcTuning : public RcTuningSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RC_TUNING; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(rcRates[0]);
         rc &= data->pack(rcExpo[0]);
@@ -4088,8 +4088,8 @@ struct SetMisc : public MiscSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_MISC; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(mid_rc);
         rc &= data->pack(min_throttle);
@@ -4124,18 +4124,18 @@ struct SetWp : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_WP; }
     
-    value<uint8_t> wp_no;
-    value<uint32_t> lat;
-    value<uint32_t> lon;
-    value<uint32_t> alt;
+    Value<uint8_t> wp_no;
+    Value<uint32_t> lat;
+    Value<uint32_t> lon;
+    Value<uint32_t> alt;
     
-    value<uint16_t> p1;
-    value<uint16_t> p2;
-    value<uint16_t> p3;
-    value<uint8_t> nav_flag;
+    Value<uint16_t> p1;
+    Value<uint16_t> p2;
+    Value<uint16_t> p3;
+    Value<uint8_t> nav_flag;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(wp_no);
         rc &= data->pack(lat);
@@ -4160,8 +4160,8 @@ struct SelectSetting : public Message {
 
 	uint8_t current_setting;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(current_setting)) data.reset();
         return data;
     }
@@ -4175,8 +4175,8 @@ struct SetHeading : public Message {
 
     int16_t heading;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(heading)) data.reset();
         assert(data->size()==2);
         return data;
@@ -4189,17 +4189,17 @@ struct SetServoConf : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_SERVO_CONF; }
 
-    value<uint8_t> servo_idx;
-    value<uint16_t> min;
-    value<uint16_t> max;
-    value<uint16_t> middle;
-    value<uint8_t> rate;
+    Value<uint8_t> servo_idx;
+    Value<uint16_t> min;
+    Value<uint16_t> max;
+    Value<uint16_t> middle;
+    Value<uint8_t> rate;
     
-    value<uint8_t> forward_from_channel;
-    value<uint32_t> reversed_sources;
+    Value<uint8_t> forward_from_channel;
+    Value<uint32_t> reversed_sources;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(servo_idx);
         rc &= data->pack(min);
@@ -4207,7 +4207,7 @@ struct SetServoConf : public Message {
         rc &= data->pack(middle);
         rc &= data->pack(rate);
         if (fw_variant == FirmwareVariant::INAV) {
-            uint8_t tmp;
+            uint8_t tmp = 0;
             rc &= data->pack(tmp);
             rc &= data->pack(tmp);
         }
@@ -4226,8 +4226,8 @@ struct SetMotor : public Message {
 
     std::array<uint16_t,N_MOTOR> motor;
 
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         for(size_t i(0); i<N_MOTOR; i++)
             rc &= data->pack(motor[i]);
@@ -4251,12 +4251,12 @@ struct SetMotor3dConf : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_MOTOR_3D_CONF; }
     
-    value<uint16_t> deadband3d_low;
-    value<uint16_t> deadband3d_high;
-    value<uint16_t> neutral_3d;
+    Value<uint16_t> deadband3d_low;
+    Value<uint16_t> deadband3d_high;
+    Value<uint16_t> neutral_3d;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(deadband3d_low);
         rc &= data->pack(deadband3d_high);
@@ -4273,8 +4273,8 @@ struct SetRcDeadband : public RcDeadbandSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RC_DEADBAND; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(deadband);
         rc &= data->pack(yaw_deadband);
@@ -4298,8 +4298,8 @@ struct SetSensorAlignment: public SensorAlignmentSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_SENSOR_ALIGNMENT; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(gyro_align);
         rc &= data->pack(acc_align);
@@ -4315,12 +4315,12 @@ struct SetLedStripModecolor: public SensorAlignmentSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_LED_STRIP_MODECOLOR; }
     
-    value<uint8_t> mode_idx;
-    value<uint8_t> fun_idx;
-    value<uint8_t> color;
+    Value<uint8_t> mode_idx;
+    Value<uint8_t> fun_idx;
+    Value<uint8_t> color;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(mode_idx);
         rc &= data->pack(fun_idx);
@@ -4337,8 +4337,8 @@ struct SetMotorConfig: public MotorConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_MOTOR_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(min_throttle);
         rc &= data->pack(max_throttle);
@@ -4354,8 +4354,8 @@ struct SetGpsConfig: public GpsConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_GPS_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(provider);
         rc &= data->pack(sbas_mode);
@@ -4372,18 +4372,18 @@ struct SetCompassConfig: public Message {
     
     virtual ID id() const override { return ID::MSP_SET_GPS_CONFIG; }
     
-    value<float> mag_declination;
+    Value<float> mag_declination;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack<uint16_t>(mag_declination,10)) data.reset();
         return data;
     }
 };
 
 struct AccTrimSettings {
-    value<uint16_t> pitch;
-    value<uint16_t> roll;
+    Value<uint16_t> pitch;
+    Value<uint16_t> roll;
 };
 
 // MSP_SET_ACC_TRIM                = 239    //in message          set acc angle trim values
@@ -4392,8 +4392,8 @@ struct SetAccTrim: public AccTrimSettings, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_ACC_TRIM; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(pitch);
         rc &= data->pack(roll);
@@ -4457,12 +4457,12 @@ struct ServoMixRules: public Message {
     
     virtual ID id() const override { return ID::MSP_SERVO_MIX_RULES; }
     
-    std::vector<value<ServoMixRule>>rules;
+    std::vector<Value<ServoMixRule>>rules;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
         while (data.unpacking_remaining()) {
-            value<ServoMixRule> rule;
+            Value<ServoMixRule> rule;
             rc &= data.unpack(rule);
             if (rc) rules.push_back(rule);
             else break;
@@ -4478,10 +4478,10 @@ struct SetServoMixRule: public Message {
     
     virtual ID id() const override { return ID::MSP_SERVO_MIX_RULES; }
     
-    value<ServoMixRule> rule;
+    Value<ServoMixRule> rule;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(rule)) data.reset();
         return data;
     }
@@ -4502,13 +4502,13 @@ struct Set4WayIF : public Message {
     
     virtual ID id() const override { return ID::MSP_SET_4WAY_IF; }
     
-    value<uint8_t> esc_mode;
-    value<uint8_t> esc_port_index;
+    Value<uint8_t> esc_mode;
+    Value<uint8_t> esc_port_index;
     
-    value<uint8_t> esc_count;
+    Value<uint8_t> esc_count;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         if (esc_mode.set()) {
             rc &= data->pack(esc_mode);
@@ -4524,8 +4524,8 @@ struct Set4WayIF : public Message {
 };
 
 struct RtcVals {
-    value<uint32_t> secs;
-    value<uint16_t> millis;
+    Value<uint32_t> secs;
+    Value<uint16_t> millis;
 };
 
 // MSP_SET_RTC                     = 246    //in message          Sets the RTC clock
@@ -4534,8 +4534,8 @@ struct SetRtc: public RtcVals, public Message {
     
     virtual ID id() const override { return ID::MSP_SET_RTC; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(secs);
         rc &= data->pack(millis);
@@ -4587,7 +4587,7 @@ struct DebugMessage : public Message {
     
     virtual ID id() const override { return ID::MSP_DEBUGMSG; }
 
-    value<std::string> debug_msg;
+    Value<std::string> debug_msg;
 
     virtual bool decode(ByteVector& data) override {
         return data.unpack(debug_msg);
@@ -4601,10 +4601,10 @@ struct Debug : public Message {
     
     virtual ID id() const override { return ID::MSP_DEBUG; }
 
-    value<uint16_t> debug1;
-    value<uint16_t> debug2;
-    value<uint16_t> debug3;
-    value<uint16_t> debug4;
+    Value<uint16_t> debug1;
+    Value<uint16_t> debug2;
+    Value<uint16_t> debug3;
+    Value<uint16_t> debug4;
 
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -4630,7 +4630,7 @@ struct CommonTz : public Message {
     
     virtual ID id() const override { return ID::MSP2_COMMON_TZ; }
     
-    value<uint16_t> tz_offset;
+    Value<uint16_t> tz_offset;
     
     virtual bool decode(ByteVector& data) override {
         return data.unpack(tz_offset);
@@ -4644,10 +4644,10 @@ struct CommonSetTz : public Message {
     
     virtual ID id() const override { return ID::MSP2_COMMON_SET_TZ; }
     
-    value<uint16_t> tz_offset;
+    Value<uint16_t> tz_offset;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         if (!data->pack(tz_offset)) data.reset();
         return data;
     }
@@ -4672,19 +4672,19 @@ struct CommonSetting : public Message {
     
     virtual ID id() const override { return ID::MSP2_COMMON_SETTING; }
     
-    value<std::string> setting_name;
-    value<uint8_t> uint8_val;
-    value<int8_t> int8_val;
-    value<uint16_t> uint16_val;
-    value<int16_t> int16_val;
-    value<uint32_t> uint32_val;
-    value<float> float_val;
-    value<std::string> string_val;
+    Value<std::string> setting_name;
+    Value<uint8_t> uint8_val;
+    Value<int8_t> int8_val;
+    Value<uint16_t> uint16_val;
+    Value<int16_t> int16_val;
+    Value<uint32_t> uint32_val;
+    Value<float> float_val;
+    Value<std::string> string_val;
     
     DATA_TYPE expected_data_type;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(setting_name);
         if (!rc) data.reset();
@@ -4731,6 +4731,7 @@ struct CommonSetting : public Message {
             break;
         case DATA_TYPE::INT16:
             s << int16_val;
+            break;
         case DATA_TYPE::UINT32:
             s << uint32_val;
             break;
@@ -4758,19 +4759,19 @@ struct CommonSetSetting : public Message {
     
     virtual ID id() const override { return ID::MSP2_COMMON_SET_SETTING; }
     
-    value<std::string> setting_name;
-    value<uint8_t> uint8_val;
-    value<int8_t> int8_val;
-    value<uint16_t> uint16_val;
-    value<int16_t> int16_val;
-    value<uint32_t> uint32_val;
-    value<float> float_val;
-    value<std::string> string_val;
+    Value<std::string> setting_name;
+    Value<uint8_t> uint8_val;
+    Value<int8_t> int8_val;
+    Value<uint16_t> uint16_val;
+    Value<int16_t> int16_val;
+    Value<uint32_t> uint32_val;
+    Value<float> float_val;
+    Value<std::string> string_val;
     
     DATA_TYPE expected_data_type;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(setting_name);
         if (uint8_val.set()) rc &= data->pack(uint8_val);
@@ -4787,10 +4788,10 @@ struct CommonSetSetting : public Message {
 };
 
 struct MotorMixer : public Packable {
-    value<float> throttle;
-    value<float> roll;
-    value<float> pitch;
-    value<float> yaw;
+    Value<float> throttle;
+    Value<float> roll;
+    Value<float> pitch;
+    Value<float> yaw;
     
     bool unpack_from(ByteVector& data) {
         bool rc = true;
@@ -4837,11 +4838,11 @@ struct CommonSetMotorMixer : public Message {
     
     virtual ID id() const override { return ID::MSP2_COMMON_SET_MOTOR_MIXER; }
     
-    value<uint8_t> index;
+    Value<uint8_t> index;
     MotorMixer mixer;
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(index);
         rc &= data->pack(mixer);
@@ -4859,15 +4860,15 @@ struct InavStatus : public StatusBase, public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_STATUS; }
     
-    value<uint16_t> cycle_time;
-    value<uint16_t> i2c_errors;
-    //value<uint16_t> sensor_status;
+    Value<uint16_t> cycle_time;
+    Value<uint16_t> i2c_errors;
+    //Value<uint16_t> sensor_status;
     std::set<Sensor> sensors;
     
-    value<uint16_t> avg_system_load_pct;
-    value<uint8_t> config_profile;
-    value<uint32_t> arming_flags;
-    //value<uint32_t> box_mode_flags;
+    Value<uint16_t> avg_system_load_pct;
+    Value<uint8_t> config_profile;
+    Value<uint32_t> arming_flags;
+    //Value<uint32_t> box_mode_flags;
     std::set<size_t> box_mode_flags;
     
     /*
@@ -4891,7 +4892,7 @@ struct InavStatus : public StatusBase, public Message {
         
         // get sensors
         sensors.clear();
-        uint16_t sensor;
+        uint16_t sensor = 0;
         rc &= data.unpack(sensor);
         if(sensor & (1 << 0))
             sensors.insert(Sensor::Accelerometer);
@@ -4917,7 +4918,7 @@ struct InavStatus : public StatusBase, public Message {
         
         // check active boxes
         box_mode_flags.clear();
-        uint32_t flag;
+        uint32_t flag = 0;
         rc &= data.unpack(flag);
         for(size_t ibox(0); ibox < sizeof(flag)*CHAR_BIT; ibox++) {
             if(flag & (1 << ibox))
@@ -4992,11 +4993,11 @@ struct InavOpticalFlow : public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_OPTICAL_FLOW; }
     
-    value<uint8_t> raw_quality;
-    value<uint16_t> flow_rate_x;
-    value<uint16_t> flow_rate_y;
-    value<uint16_t> body_rate_x;
-    value<uint16_t> body_rate_y;
+    Value<uint8_t> raw_quality;
+    Value<uint16_t> flow_rate_x;
+    Value<uint16_t> flow_rate_y;
+    Value<uint16_t> body_rate_x;
+    Value<uint16_t> body_rate_y;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -5016,10 +5017,10 @@ struct InavAnalog : public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_ANALOG; }
     
-    value<uint8_t> battery_voltage;
-    value<uint16_t> mAh_drawn;
-    value<uint16_t> rssi;
-    value<uint16_t> amperage;
+    Value<uint8_t> battery_voltage;
+    Value<uint16_t> mAh_drawn;
+    Value<uint16_t> rssi;
+    Value<uint16_t> amperage;
     
     virtual bool decode(ByteVector& data) override {
         bool rc = true;
@@ -5033,24 +5034,24 @@ struct InavAnalog : public Message {
 };
 
 struct InavMiscSettings {
-    value<uint16_t> mid_rc;
-    value<uint16_t> min_throttle;
-    value<uint16_t> max_throttle;
-    value<uint16_t> min_command;
-    value<uint16_t> failsafe_throttle;
-    value<uint8_t> gps_provider;
-    value<uint8_t> gps_baudrate;
-    value<uint8_t> gps_ubx_sbas;
-    value<uint8_t> rssi_channel;
-    value<uint16_t> mag_declination;
-    value<uint16_t> voltage_scale;
-    value<uint16_t> cell_min;
-    value<uint16_t> cell_max;
-    value<uint16_t> cell_warning;
-    value<uint32_t> capacity;
-    value<uint32_t> capacity_warning;
-    value<uint32_t> capacity_critical;
-    value<uint8_t> capacity_units;
+    Value<uint16_t> mid_rc;
+    Value<uint16_t> min_throttle;
+    Value<uint16_t> max_throttle;
+    Value<uint16_t> min_command;
+    Value<uint16_t> failsafe_throttle;
+    Value<uint8_t> gps_provider;
+    Value<uint8_t> gps_baudrate;
+    Value<uint8_t> gps_ubx_sbas;
+    Value<uint8_t> rssi_channel;
+    Value<uint16_t> mag_declination;
+    Value<uint16_t> voltage_scale;
+    Value<uint16_t> cell_min;
+    Value<uint16_t> cell_max;
+    Value<uint16_t> cell_warning;
+    Value<uint32_t> capacity;
+    Value<uint32_t> capacity_warning;
+    Value<uint32_t> capacity_critical;
+    Value<uint8_t> capacity_units;
     
 };
 
@@ -5091,8 +5092,8 @@ struct InavSetMisc : public InavMiscSettings, public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_SET_MISC; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(mid_rc);
         rc &= data->pack(min_throttle);
@@ -5121,16 +5122,16 @@ struct InavSetMisc : public InavMiscSettings, public Message {
 
 
 struct InavBatteryConfigSettings {
-    value<uint16_t> voltage_scale;
-    value<uint16_t> cell_min;
-    value<uint16_t> cell_max;
-    value<uint16_t> cell_warning;
-    value<uint16_t> current_offset;
-    value<uint16_t> current_scale;
-    value<uint32_t> capacity;
-    value<uint32_t> capacity_warning;
-    value<uint32_t> capacity_critical;
-    value<uint8_t> capacity_units;
+    Value<uint16_t> voltage_scale;
+    Value<uint16_t> cell_min;
+    Value<uint16_t> cell_max;
+    Value<uint16_t> cell_warning;
+    Value<uint16_t> current_offset;
+    Value<uint16_t> current_scale;
+    Value<uint32_t> capacity;
+    Value<uint32_t> capacity_warning;
+    Value<uint32_t> capacity_critical;
+    Value<uint8_t> capacity_units;
 };
 
 //MSP2_INAV_BATTERY_CONFIG        = 0x2005,
@@ -5162,8 +5163,8 @@ struct InavSetBatteryConfig : public InavBatteryConfigSettings, public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_SET_BATTERY_CONFIG; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(voltage_scale);
         rc &= data->pack(cell_min);
@@ -5182,22 +5183,22 @@ struct InavSetBatteryConfig : public InavBatteryConfigSettings, public Message {
 };
 
 struct InavRateProfileSettings {
-    value<uint8_t> throttle_rc_mid;
-    value<uint8_t> throttle_rc_expo;
-    value<uint8_t> throttle_dyn_pid;
-    value<uint16_t> throttle_pa_breakpoint;
+    Value<uint8_t> throttle_rc_mid;
+    Value<uint8_t> throttle_rc_expo;
+    Value<uint8_t> throttle_dyn_pid;
+    Value<uint16_t> throttle_pa_breakpoint;
     
-    value<uint8_t> stabilized_rc_expo;
-    value<uint8_t> stabilized_rc_yaw_expo;
-    value<uint8_t> stabilized_rate_r;
-    value<uint8_t> stabilized_rate_p;
-    value<uint8_t> stabilized_rate_y;
+    Value<uint8_t> stabilized_rc_expo;
+    Value<uint8_t> stabilized_rc_yaw_expo;
+    Value<uint8_t> stabilized_rate_r;
+    Value<uint8_t> stabilized_rate_p;
+    Value<uint8_t> stabilized_rate_y;
     
-    value<uint8_t> manual_rc_expo;
-    value<uint8_t> manual_rc_yaw_expo;
-    value<uint8_t> manual_rate_r;
-    value<uint8_t> manual_rate_p;
-    value<uint8_t> manual_rate_y;
+    Value<uint8_t> manual_rc_expo;
+    Value<uint8_t> manual_rc_yaw_expo;
+    Value<uint8_t> manual_rate_r;
+    Value<uint8_t> manual_rate_p;
+    Value<uint8_t> manual_rate_y;
     
 };
 
@@ -5237,8 +5238,8 @@ struct InavSetRateProfile : public InavRateProfileSettings, public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_SET_RATE_PROFILE; }
     
-    virtual ByteVector_uptr encode() const override {
-        ByteVector_uptr data = std::make_unique<ByteVector>();
+    virtual ByteVectorUptr encode() const override {
+        ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc = true;
         rc &= data->pack(throttle_rc_mid);
         rc &= data->pack(throttle_rc_expo);
@@ -5268,7 +5269,7 @@ struct InavAirSpeed : public InavMiscSettings, public Message {
     
     virtual ID id() const override { return ID::MSP2_INAV_RATE_PROFILE; }
     
-    value<uint32_t> speed;
+    Value<uint32_t> speed;
     
     virtual bool decode(ByteVector& data) override {
         return data.unpack(speed);
@@ -5282,6 +5283,6 @@ struct InavAirSpeed : public InavMiscSettings, public Message {
 
 std::ostream& operator<<(std::ostream& s, const msp::msg::ScaledImu& val) {
     return val.print(s);
-};
+}
 
 #endif // MSP_MSG_HPP

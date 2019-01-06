@@ -1,5 +1,5 @@
-#include "value.hpp"
-#include "byte_vector.hpp"
+#include "Value.hpp"
+#include "ByteVector.hpp"
 #include "gtest/gtest.h"
 #include <type_traits>
 
@@ -42,13 +42,13 @@ TYPED_TEST_CASE(valueTest, numTypes);
 
 // Tests that the Foo::Bar() method does Abc.
 TYPED_TEST(valueTest, Initialzation) {
-    value<TypeParam> v;
+    Value<TypeParam> v;
     EXPECT_EQ(TypeParam(0), v());
     EXPECT_FALSE(v.set());
 }
 
 TYPED_TEST(valueTest, AssignmentZero) {
-    value<TypeParam> v1, v2;
+    Value<TypeParam> v1, v2;
     
     TypeParam ref = 0;
     v1 = ref;
@@ -62,7 +62,7 @@ TYPED_TEST(valueTest, AssignmentZero) {
 
 
 TYPED_TEST(valueTest, AssignmentMax) {
-    value<TypeParam> v1, v2;
+    Value<TypeParam> v1, v2;
     
     TypeParam ref = std::numeric_limits<TypeParam>::max();;
     v1 = ref;
@@ -75,7 +75,7 @@ TYPED_TEST(valueTest, AssignmentMax) {
 
 
 TYPED_TEST(valueTest, AssignmentMin) {
-    value<TypeParam> v1, v2;
+    Value<TypeParam> v1, v2;
     
     TypeParam ref = std::numeric_limits<TypeParam>::min();;
     v1 = ref;
@@ -87,13 +87,13 @@ TYPED_TEST(valueTest, AssignmentMin) {
 }
 
 TEST(valueTest, stringInit) {
-    value<std::string> v;
+    Value<std::string> v;
     EXPECT_EQ("", v());
     EXPECT_EQ(false, v.set());
 }
 
 TEST(valueTest, stringAssign) {
-    value<std::string> v1, v2;
+    Value<std::string> v1, v2;
     v1 = std::string("test");
     EXPECT_EQ("test", v1());
     EXPECT_EQ(true, v1.set());
@@ -103,13 +103,13 @@ TEST(valueTest, stringAssign) {
 }
 
 TEST(valueTest, ByteVecInit) {
-    value<ByteVector> v;
+    Value<ByteVector> v;
     EXPECT_EQ(true, v().empty());
     EXPECT_EQ(false, v.set());
 }
 
 TEST(valueTest, ByteVecAssign) {
-    value<ByteVector> v1, v2;
+    Value<ByteVector> v1, v2;
     v1 = ByteVector(1,1);
     EXPECT_EQ(1, v1()[0]);
     EXPECT_EQ(true, v1.set());
