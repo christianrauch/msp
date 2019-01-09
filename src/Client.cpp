@@ -50,12 +50,12 @@ void PeriodicTimer::setPeriod(const double period_seconds) {
 namespace msp {
 namespace client {
 
-Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false) {
+Client::Client() : pimpl(new SerialPortImpl), running(false), print_warnings(false),firmware(msp::FirmwareVariant::CLFL) {
     request_received.data.reserve(256);
 }
 
 Client::~Client() {
-    for(const std::pair<msp::ID, msp::Request*> d : subscribed_requests)
+    for(const std::pair<msp::ID, msp::Message*> d : subscribed_requests)
         delete d.second;
 
     for(const std::pair<msp::ID, SubscriptionBase*> s : subscriptions)
@@ -104,7 +104,7 @@ bool Client::sendData(const uint8_t id, const ByteVector &data) {
     return true;
 }
 
-int Client::request(msp::Request &request, const double timeout) {
+int Client::request(msp::Message &request, const double timeout) {
     msp::ByteVector data;
     const int success = request_raw(uint8_t(request.id()), data, timeout);
     if(success==1) { request.decode(data); }
@@ -140,8 +140,8 @@ int Client::request_raw(const uint8_t id, ByteVector &data, const double timeout
     return success;
 }
 
-bool Client::respond(const msp::Response &response, const bool wait_ack) {
-    return respond_raw(uint8_t(response.id()), response.encode(), wait_ack);
+bool Client::respond(const msp::Message &response, const bool wait_ack) {
+    return respond_raw(uint8_t(response.id()), *response.encode(), wait_ack);
 }
 
 bool Client::respond_raw(const uint8_t id, const ByteVector &data, const bool wait_ack) {
@@ -191,7 +191,7 @@ void Client::processOneMessage() {
     // payload length
     uint8_t len;
     asio::read(pimpl->port, asio::buffer(&len,1));
-    request_received.data.resize(len);
+    request_received.data = ByteVector(len);
 
     // message ID
     mutex_request.lock();
@@ -231,7 +231,7 @@ void Client::processOneMessage() {
     mutex_request.lock();
     if(request_received.status==OK && subscriptions.count(ID(request_received.id))) {
         // fetch message type, decode payload
-        msp::Request *const req = subscribed_requests.at(ID(request_received.id));
+        msp::Message * const req = subscribed_requests.at(ID(request_received.id));
         req->decode(request_received.data);
         mutex_request.unlock();
         // call callback

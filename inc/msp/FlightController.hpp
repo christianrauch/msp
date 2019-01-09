@@ -6,10 +6,7 @@
 
 namespace fcu {
 
-enum class FirmwareType {
-    MULTIWII,
-    CLEANFLIGHT
-};
+
 
 class FlightController {
 public:
@@ -23,15 +20,15 @@ public:
 
     /**
      * @brief isFirmware determine firmware type (e.g. to distiguish accepted messages)
-     * @param firmware_type type of firmware (enum FirmwareType)
+     * @param firmware_type type of firmware (enum msp::FirmwareVariant)
      * @return true if firmware is firmware_type
      * @return false if firmware is not firmware_type
      */
-    bool isFirmware(const FirmwareType firmware_type);
+    bool isFirmware(const msp::FirmwareVariant firmware_type);
 
-    bool isFirmwareMultiWii() { return isFirmware(FirmwareType::MULTIWII); }
+    bool isFirmwareMultiWii() { return isFirmware(msp::FirmwareVariant::MWII); }
 
-    bool isFirmwareCleanflight() { return isFirmware(FirmwareType::CLEANFLIGHT); }
+    bool isFirmwareCleanflight() { return isFirmware(msp::FirmwareVariant::CLFL); }
 
     /**
      * @brief subscribe register callback function that is called when type is received
@@ -85,7 +82,7 @@ public:
         return client.sendRequest(id);
     }
 
-    bool request(msp::Request &request, const double timeout = 0) {
+    bool request(msp::Message &request, const double timeout = 0) {
         return client.request(request, timeout);
     }
 
@@ -93,7 +90,7 @@ public:
         return client.request_raw(id, data, timeout);
     }
 
-    bool respond(const msp::Response &response, const bool wait_ack=true) {
+    bool respond(const msp::Message &response, const bool wait_ack=true) {
         return client.respond(response, wait_ack);
     }
 
@@ -242,7 +239,7 @@ private:
 
     std::set<msp::msg::Sensor> sensors;
 
-    FirmwareType firmware;
+    msp::FirmwareVariant firmware;
 
     std::vector<uint8_t> channel_map;
 };

@@ -20,8 +20,8 @@ public:
         std::cout<<status;
     }
 
-    void onImu(const msp::msg::ImuRaw& imu_raw) {
-        std::cout<<msp::msg::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
+    void onImu(const msp::msg::RawImu& imu_raw) {
+        std::cout<<msp::msg::ScaledImu(imu_raw, si_unit_1g/acc_1g, gyro_unit, magn_gain);
     }
 
     void onServo(const msp::msg::Servo& servo) {
@@ -56,7 +56,7 @@ public:
         std::cout<<pid;
     }
 
-    void onBox(const msp::msg::Box& box) {
+    void onBox(const msp::msg::ActiveBoxes& box) {
         std::cout<<box;
     }
 
@@ -86,7 +86,7 @@ public:
 
     void onDebugMessage(const msp::msg::DebugMessage& debug_msg) {
         std::cout<<"#Debug message:"<<std::endl;
-        std::cout<<debug_msg.msg<<std::endl;
+        std::cout<<debug_msg.debug_msg<<std::endl;
     }
 
     void onDebug(const msp::msg::Debug& debug) {
@@ -118,8 +118,8 @@ int main(int argc, char *argv[]) {
     //fcu.subscribe(&App::onImu, &app, 0.1);
 
     // using lambda callback
-    fcu.subscribe<msp::msg::ImuRaw>([](const msp::msg::ImuRaw& imu){
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    fcu.subscribe<msp::msg::RawImu>([](const msp::msg::RawImu& imu){
+        std::cout<<msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
     }, 0.1);
 
     fcu.subscribe(&App::onServo, &app, 0.1);

@@ -13,8 +13,8 @@ struct SubCallbacks {
         std::cout<<status;
     }
 
-    void onImu(const msp::msg::ImuRaw& imu) {
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    void onImu(const msp::msg::RawImu& imu) {
+        std::cout<<msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
     }
 
     void onServo(const msp::msg::Servo& servo) {
@@ -49,7 +49,7 @@ struct SubCallbacks {
         std::cout<<pid;
     }
 
-    void onBox(const msp::msg::Box& box) {
+    void onBox(const msp::msg::ActiveBoxes& box) {
         std::cout<<box;
     }
 
@@ -79,7 +79,7 @@ struct SubCallbacks {
 
     void onDebugMessage(const msp::msg::DebugMessage& debug_msg) {
         std::cout<<"#Debug message:"<<std::endl;
-        std::cout<<debug_msg.msg<<std::endl;
+        std::cout<<debug_msg.debug_msg<<std::endl;
     }
 
     void onDebug(const msp::msg::Debug& debug) {
@@ -111,12 +111,13 @@ int main(int argc, char *argv[]) {
 //    client.subscribe<msp::msg::ImuRaw>(imu_cb1, 0.1);
 
     // using lambda callback with stored function object
-    const std::function<void(const msp::msg::ImuRaw&)> imu_cb2 = [](const msp::msg::ImuRaw& imu){
-        std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+    const std::function<void(const msp::msg::RawImu&)> imu_cb2 = [](const msp::msg::RawImu& imu){
+        std::cout<<msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
     };
-    client.subscribe(imu_cb2, 0.1);
+//    client.subscribe(imu_cb2, 0.1);
 
     client.subscribe(&SubCallbacks::onIdent, &subs, 10);
+
     client.subscribe(&SubCallbacks::onStatus, &subs, 1);
     client.subscribe(&SubCallbacks::onServo, &subs, 0.1);
     client.subscribe(&SubCallbacks::onMotor, &subs, 0.1);

@@ -36,14 +36,14 @@ bool MSP::connect(const std::string &device, const size_t baudrate) {
     return true;
 }
 
-bool MSP::request(msp::Request &request) {
+bool MSP::request(msp::Message &request) {
     if(!sendData(request.id()))
         return false;
 
     std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
     try {
-        const DataID pkg = receiveData();
+        DataID pkg = receiveData();
         if(pkg.id==uint8_t(request.id()))
             request.decode(pkg.data);
         return pkg.id==uint8_t(request.id());
@@ -66,22 +66,27 @@ bool MSP::request(msp::Request &request) {
     catch(asio::system_error) { return false; }
 }
 
-bool MSP::request_block(msp::Request &request) {
+bool MSP::request_block(msp::Message &request) {
     bool success = false;
     while(success==false) {
         // write ID
+        std::cout << "sending data" << std::endl;
         if(!sendData(request.id())) {
             success = false;
             continue;
         }
-
+        std::cout << "waiting for response" << std::endl;
         std::this_thread::sleep_for(std::chrono::microseconds(wait));
 
         try {
-            const DataID pkg = receiveData();
+            DataID pkg = receiveData();
+            std::cout << "received data id " << (uint32_t)request.id() <<  " vs " << (uint32_t)pkg.id << std::endl;
             success = (pkg.id==uint8_t(request.id()));
-            if(success)
+            if(success) {
+                std::cout << "decoding " << pkg.data.size() << " bytes" << std::endl;
                 request.decode(pkg.data);
+                std::cout << "decoded" << std::endl;
+            }
         }
         catch(const MalformedHeader &e) {
             std::cerr<<e.what()<<std::endl;
@@ -98,14 +103,23 @@ bool MSP::request_block(msp::Request &request) {
             }
             success = false;
         }
-        catch(msp::NoData) { success = false; }
-        catch(asio::system_error) { success = false; }
+        catch(msp::NoData) { 
+            //std::cerr << "no data" << std::endl;
+            success = false; 
+        }
+        catch(asio::system_error) { 
+            std::cerr << "asio error" << std::endl;
+            success = false; 
+        }
+        catch(...) {
+            std::cerr << "unspecified error" << std::endl;
+        }
     }
 
     return true;
 }
 
-bool MSP::request_wait(msp::Request &request, const size_t wait_ms, const size_t min_payload_size) {
+bool MSP::request_wait(msp::Message &request, const size_t wait_ms, const size_t min_payload_size) {
     const std::chrono::milliseconds wait(wait_ms);
 
     bool success = false;
@@ -145,8 +159,8 @@ bool MSP::request_wait(msp::Request &request, const size_t wait_ms, const size_t
     return true;
 }
 
-bool MSP::respond(const msp::Response &response) {
-    if(!sendData(response.id(), response.encode()))
+bool MSP::respond(const msp::Message &response) {
+    if(!sendData(response.id(), *response.encode()))
         return false;
 
     std::this_thread::sleep_for(std::chrono::microseconds(wait));
@@ -162,11 +176,11 @@ bool MSP::respond(const msp::Response &response) {
     catch(asio::system_error) { return false; }
 }
 
-bool MSP::respond_block(const msp::Response &response) {
+bool MSP::respond_block(const msp::Message &response) {
     bool success = false;
     while(success==false) {
         // write ID and data and skip to write again if error occurred
-        if(!sendData(response.id(), response.encode())) {
+        if(!sendData(response.id(), *response.encode())) {
             success = false;
             continue;
         }
@@ -288,6 +302,7 @@ int MSP::hasData() {
         return available_bytes;
     }
     else {
+        printf("ioctl failed and returned errno %s \n",strerror(errno));
         return -1;
     }
 #elif _WIN32

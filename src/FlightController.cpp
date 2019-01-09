@@ -24,15 +24,15 @@ void FlightController::initialise() {
     // wait for connection to be established
     while(client.request(ident, 0.5)==-1);
 
-    msp::msg::ApiVersion api;
+    msp::msg::ApiVersion api(msp::FirmwareVariant::CLFL);
     if(client.request(api)) {
         // this is Cleanflight
-        firmware = FirmwareType::CLEANFLIGHT;
+        firmware = msp::FirmwareVariant::CLFL;
         std::cout<<"Cleanflight API "<<api.major<<"."<<api.minor<<"."<<api.protocol<<" ready"<<std::endl;
     }
     else {
         // this is MultiWii
-        firmware = FirmwareType::MULTIWII;
+        firmware = msp::FirmwareVariant::CLFL;
         std::cout<<"MultiWii version "<< size_t(ident.version)<<" ready"<<std::endl;
     }
 
@@ -54,25 +54,30 @@ void FlightController::initialise() {
     }
     else {
         // get channel mapping from MSP_RX_MAP
-        msp::msg::RxMap rx_map;
+        msp::msg::RxMap rx_map(firmware);
         client.request(rx_map);
-        channel_map = rx_map.map;
+        channel_map.clear();
+        for (auto& m : rx_map.map)
+        {
+            channel_map.push_back(m);
+        }
+        
     }
 }
 
-bool FlightController::isFirmware(const FirmwareType firmware_type) {
+bool FlightController::isFirmware(const msp::FirmwareVariant firmware_type) {
     return firmware == firmware_type;
 }
 
 void FlightController::initBoxes() {
     client.setPrintWarnings(true);
     // get box names
-    msp::msg::BoxNames box_names;
+    msp::msg::BoxNames box_names(firmware);
     if(!client.request(box_names))
         throw std::runtime_error("Cannot get BoxNames!");
 
     // get box IDs
-    msp::msg::BoxIds box_ids;
+    msp::msg::BoxIds box_ids(firmware);
     if(!client.request(box_ids))
         throw std::runtime_error("Cannot get BoxIds!");
 
@@ -103,7 +108,7 @@ bool FlightController::isStatusActive(const std::string& status_name) {
     client.request(status);
 
     // check if ARM box id is amongst active box IDs
-    return status.active_box_id.count(box_name_ids.at(status_name));
+    return status.box_mode_flags.count(box_name_ids.at(status_name));
 }
 
 bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
@@ -118,7 +123,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
             "RC commands will have no effect on motors.");
     }
 
-    msp::msg::SetRc rc;
+    msp::msg::Rc rc(firmware);
     // insert mappable channels
     rc.channels.resize(MAX_MAPPABLE_RX_INPUTS);
     rc.channels[channel_map[0]] = roll;
@@ -138,7 +143,7 @@ bool FlightController::setRc(const uint16_t roll, const uint16_t pitch,
 }
 
 bool FlightController::setRc(const std::vector<uint16_t> channels) {
-    msp::msg::SetRc rc;
+    msp::msg::Rc rc(firmware);
     rc.channels = channels;
     return client.respond(rc, false);
 }
@@ -150,7 +155,7 @@ bool FlightController::setMotors(const std::array<uint16_t,msp::msg::N_MOTOR> &m
             "Set '#define DYNBALANCE' in your MultiWii 'config.h'");
     }
 
-    msp::msg::SetMotor motor;
+    msp::msg::SetMotor motor(firmware);
     motor.motor = motor_values;
     return client.respond(motor);
 }
@@ -188,12 +193,12 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
                                      const std::set<std::string> &remove)
 {
     // get original feature configuration
-    msp::msg::Feature feature_in;
+    msp::msg::Feature feature_in(firmware);
     if(!client.request(feature_in))
         return -1;
 
     // update feature configuration
-    msp::msg::SetFeature feature_out;
+    msp::msg::SetFeature feature_out(firmware);
     feature_out.features = feature_in.features;
     // enable features
     for(const std::string &a : add) {
@@ -221,11 +226,11 @@ int FlightController::updateFeatures(const std::set<std::string> &add,
 }
 
 bool FlightController::reboot() {
-    return client.respond(msp::msg::Reboot());
+    return client.respond(msp::msg::Reboot(firmware));
 }
 
 bool FlightController::writeEEPROM() {
-    return client.respond(msp::msg::WriteEEPROM());
+    return client.respond(msp::msg::WriteEEPROM(firmware));
 }
 
 } // namespace msp

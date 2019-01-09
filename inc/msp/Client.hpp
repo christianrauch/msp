@@ -7,7 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <map>
-#include "types.hpp"
+#include "message.hpp"
 
 namespace msp {
 
@@ -71,7 +71,7 @@ public:
         if(timer!=NULL) { delete timer; }
     }
 
-    virtual void call(const msp::Request &req) = 0;
+    virtual void call(const msp::Message &req) = 0;
 
     bool hasTimer() {
         // subscription with manual sending of requests
@@ -111,7 +111,7 @@ public:
         this->timer->start();
     }
 
-    void call(const msp::Request &req) {
+    void call(const msp::Message &req) {
         callback( dynamic_cast<const T&>(req) );
     }
 
@@ -127,7 +127,7 @@ enum MessageStatus {
 
 struct ReceivedMessage {
     uint8_t id;
-    std::vector<uint8_t> data;
+    ByteVector data;
     MessageStatus status;
 };
 
@@ -188,8 +188,8 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool sendResponse(const msp::Response &response) {
-        return sendData(uint8_t(response.id()), response.encode());
+    bool sendResponse(const msp::Message &response) {
+        return sendData(uint8_t(response.id()), *response.encode());
     }
 
     /**
@@ -200,7 +200,7 @@ public:
      * @return false on failure
      * @return -1 on timeout
      */
-    int request(msp::Request &request, const double timeout = 0);
+    int request(msp::Message &request, const double timeout = 0);
 
     /**
      * @brief request_raw request raw unstructured payload data
@@ -220,7 +220,7 @@ public:
      * @return true on success
      * @return false on failure
      */
-    bool respond(const msp::Response &response, const bool wait_ack=true);
+    bool respond(const msp::Message &response, const bool wait_ack=true);
 
     /**
      * @brief respond_raw send raw unstructured payload data
@@ -253,19 +253,19 @@ public:
     template<typename T>
     SubscriptionBase* subscribe(const std::function<void(const T&)> &callback, const double tp = 0.0) {
 
-        if(!std::is_base_of<msp::Request, T>::value)
+        if(!std::is_base_of<msp::Message, T>::value)
             throw std::runtime_error("Callback parameter needs to be of Request type!");
 
         if(!(tp>=0.0))
             throw std::runtime_error("Period must be positive!");
 
-        const msp::ID id = T().id();
+        const msp::ID id = T(firmware).id();
 
         std::lock_guard<std::mutex> lock(mutex_callbacks);
 
         // register message
         if(subscribed_requests.count(id)) { delete subscribed_requests[id]; }
-        subscribed_requests[id] = new T();
+        subscribed_requests[id] = new T(firmware);
 
         // register subscription
         subscriptions[id] = new Subscription<T>(callback,
@@ -332,9 +332,11 @@ private:
     ReceivedMessage request_received;
     // subscriptions
     std::map<msp::ID, SubscriptionBase*> subscriptions;
-    std::map<msp::ID, msp::Request*> subscribed_requests;
+    std::map<msp::ID, msp::Message*> subscribed_requests;
     // debugging
     bool print_warnings;
+    
+    msp::FirmwareVariant firmware;
 };
 
 } // namespace client
