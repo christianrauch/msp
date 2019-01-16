@@ -7,30 +7,14 @@
 namespace msp {
 namespace client {
 
-Client::Client(const std::string &device, const size_t baudrate) : 
-    device_name_(device), baud_rate_(baudrate), port(io), running_(ATOMIC_FLAG_INIT), log_level_(WARNING), 
+Client::Client() : 
+    port(io), running_(ATOMIC_FLAG_INIT), log_level_(WARNING), 
     msp_ver_(1), fw_variant(FirmwareVariant::INAV)
 { }
 
 Client::~Client() 
 { }
 
-void Client::setDevice(const std::string& device) {
-    device_name_ = device;
-}
-
-std::string Client::getDevice() {
-    return device_name_;
-}
-
-void Client::setBaudRate(const size_t& baud) {
-    baud_rate_= baud;
-}
-
-size_t Client::getBaudRate() {
-    return baud_rate_;
-}
-    
 void Client::setLoggingLevel(const LoggingLevel& level) {
     log_level_ = level;
 }
@@ -55,9 +39,9 @@ FirmwareVariant Client::getVariant() {
     return fw_variant;
 }
 
-bool Client::start()
+bool Client::start(const std::string &device, const size_t baudrate)
 {
-    return connectPort() && startReadThread() && startSubscriptions();
+    return connectPort(device,baudrate) && startReadThread() && startSubscriptions();
 }
 
 
@@ -65,11 +49,11 @@ bool Client::stop() {
     return disconnectPort() && stopReadThread() && stopSubscriptions();
 }
 
-bool Client::connectPort() {
+bool Client::connectPort(const std::string &device, const size_t baudrate) {
     asio::error_code ec;
-    port.open(device_name_,ec);
+    port.open(device,ec);
     if (ec) return false;
-    port.set_option(asio::serial_port::baud_rate(baud_rate_));
+    port.set_option(asio::serial_port::baud_rate(baudrate));
     port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     port.set_option(asio::serial_port::character_size(asio::serial_port::character_size(8)));
     port.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));

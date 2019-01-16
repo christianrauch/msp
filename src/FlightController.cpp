@@ -4,8 +4,8 @@
 
 namespace fcu {
 
-FlightController::FlightController(const std::string &device, const size_t baudrate) : 
-    client_(device,baudrate), msp_version_(1), armed_(false), control_source_(ControlSource::NONE),
+FlightController::FlightController() : 
+    msp_version_(1), armed_(false), control_source_(ControlSource::NONE),
     msp_timer_(std::bind(&FlightController::generateMSP,this),0.1)
 {
     
@@ -16,8 +16,8 @@ FlightController::~FlightController() {
 }
 
 
-bool FlightController::connect(const double& timeout) {
-    if (!client_.start()) return false;
+bool FlightController::connect(const std::string &device, const size_t baudrate, const double& timeout) {
+    if (!client_.start(device,baudrate)) return false;
     
     int rc;
     msp::msg::FcVariant fcvar(fw_variant_);
@@ -159,12 +159,12 @@ void FlightController::setRPYT(std::array<double,4>& rpyt) {
         rpyt_.swap(rpyt);
     }
     generateMSP();
-    //std::cout << "finished setRPYT" << std::endl;
 }
 
 void FlightController::generateMSP() {
     std::vector<uint16_t> cmds(18,1000);
     //manually remapping from RPYT to TAER (american RC)
+    //TODO: make this respect channel mapping 
     {
         std::lock_guard<std::mutex> lock(msp_updates_mutex);
         cmds[0] = (rpyt_[3]*500)+1500;

@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     Callbacks cbs;
-    fcu::FlightController fcu(device, baudrate);
-    fcu.connect();
+    fcu::FlightController fcu;
+    fcu.connect(device, baudrate);
 
     // subscribe with costum type
     fcu.subscribe(&Callbacks::onIdent, &cbs, 1);

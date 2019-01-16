@@ -24,7 +24,7 @@ public:
      * @param baudrate Speed of serial connection (not necessary for direct USB connection)
      * @return
      */
-    FlightController(const std::string &device, const size_t baudrate=115200);
+    FlightController();
 
     /**
      * @brief ~FlightController Destructor
@@ -39,7 +39,7 @@ public:
      * @param timeout Timeout passed to each internal operation (seconds)
      * @return True on success
      */
-    bool connect(const double& timeout = 0.0);
+    bool connect(const std::string &device, const size_t baudrate=115200, const double& timeout = 0.0);
     
     /**
      * @brief Stops MSP control if active, and disconnects the internal Client object
@@ -374,7 +374,6 @@ private:
     std::array<double,4> rpyt_;
     bool armed_;
     FlightMode flight_mode_;
-    
     
     std::mutex msp_updates_mutex;
     

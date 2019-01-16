@@ -2363,8 +2363,7 @@ struct SetArmingDisabled : public Message {
 
 // MSP_IDENT: 100
 struct Ident : public Message {
-    
-    Ident() {}
+
     Ident(FirmwareVariant v) : Message(v) {}
     
     virtual ID id() const override { return ID::MSP_IDENT; }
@@ -2500,8 +2499,7 @@ struct StatusBase {
 
 // MSP_STATUS: 101
 struct Status : public StatusBase, public Message {
-    
-    Status() {}
+
     Status(FirmwareVariant v) : Message(v) {}
     
     virtual ID id() const override { return ID::MSP_STATUS; }
@@ -2580,7 +2578,6 @@ struct Status : public StatusBase, public Message {
 
 // MSP_RAW_IMU: 102
 struct RawImu : public Message {
-    RawImu() {};
     RawImu(FirmwareVariant v) : Message(v) {}
     
     virtual ID id() const override { return ID::MSP_RAW_IMU; }

@@ -32,7 +32,7 @@ include_directories(${MSP_INCLUDE_DIR})
 ### libraries
 
 # client library
-add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/periodic_timer.cpp)
+add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/PeriodicTimer.cpp)
 target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
 
 # high-level API

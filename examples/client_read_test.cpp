@@ -7,11 +7,11 @@ int main(int argc, char *argv[]) {
     const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-    msp::client::Client client(device, baudrate);
+    msp::client::Client client;
     client.setLoggingLevel(msp::client::LoggingLevel::WARNING);
     client.setVariant(msp::FirmwareVariant::INAV);
     client.setVersion(2);
-    client.start();
+    client.start(device, baudrate);
 
 
     msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;

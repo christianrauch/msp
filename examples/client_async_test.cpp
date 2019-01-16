@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 
     SubCallbacks subs;
 
-    msp::client::Client client(device, baudrate);
-    client.start();
+    msp::client::Client client;
+    client.start(device, baudrate);
 
     // using lambda callback with stored function object
     const std::function<void(const msp::msg::RawImu&)> imu_cb2 = [](const msp::msg::RawImu& imu){

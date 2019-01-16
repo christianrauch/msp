@@ -48,36 +48,13 @@ public:
      * @param baudrate Baudrate of the connection (default 115200, 
      * unnecessary for direct USB connection)
      */
-    Client(const std::string &device, const size_t baudrate=115200);
+    Client();
 
     /**
      * @brief ~Client Destructor
      */
     ~Client();
     
-    /**
-     * @brief Change the device path on the next connect
-     * @param device Path to device
-     */
-    void setDevice(const std::string& device);
-    
-    /**
-     * @brief Query the cached device path
-     * @return Cached path to device
-     */
-    std::string getDevice();
-    
-    /**
-     * @brief Change the baud rate on the next connect
-     * @param baud Baud rate
-     */
-    void setBaudRate(const size_t& baud);
-    
-    /**
-     * @brief Query the cached baud rate
-     * @return Cached baud rate
-     */
-    size_t getBaudRate();
     
     /**
      * @brief Set the verbosity of the output
@@ -114,7 +91,7 @@ public:
      * @brief Start communications with a flight controller
      * @return True on success
      */
-    bool start();
+    bool start(const std::string &device, const size_t baudrate=115200);
     
     /**
      * @brief Stop communications with a flight controller
@@ -237,7 +214,7 @@ protected:
      * @brief Establish connection to serial device and start read thread
      * @return True on success
      */
-    bool connectPort();
+    bool connectPort(const std::string &device, const size_t baudrate=115200);
     
     /**
      * @brief Break connection to serial device and stop read thread
@@ -341,10 +318,7 @@ protected:
     uint8_t crcV2(uint8_t crc, const uint8_t& b);
 
 protected:
-    // I/O
-    std::string device_name_;
-    size_t baud_rate_;
-    
+   
     asio::io_service io;     ///<! io service
     asio::serial_port port;  ///<! port for serial device
     asio::streambuf buffer;

@@ -103,10 +103,10 @@ int main(int argc, char *argv[]) {
     const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-    fcu::FlightController fcu(device, baudrate);
+    fcu::FlightController fcu;
     fcu.setLoggingLevel(msp::client::LoggingLevel::INFO);
     // wait for connection
-    fcu.connect();
+    fcu.connect(device, baudrate);
 
     App app("MultiWii", 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
     std::cout << "made app" << std::endl;

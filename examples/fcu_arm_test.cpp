@@ -28,12 +28,12 @@ int main(int argc, char *argv[]) {
     //bool feature_changed = false;
 //start:
     std::cout << "making FC" << std::endl;
-    fcu::FlightController fcu(device, baudrate);
+    fcu::FlightController fcu;
 
     // wait until connection is established
     // get unique box IDs
     start = std::chrono::high_resolution_clock::now();
-    fcu.connect();
+    fcu.connect(device, baudrate);
     end = std::chrono::high_resolution_clock::now();
     std::cout<<"ready after: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()<<" ms"<<std::endl;
 /*

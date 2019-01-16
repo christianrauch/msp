@@ -21,11 +21,6 @@ public:
     virtual ID id() const = 0;
     
     /**
-     * @brief Message constructor
-     */
-    Message() {};
-    
-    /**
      * @brief Message constructor accepting a FirmwareVariant
      * @param v FirmwareVariant specifing which firmware this message should
      * tailor itself to.
@@ -77,6 +72,7 @@ public:
     
     virtual std::ostream& print(std::ostream& s) const
     {
+        s << "Print method for message ID " << id() << " is not implemented" <<std::endl;
         return s;
     };
     
