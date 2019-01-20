@@ -9,7 +9,7 @@ struct MyIdent : public msp::Message {
 
     msp::ByteVector raw_data;
 
-    bool decode(msp::ByteVector &data) {
+    virtual bool decode(const msp::ByteVector &data) override {
         raw_data = data;
         return true;
     }

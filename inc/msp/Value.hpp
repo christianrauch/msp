@@ -66,7 +66,7 @@ public:
      * @brief Checks if the data has been set
      * @returns True if the data has been set
      */
-    operator bool () {
+    operator bool () const {
         return data.second;
     }
     

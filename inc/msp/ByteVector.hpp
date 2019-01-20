@@ -190,7 +190,7 @@ public:
      * @return True on successful unpack
      */
     template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr> 
-    bool unpack(T& val) {
+    bool unpack(T& val) const {
         if (unpacking_remaining() < sizeof(val)) return false;
         val = 0;
         for (size_t i(0); i < sizeof(val); ++i) {
@@ -208,9 +208,9 @@ public:
      * @return True on successful unpack
      */
     template<typename T, typename std::enable_if<std::is_floating_point<T>::value, T>::type* = nullptr>
-    bool unpack(T& val) {
+    bool unpack(T& val) const {
         if (unpacking_remaining() < sizeof(val)) return false;
-        val = reinterpret_cast<T&>((*this)[offset]);
+        val = reinterpret_cast<const T&>((*this)[offset]);
         offset += sizeof(val);
         return true;
     }
@@ -223,7 +223,7 @@ public:
      * remaining bytes will be consumed.
      * @return True on successful unpack
      */
-    bool unpack(std::string& val, size_t count = std::numeric_limits<size_t>::max()) {
+    bool unpack(std::string& val, size_t count = std::numeric_limits<size_t>::max()) const {
         if (count == std::numeric_limits<size_t>::max()) count = unpacking_remaining();        
         if (count > unpacking_remaining()) return false;
         bool rc = true;
@@ -244,7 +244,7 @@ public:
      * remaining bytes will be consumed.
      * @return True on successful unpack
      */
-    bool unpack(ByteVector& val, size_t count = std::numeric_limits<size_t>::max()) {
+    bool unpack(ByteVector& val, size_t count = std::numeric_limits<size_t>::max()) const {
         if (count == std::numeric_limits<size_t>::max()) count = unpacking_remaining();        
         if (!consume(count)) return false;
         val.clear();
@@ -265,7 +265,7 @@ public:
     template< typename encoding_T, typename T1, typename T2, 
                 typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
                 typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
-    bool unpack(T1& val, T2 scale, T2 offset = 0) {
+    bool unpack(T1& val, T2 scale, T2 offset = 0) const {
         bool rc = true;
         encoding_T tmp = 0;
         rc &= unpack(tmp);
@@ -280,7 +280,7 @@ public:
      * @return True if successful
      */
     template<typename T, typename std::enable_if<std::is_base_of<Packable,T>::value, T>::type* = nullptr>
-    bool unpack(T& obj) {
+    bool unpack(T& obj) const {
         return obj.unpack_from(*this);
     }
     
@@ -291,7 +291,7 @@ public:
      * @return  true on success
      */
     template<class T>
-    bool unpack(Value<T>& val) {
+    bool unpack(Value<T>& val) const {
         return val.set() = unpack(val()); 
     }
     
@@ -303,7 +303,7 @@ public:
      * remaining bytes will be consumed.
      * @return True on successful unpack
      */
-    bool unpack(Value<std::string>& val, size_t count = std::numeric_limits<size_t>::max()) {
+    bool unpack(Value<std::string>& val, size_t count = std::numeric_limits<size_t>::max()) const {
         return val.set() = unpack(val(),count); 
     }
     
@@ -315,7 +315,7 @@ public:
      * remaining bytes will be consumed.
      * @return True on successful unpack
      */
-    bool unpack(Value<ByteVector>& val, size_t count = std::numeric_limits<size_t>::max()) {
+    bool unpack(Value<ByteVector>& val, size_t count = std::numeric_limits<size_t>::max()) const {
         return val.set() = unpack(val(),count); 
     }
     
@@ -332,7 +332,7 @@ public:
     template< typename encoding_T, typename T1, typename T2, 
                 typename std::enable_if<std::is_arithmetic<T1>::value, T1>::type* = nullptr,
                 typename std::enable_if<std::is_arithmetic<T2>::value, T2>::type* = nullptr >
-    bool unpack(Value<T1>& val, T2 scale = 1, T2 offset = 0) {
+    bool unpack(Value<T1>& val, T2 scale = 1, T2 offset = 0) const {
         return val.set() = unpack<encoding_T>(val(),scale,offset);
     }
     
@@ -341,7 +341,7 @@ public:
      * unpack operations.
      * @returns Number of bytes already consumed
      */
-    std::size_t unpacking_offset() {
+    std::size_t unpacking_offset() const {
         return offset;
     }
     
@@ -354,12 +354,20 @@ public:
     }
     
     /**
+     * @brief Gives an iterator to the next element ready for unpacking
+     * @returns iterator to the next byte for unpacking
+     */
+    std::vector<uint8_t>::const_iterator unpacking_iterator() const {
+        return this->begin()+offset;
+    }
+    
+    /**
      * @brief Manually consumes data, thus skipping the values.
      * @param count Number of bytes to consume
      * @returns True if successful
      * @returns False if there were not enough bytes to satisfy the request
      */
-    bool consume(std::size_t count) {
+    bool consume(std::size_t count) const {
         if (count < -offset) return false;
         if (count > this->size() - offset) return false;
         offset += count;
@@ -370,13 +378,13 @@ public:
      * @brief Returns the number of bytes still avialable for unpacking
      * @returns Number of bytes remaining
      */
-    std::size_t unpacking_remaining() {
+    std::size_t unpacking_remaining() const {
         return this->size() - offset;
     }
     
 
 protected:
-    std::size_t offset;
+    mutable std::size_t offset;
 
 };
 
@@ -388,7 +396,7 @@ protected:
  */
 struct Packable {
     virtual bool pack_into(ByteVector &data) const = 0;
-    virtual bool unpack_from(ByteVector &data) = 0;
+    virtual bool unpack_from(const ByteVector &data) = 0;
 };
 
 typedef std::shared_ptr<ByteVector> ByteVectorPtr;

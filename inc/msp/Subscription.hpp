@@ -101,7 +101,7 @@ protected:
 template<typename T>
 class Subscription : public SubscriptionBase {
 public:
-    typedef std::function<void(T&)> Callback;
+    //typedef std::function<void(T&)> Callback;
     
     
     /**
@@ -109,23 +109,6 @@ public:
      */
     Subscription() {}
     
-    /**
-     * @brief Subscription constructor setting all parameters
-     * @param recv_callback Callback to execute upon receipt of message
-     * @param send_callback Callback to execute periodically to send message
-     * @param io_object Object which is used for encoding/decoding data
-     * @param period Repition rate of the request
-     */
-    /*
-    Subscription(const Callback& recv_callback, const Callback& send_callback, std::unique_ptr<T>&& io_object, const double& period = 0.0)
-        : recv_callback_(recv_callback), send_callback_(send_callback), io_object_(std::move(io_object))
-    {
-        if (period > 0.0) {
-            timer_ = std::unique_ptr<PeriodicTimer>(new PeriodicTimer(std::bind(&Subscription<T>::makeRequest,this),period));
-            this->timer_->start();
-        }
-    }
-    */
     
     /**
      * @brief Subscription constructor setting all parameters
@@ -187,7 +170,7 @@ public:
      * @brief Sets the callback to be executed on success
      * @param recv_callback the callback to be executed
      */
-    void setReceiveCallback(const Callback& recv_callback)
+    void setReceiveCallback(const std::function<void(const T&)>& recv_callback)
     {
         recv_callback_ = recv_callback;
     }
@@ -205,7 +188,7 @@ public:
      * @brief Sets the callback used to send the request
      * @param send_callback the callback to be executed
      */
-    void setSendCallback(const Callback& send_callback)
+    void setSendCallback(const std::function<void(const msp::Message&)>& send_callback)
     {
         send_callback_ = send_callback;
     }

@@ -49,99 +49,27 @@ You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-t
 
 Beginning with Cleanflight 2 and Betaflight 3, `MSP_SET_RAW_RC` messages are ignored on some targets with insufficient flash memory (like the naze32). You can verify this, if `MSP_RC` messages return an empty list of channels. To activate `MSP_SET_RAW_RC` messages on these targets, you need to add `#define USE_RX_MSP` to your `target.h`, e.g. `src/main/target/NAZE/target.h`.
 
-## How to use the library (low-level API)
+## FlightContoller API
 
-You first need to instantiate the driver with the path to the device:
-```C++
-msp::MSP msp(path_to_device);
-```
-
-### Sending and Receiving Raw Data
-The library contains methods for sending data to and for receiving data from the flight controller (FC). These methods communicate once and indicate success by return values and exceptions.
-
-Sending raw data to the FC:
-```C++
-bool sendData(const uint8_t id, const ByteVector &data)
-```
-
-Receiving data from the FC:
-```C++
-DataID receiveData()
-```
-`struct DataID` contains the id and data of the received message.
-
-### Communication Pattern
-The communication with the FC follows the remote procedure call pattern where we can either request data from the FC or respond with data to the FC.
-
-This process is automated using two types of message: `Request` (receive and decode data) and `Response` (encode and send data).
-
-#### Request data from FC
-For requesting data from the FC (FC →), a message with the id of that command is send to the FC and then we need to wait for a message with the same id containing the requested payload.
-
-Instantiate any message that inherits from `Request` and pass it to:
-```C++
-bool request(msp::Request &request)
-```
-This method returns after the first try to read and encode any MSP message. Therefore, there exist alternative implementations of this communication pattern, for example to block until a valid package with correct id has been received:
-```C++
-bool request_block(msp::Request &request)
-```
-or to retry sending requests until a response is received:
-```C++
-bool request_wait(msp::Request &request, uint wait_ms)
-```
-which can be useful to block until the FC is available and responds to messages.
-
-E.g. the Arduino Nano 3.0 is reseted when opening the serial device and needs some time to boot until it will respond to messages. `request_wait` will return when MultiWii is booted and able to respond to messages. From there on, `request_block` can be used to fetch data from the FC.
-
-#### Respond with data to FC
-For sending data to the FC (→ FC) a message containing the id and the payload is send to the FC and confirmed by a acknowledge message which only contains the id with no data.
-
-Instantiate any message that inherits from `Response` and pass it to:
-```C++
-bool respond(msp::Response &response)
-```
-
-Messages and the encoding/decoding methods are defined in `msp_msg.hpp`.
-
-### Examples
-
-#### Get MultiWii version and multi-copter type
-
-We will use the command MSP_IDENT (100) to get the version, multi-copter type and it capabilities.
-
-Instantiate the driver:
-```C++
-msp::MSP msp(path_to_device);
-```
-create request message and send the request to the FC:
-```C++
-msp::Ident ident;
-msp.request_block(ident);
-```
-When the call to `request_block` returns, the values of structure `ident` will be populated can be accessed:
-```C++
-std::cout<<"MSP version "<<(int)ident.version<<std::endl;
-```
-
-## High-level API
-
-The high-level API allows to periodically request messages from the FCU.
+The FlightContoller API allows the user to send/receive messages from the flight controller. Messages may be queried periodically, or on demand.
 
 ### Instantiation
 Instantiate and setup the `FlightController` class:
 ```C++
 #include <FlightController.hpp>
 
-fcu::FlightController fcu("/dev/ttyUSB0", 115200);
+fcu::FlightController fcu();
 
-// wait for connection and setup
-fcu.initialise();
+// do connection and setup
+fcu.connect("/dev/ttyUSB0", 115200);
 ```
 
 ### Periodic request for messages
+Messages that need to be queried periodically can be handled automatically using a subscription. This can be done with a class method or a stand-alone function.
 
-Define a class that holds callback functions to process information of received message:
+
+#### Class method pattern
+Define a class that holds callback functions to process information of received message. The function signature is `void <callback_name>(const <child_of_msp::Message>& )`.
 ```C++
 class App {
 public:
@@ -165,15 +93,45 @@ fcu.subscribe(&App::onImu, &app, 0.01);
 
 Requests are sent to and processed by the flight controller as fast as possible. It is important to note that the MultiWii FCU only processed a single message per cycle. All subscribed messages therefore share the effective bandwidth of 1/(2800 us) = 357 messages per second.
 
-### Request and Send Messages
-Additional messages that are not requested periodically can be requested by the method
-```C++
-bool request(msp::Request &request, const double timeout = 0)
-```
-You need to instantiate a message of type `msp::Request` and provide it to the method with an optional timeout.
+#### Lambda pattern
 
-Response messages are sent by
+The `FlightController::subscribe` method is restricted to callbacks which return `void` and take an argument of `const msp::Message&`. In order to call a method that doesn't match that signature (maybe it needs additional information), it sometimes is useful to wrap the non-compliant method in a lambda that matches the expected signature.
+
 ```C++
-bool respond(const msp::Response &response, const bool wait_ack=true)
+//ScaledImu is not a subclass of msp::Message, so its not suitable for use as a callback argument
+
+auto callback = [](const msp::msg::RawImu& imu){
+    std::cout << msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
+}
+
+fcu.subscribe<msp::msg::RawImu>(callback, 0.1);
 ```
-where the method will block until an acknowledge is received if `wait_ack=true` (default).
+
+
+### Manual sending of messages
+Additional messages that are not sent periodically can be dispatched by the method
+```C++
+bool sendMessage(msp::Message &message, const double timeout = 0)
+```
+You need to instantiate an instance of the object matching the message you want to send and provide it to the method with an optional timeout. If the timeout paramter is 0, then the method will wait (possibly forever) until a response is received from the flight controller. A strictly positive value will limit the waiting to the specified interval.
+
+```C++
+msp::Status status;
+if (fcu.sendMessage(status) ) {
+    //status will contain the values returned by the flight controller
+}
+
+msp::SetCalibrationData calibration;
+calibration.acc_zero_x = 0;
+calibration.acc_zero_y = 0;
+calibration.acc_zero_x = 0;
+calibration.acc_gain_x = 1;
+calibration.acc_gain_y = 1;
+calibration.acc_gain_z = 1;
+if (fcu.sendMessage(calibration) ) {
+    //calibration data has been sent 
+    //since this message does not have any return data, the values are unchanged
+}
+```
+
+If the message is of a type that has a data response from the flight controller, the instance of the message provided to the `sendMessage` call will contain the values unpacked from the flight controller's response.

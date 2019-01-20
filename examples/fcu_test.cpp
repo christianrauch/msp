@@ -7,7 +7,7 @@ class App {
 public:
     std::string name;
 
-    App(const std::string name, const float acc_1g, const float gyro_unit, const float magn_gain, const float si_unit_1g) : acc_1g(acc_1g), gyro_unit(gyro_unit), magn_gain(magn_gain), si_unit_1g(si_unit_1g) {
+    App(const std::string name) {
         this->name = name;
     }
 
@@ -20,7 +20,7 @@ public:
     }
 
     void onImu(const msp::msg::RawImu& imu_raw) {
-        std::cout<< imu_raw;   //msp::msg::ImuSI(imu_raw, acc_1g, gyro_unit, magn_gain, si_unit_1g);
+        std::cout<< imu_raw;
     }
 
     void onServo(const msp::msg::Servo& servo) {
@@ -93,10 +93,7 @@ public:
     }
 
 private:
-    const float acc_1g;
-    const float gyro_unit;
-    const float magn_gain;
-    const float si_unit_1g;
+
 };
 
 int main(int argc, char *argv[]) {
@@ -108,14 +105,18 @@ int main(int argc, char *argv[]) {
     // wait for connection
     fcu.connect(device, baudrate);
 
-    App app("MultiWii", 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
-    std::cout << "made app" << std::endl;
+    App app("MultiWii");
+
+    fcu.subscribe<msp::msg::RawImu>([](const msp::msg::RawImu& imu){
+        std::cout<<msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
+    }, 0.1);
+
     // define subscriptions with specific period
     fcu.subscribe(&App::onIdent, &app, 10);
     fcu.subscribe(&App::onStatus, &app, 1);
 
     // using class method callback
-    fcu.subscribe(&App::onImu, &app, 0.1);
+    //fcu.subscribe(&App::onImu, &app, 0.1);
 
     fcu.subscribe(&App::onServo, &app, 0.1);
     fcu.subscribe(&App::onMotor, &app, 0.1);
@@ -137,8 +138,8 @@ int main(int argc, char *argv[]) {
     fcu.subscribe(&App::onServoConf, &app, 20);
     // TODO: NavStatus
     // TODO: NavConfig
-    //fcu.subscribe(&App::onDebugMessage, &app,1);
-    //fcu.subscribe(&App::onDebug, &app, 1);
+    fcu.subscribe(&App::onDebugMessage, &app,1);
+    fcu.subscribe(&App::onDebug, &app, 1);
 
     // Ctrl+C to quit
     std::cin.get();

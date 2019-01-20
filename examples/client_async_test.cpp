@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
     // using lambda callback with stored function object
     const std::function<void(const msp::msg::RawImu&)> imu_cb2 = [](const msp::msg::RawImu& imu){
         std::cout << imu;
-        //std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
+        std::cout<<msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f );
     };
     client.subscribe(imu_cb2, 0.1);
 
@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
     client.subscribe(&SubCallbacks::onPidNames, &subs, 20);
     client.subscribe(&SubCallbacks::onBoxIds, &subs, 20);
     client.subscribe(&SubCallbacks::onServoConf, &subs, 20);
-    //client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
-    //client.subscribe(&SubCallbacks::onDebug, &subs, 1);
+    client.subscribe(&SubCallbacks::onDebugMessage, &subs,1);
+    client.subscribe(&SubCallbacks::onDebug, &subs, 1);
 
     // Ctrl+C to quit
     std::cin.get();

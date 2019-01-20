@@ -8,7 +8,7 @@
 
 namespace fcu {
 
-enum class ControlSource : uint8_t
+enum class ControlSource
 {
     NONE,
     SBUS,
@@ -73,7 +73,7 @@ public:
      * @brief Sets data structure with all flags governing flight mode
      * @param mode FlightMode object
      */
-    void setFlightMode(FlightMode mode);
+    void setFlightMode(const FlightMode mode);
     
     /**
      * @brief Queries data structure with all flags governing flight mode
@@ -86,7 +86,7 @@ public:
      * listen to. Also starts periodic MSP control message if MSP is selected
      * @param mode FlightMode object
      */
-    void setControlSource(ControlSource source);
+    void setControlSource(const ControlSource source);
     
     /**
      * @brief Queries the currently active control source
@@ -101,7 +101,7 @@ public:
      * order. Values are expected to be in the range -1.0 to +1.0, mapping to 1000us to 2000us
      * pulse widths.
      */
-    void setRPYT(std::array<double,4>& rpyt);
+    void setRPYT(std::array<double,4>&& rpyt);
     
     /**
      * @brief Method used to generate the Rc message sent to the flight controller 
@@ -129,7 +129,7 @@ public:
      * @brief Queries the currently set protocol (MSPv1 or MSPv2)
      * @return integer matching the protocol version
      */
-    int getProtocol();
+    int getProtocolVersion();
     
     /**
      * @brief Queries the currently set board name
@@ -178,7 +178,7 @@ public:
      * @return Pointer to subscription that is added to internal list
      */
     template<typename T, typename C, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
-    std::shared_ptr<msp::client::SubscriptionBase> subscribe(void (C::*callback)(T&), C *context, const double tp = 0.0) {
+    std::shared_ptr<msp::client::SubscriptionBase> subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
         return client_.subscribe(callback, context, tp);
     }
 
@@ -189,7 +189,7 @@ public:
      * @return Pointer to subscription that is added to internal list
      */
     template<typename T, class = typename std::enable_if<std::is_base_of<msp::Message, T>::value>::type>
-    std::shared_ptr<msp::client::SubscriptionBase> subscribe(const std::function<void(T&)> &callback, const double tp = 0.0) {
+    std::shared_ptr<msp::client::SubscriptionBase> subscribe(const std::function<void(const T&)> &callback, const double tp = 0.0) {
         return client_.subscribe(callback, tp);
     }
 

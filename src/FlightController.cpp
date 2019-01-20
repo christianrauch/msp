@@ -19,14 +19,11 @@ FlightController::~FlightController() {
 bool FlightController::connect(const std::string &device, const size_t baudrate, const double& timeout) {
     if (!client_.start(device,baudrate)) return false;
     
-    int rc;
     msp::msg::FcVariant fcvar(fw_variant_);
-    rc = client_.sendMessage(fcvar,timeout);
-    if ( rc == 1) {
+    if ( client_.sendMessage(fcvar,timeout)) {
         fw_variant_ = msp::variant_map[fcvar.identifier()];
         std::cout << fcvar;
     }
-    else std::cout << rc << std::endl;
     
     if (fw_variant_ != msp::FirmwareVariant::MWII) {
         msp::msg::ApiVersion api_version(fw_variant_);
@@ -38,25 +35,19 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
     }
     
     msp::msg::FcVersion fcver(fw_variant_);
-    rc = client_.sendMessage(fcver,timeout);
-    if (rc == 1) {
+    if ( client_.sendMessage(fcver,timeout) ) {
         std::cout << fcver;
     }
-    else std::cout << rc << std::endl;
     
     msp::msg::BoardInfo boardinfo(fw_variant_);
-    rc = client_.sendMessage(boardinfo,timeout);
-    if (rc == 1) {
+    if ( client_.sendMessage(boardinfo,timeout) ) {
         std::cout << boardinfo;
         board_name_ == boardinfo.name();
     }
-    else std::cout << rc << std::endl;
     
     msp::msg::BuildInfo buildinfo(fw_variant_);
-    rc = client_.sendMessage(buildinfo,timeout);
-    if (rc == 1)
-    std::cout << buildinfo;
-    else std::cout << rc << std::endl;
+    if ( client_.sendMessage(buildinfo,timeout) )
+        std::cout << buildinfo;
     
     msp::msg::Status status(fw_variant_);
     client_.sendMessage(status,timeout);
@@ -153,7 +144,7 @@ ControlSource FlightController::getControlSource() {
     
 }
 
-void FlightController::setRPYT(std::array<double,4>& rpyt) {
+void FlightController::setRPYT(std::array<double,4>&& rpyt) {
     {
         std::lock_guard<std::mutex> lock(msp_updates_mutex);
         rpyt_.swap(rpyt);
@@ -162,7 +153,7 @@ void FlightController::setRPYT(std::array<double,4>& rpyt) {
 }
 
 void FlightController::generateMSP() {
-    std::vector<uint16_t> cmds(18,1000);
+    std::vector<uint16_t> cmds(6,1000);
     //manually remapping from RPYT to TAER (american RC)
     //TODO: make this respect channel mapping 
     {
@@ -207,7 +198,7 @@ msp::FirmwareVariant FlightController::getFwVariant() {
     return fw_variant_;
 }
 
-int FlightController::getProtocol() {
+int FlightController::getProtocolVersion() {
     return msp_version_;
 }
 

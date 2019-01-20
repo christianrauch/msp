@@ -56,7 +56,7 @@ public:
      * @param data Source of data
      * @returns False. Override methods should return true on success
      */
-    virtual bool decode(ByteVector &data) 
+    virtual bool decode(const ByteVector &data) 
     {
         return false;
     }
