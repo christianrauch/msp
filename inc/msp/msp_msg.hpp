@@ -22,7 +22,7 @@
  * 
  */
 
-//because the gnu c std lib is stupid and calls #define on these names... 
+// undefine macros defined by GNU C std library
 #undef major
 #undef minor
 
@@ -1635,7 +1635,7 @@ struct DataflashErase : public Message {
     
     virtual ID id() const override { return ID::MSP_DATAFLASH_ERASE; }
 
-    virtual bool decode(const ByteVector& data) override {
+    virtual bool decode(const ByteVector& /*data*/) override {
         return true;
     }
 };
@@ -3855,7 +3855,7 @@ struct OsdVideoConfig : public Message {
     
     virtual ID id() const override { return ID::MSP_OSD_VIDEO_CONFIG; }
     
-    virtual bool decode(const ByteVector& data) override {
+    virtual bool decode(const ByteVector& /*data*/) override {
         return false;
     }
 };
