@@ -8,7 +8,7 @@ namespace msp {
 
 /**
  * @brief Enum of firmware variants
- * 
+ *
  */
 enum class FirmwareVariant : int {
     NONE = 0, /**< not specified */
@@ -20,23 +20,20 @@ enum class FirmwareVariant : int {
     RCFL = 6  /**< RaceFlight */
 };
 
-std::map<std::string,FirmwareVariant> variant_map = 
-{
-    {"MWII", FirmwareVariant::MWII}, 
-    {"BAFL", FirmwareVariant::BAFL}, 
-    {"BTFL", FirmwareVariant::BTFL}, 
-    {"CLFL", FirmwareVariant::CLFL}, 
-    {"INAV", FirmwareVariant::INAV}, 
-    {"RCFL", FirmwareVariant::RCFL}
-};
+const static std::map<std::string, FirmwareVariant> variant_map = {
+    {"MWII", FirmwareVariant::MWII},
+    {"BAFL", FirmwareVariant::BAFL},
+    {"BTFL", FirmwareVariant::BTFL},
+    {"CLFL", FirmwareVariant::CLFL},
+    {"INAV", FirmwareVariant::INAV},
+    {"RCFL", FirmwareVariant::RCFL}};
 
 /**
  * @brief Converts a FirmwareVariant into a matching string
  * @param variant Enum of FirmwareVariant
  * @returns A string matching the firmware type
  */
-std::string firmwareVariantToString (FirmwareVariant variant)
-{
+std::string firmwareVariantToString(FirmwareVariant variant) {
     std::string var;
     switch(variant) {
     case FirmwareVariant::MWII:
@@ -62,6 +59,6 @@ std::string firmwareVariantToString (FirmwareVariant variant)
     }
     return var;
 }
-    
-}
+
+}  // namespace msp
 #endif

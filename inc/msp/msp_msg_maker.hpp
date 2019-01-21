@@ -6,15 +6,11 @@ namespace msp {
 
 class message_maker {
 public:
-    message_maker(FirmwareVariant v = FirmwareVariant::INAV) : fw_variant(v) {};
+    message_maker(FirmwareVariant v = FirmwareVariant::INAV) : fw_variant(v){};
 
-    void set_default_variant(FirmwareVariant v) {
-        fw_variant = v;
-    }
-    
-    
-    std::shared_ptr<Message> operator() (ID& id, FirmwareVariant& v)
-    {
+    void set_default_variant(FirmwareVariant v) { fw_variant = v; }
+
+    std::shared_ptr<Message> operator()(ID& id, FirmwareVariant& v) {
         std::shared_ptr<Message> msg_ptr;
         switch(id) {
         case ID::MSP_API_VERSION:
@@ -32,8 +28,7 @@ public:
         case ID::MSP_BUILD_INFO:
             msg_ptr.reset(new msg::BuildInfo(v));
             break;
-        
-        
+
         case ID::MSP_INAV_PID:
             msg_ptr.reset(new msg::InavPid(v));
             break;
@@ -245,7 +240,7 @@ public:
             msg_ptr.reset(new msg::SetOsdConfig(v));
             break;
         case ID::MSP_OSD_CHAR_READ:
-            //msg_ptr.reset(new msg::OsdCharRead(v));
+            // msg_ptr.reset(new msg::OsdCharRead(v));
             break;
         case ID::MSP_OSD_CHAR_WRITE:
             msg_ptr.reset(new msg::OsdCharWrite(v));
@@ -346,8 +341,7 @@ public:
         case ID::MSP_LED_STRIP_MODECOLOR:
             msg_ptr.reset(new msg::LedStripModecolor(v));
             break;
-            
-            
+
         case ID::MSP_VOLTAGE_METERS:
             msg_ptr.reset(new msg::VoltageMeters(v));
             break;
@@ -369,7 +363,7 @@ public:
         case ID::MSP_ESC_SENSOR_DATA:
             msg_ptr.reset(new msg::EscSensorData(v));
             break;
-            
+
         case ID::MSP_STATUS_EX:
             msg_ptr.reset(new msg::StatusEx(v));
             break;
@@ -398,7 +392,7 @@ public:
         case ID::MSP_COPY_PROFILE:
             msg_ptr.reset(new msg::CopyProfile(v));
             break;
-            
+
         case ID::MSP_BEEPER_CONFIG:
             msg_ptr.reset(new msg::BeeperConfig(v));
             break;
@@ -421,7 +415,7 @@ public:
         case ID::MSP_SET_PID:
             msg_ptr.reset(new msg::SetPid(v));
             break;
-        
+
         case ID::MSP_SET_BOX:
             msg_ptr.reset(new msg::SetBox(v));
             break;
@@ -434,7 +428,7 @@ public:
         case ID::MSP_MAG_CALIBRATION:
             msg_ptr.reset(new msg::MagCalibration(v));
             break;
-        
+
         case ID::MSP_SET_MISC:
             msg_ptr.reset(new msg::SetMisc(v));
             break;
@@ -447,7 +441,7 @@ public:
         case ID::MSP_SELECT_SETTING:
             msg_ptr.reset(new msg::SelectSetting(v));
             break;
-        
+
         case ID::MSP_SET_HEADING:
             msg_ptr.reset(new msg::SetHeading(v));
             break;
@@ -460,7 +454,7 @@ public:
         case ID::MSP_SET_NAV_CONFIG:
             msg_ptr.reset(new msg::SetNavConfig(v));
             break;
-        
+
         case ID::MSP_SET_MOTOR_3D_CONF:
             msg_ptr.reset(new msg::SetMotor3dConf(v));
             break;
@@ -473,7 +467,7 @@ public:
         case ID::MSP_SET_SENSOR_ALIGNMENT:
             msg_ptr.reset(new msg::SetSensorAlignment(v));
             break;
-        
+
         case ID::MSP_SET_LED_STRIP_MODECOLOR:
             msg_ptr.reset(new msg::SetLedStripModecolor(v));
             break;
@@ -486,7 +480,7 @@ public:
         case ID::MSP_SET_COMPASS_CONFIG:
             msg_ptr.reset(new msg::SetCompassConfig(v));
             break;
-        
+
         case ID::MSP_SET_ACC_TRIM:
             msg_ptr.reset(new msg::SetAccTrim(v));
             break;
@@ -499,7 +493,7 @@ public:
         case ID::MSP_SET_SERVO_MIX_RULE:
             msg_ptr.reset(new msg::SetServoMixRule(v));
             break;
-        
+
         case ID::MSP_PASSTHROUGH_SERIAL:
             msg_ptr.reset(new msg::PassthroughSerial(v));
             break;
@@ -512,9 +506,7 @@ public:
         case ID::MSP_RTC:
             msg_ptr.reset(new msg::Rtc(v));
             break;
-        
-        
-        
+
         case ID::MSP_EEPROM_WRITE:
             msg_ptr.reset(new msg::WriteEEPROM(v));
             break;
@@ -530,11 +522,11 @@ public:
         case ID::MSP_DEBUG:
             msg_ptr.reset(new msg::Debug(v));
             break;
-        
+
         case ID::MSP_V2_FRAME:
             msg_ptr.reset(new msg::V2Frame(v));
             break;
-        
+
         case ID::MSP2_COMMON_TZ:
             msg_ptr.reset(new msg::CommonTz(v));
             break;
@@ -547,17 +539,14 @@ public:
         case ID::MSP2_COMMON_SET_SETTING:
             msg_ptr.reset(new msg::CommonSetSetting(v));
             break;
-        
-        
-        
+
         case ID::MSP2_COMMON_MOTOR_MIXER:
             msg_ptr.reset(new msg::CommonMotorMixer(v));
             break;
         case ID::MSP2_COMMON_SET_MOTOR_MIXER:
             msg_ptr.reset(new msg::CommonSetMotorMixer(v));
             break;
-        
-        
+
         case ID::MSP2_INAV_STATUS:
             msg_ptr.reset(new msg::InavStatus(v));
             break;
@@ -570,7 +559,7 @@ public:
         case ID::MSP2_INAV_MISC:
             msg_ptr.reset(new msg::InavMisc(v));
             break;
-        
+
         case ID::MSP2_INAV_SET_MISC:
             msg_ptr.reset(new msg::InavSetMisc(v));
             break;
@@ -583,34 +572,29 @@ public:
         case ID::MSP2_INAV_RATE_PROFILE:
             msg_ptr.reset(new msg::InavRateProfile(v));
             break;
-        
+
         case ID::MSP2_INAV_SET_RATE_PROFILE:
             msg_ptr.reset(new msg::InavSetRateProfile(v));
             break;
         case ID::MSP2_INAV_AIR_SPEED:
             msg_ptr.reset(new msg::InavAirSpeed(v));
             break;
-        
-        
+
         default:
             break;
-        
         }
-        
+
         return msg_ptr;
     }
-    
-    std::shared_ptr<Message> operator() (ID id)
-    {
-        return this->operator()(id,fw_variant);
+
+    std::shared_ptr<Message> operator()(ID id) {
+        return this->operator()(id, fw_variant);
     }
-
-
 
 private:
     FirmwareVariant fw_variant;
 };
 
-}
+}  // namespace msp
 
 #endif

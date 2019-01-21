@@ -1,44 +1,44 @@
 #include "Value.hpp"
+#include <type_traits>
 #include "ByteVector.hpp"
 #include "gtest/gtest.h"
-#include <type_traits>
 
 namespace msp {
 
 // The fixture for testing class Foo.
-template<typename T>
-class valueTest : public ::testing::Test {
+template <typename T> class valueTest : public ::testing::Test {
 protected:
     // You can remove any or all of the following functions if its body
     // is empty.
 
     valueTest() {
-    // You can do set-up work for each test here.
+        // You can do set-up work for each test here.
     }
 
     virtual ~valueTest() {
-    // You can do clean-up work that doesn't throw exceptions here.
+        // You can do clean-up work that doesn't throw exceptions here.
     }
 
     // If the constructor and destructor are not enough for setting up
     // and cleaning up each test, you can define the following methods:
 
     virtual void SetUp() {
-    // Code here will be called immediately after the constructor (right
-    // before each test).
+        // Code here will be called immediately after the constructor (right
+        // before each test).
     }
 
     virtual void TearDown() {
-    // Code here will be called immediately after each test (right
-    // before the destructor).
+        // Code here will be called immediately after each test (right
+        // before the destructor).
     }
 
     // Objects declared here can be used by all tests in the test case for Foo.
 };
 
-typedef ::testing::Types<bool, uint8_t, uint16_t, uint32_t, int8_t, int16_t, int32_t, float, double> numTypes;
+typedef ::testing::Types<bool, uint8_t, uint16_t, uint32_t, int8_t, int16_t,
+                         int32_t, float, double>
+    numTypes;
 TYPED_TEST_CASE(valueTest, numTypes);
-
 
 // Tests that the Foo::Bar() method does Abc.
 TYPED_TEST(valueTest, Initialzation) {
@@ -49,22 +49,21 @@ TYPED_TEST(valueTest, Initialzation) {
 
 TYPED_TEST(valueTest, AssignmentZero) {
     Value<TypeParam> v1, v2;
-    
+
     TypeParam ref = 0;
-    v1 = ref;
+    v1            = ref;
     EXPECT_EQ(ref, v1());
     EXPECT_TRUE(v1.set());
     v2 = v1;
     EXPECT_EQ(ref, v2());
     EXPECT_TRUE(v2.set());
-    
 }
-
 
 TYPED_TEST(valueTest, AssignmentMax) {
     Value<TypeParam> v1, v2;
-    
-    TypeParam ref = std::numeric_limits<TypeParam>::max();;
+
+    TypeParam ref = std::numeric_limits<TypeParam>::max();
+    ;
     v1 = ref;
     EXPECT_EQ(ref, v1());
     EXPECT_TRUE(v1.set());
@@ -73,11 +72,11 @@ TYPED_TEST(valueTest, AssignmentMax) {
     EXPECT_TRUE(v2.set());
 }
 
-
 TYPED_TEST(valueTest, AssignmentMin) {
     Value<TypeParam> v1, v2;
-    
-    TypeParam ref = std::numeric_limits<TypeParam>::min();;
+
+    TypeParam ref = std::numeric_limits<TypeParam>::min();
+    ;
     v1 = ref;
     EXPECT_EQ(ref, v1());
     EXPECT_TRUE(v1.set());
@@ -110,7 +109,7 @@ TEST(valueTest, ByteVecInit) {
 
 TEST(valueTest, ByteVecAssign) {
     Value<ByteVector> v1, v2;
-    v1 = ByteVector(1,1);
+    v1 = ByteVector(1, 1);
     EXPECT_EQ(1, v1()[0]);
     EXPECT_EQ(true, v1.set());
     v2 = v1;
@@ -118,9 +117,9 @@ TEST(valueTest, ByteVecAssign) {
     EXPECT_EQ(true, v2.set());
 }
 
-}  // namespace
+}  // namespace msp
 
 int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

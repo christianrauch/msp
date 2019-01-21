@@ -1,26 +1,25 @@
 #ifndef PERIODIC_TIMER_HPP
 #define PERIODIC_TIMER_HPP
 
-#include <functional>
-#include <mutex>
-#include <chrono>
-#include <memory>
-#include <thread>
 #include <atomic>
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace msp {
 
-
 class PeriodicTimer {
 public:
-
     /**
      * @brief PeriodicTimer define a periodic timer
      * @param funct function that is called periodically
      * @param period_seconds period in seconds
      */
-    PeriodicTimer(const std::function<void()> funct, const double period_seconds);
-    
+    PeriodicTimer(const std::function<void()> funct,
+                  const double period_seconds);
+
     /**
      * @brief PeriodicTimer destructor
      */
@@ -40,9 +39,7 @@ public:
      * @brief getPeriod get period in seconds
      * @return period in seconds
      */
-    double getPeriod() {
-        return period_us.count()/1.e6;
-    }
+    double getPeriod() { return period_us.count() / 1.e6; }
 
     /**
      * @brief setPeriod change the update period of timer thread
@@ -57,12 +54,10 @@ private:
     std::chrono::duration<size_t, std::micro> period_us;
     std::timed_mutex mutex_timer;
     std::chrono::steady_clock::time_point tstart;
-    
+
     std::atomic_flag running_;
-    
 };
 
-} // namespace msp
-
+}  // namespace msp
 
 #endif
