@@ -12,7 +12,6 @@
 #include "FirmwareVariants.hpp"
 #include "Message.hpp"
 #include "Subscription.hpp"
-#include "msp_id.hpp"
 
 namespace msp {
 namespace client {

@@ -7,9 +7,10 @@
 #include <vector>
 #include "ByteVector.hpp"
 #include "FirmwareVariants.hpp"
-#include "msp_id.hpp"
 
 namespace msp {
+
+enum class ID : uint16_t;
 
 class Message {
 public:
@@ -58,8 +59,8 @@ public:
     virtual ByteVectorUptr encode() const { return ByteVectorUptr(); }
 
     virtual std::ostream& print(std::ostream& s) const {
-        s << "Print method for message ID " << id() << " is not implemented"
-          << std::endl;
+        s << "Print method for message ID " << uint16_t(id())
+          << " is not implemented" << std::endl;
         return s;
     }
 
@@ -68,6 +69,11 @@ protected:
 };
 
 }  // namespace msp
+
+std::ostream& operator<<(std::ostream& s, const msp::ID& id) {
+    s << (int)id;
+    return s;
+}
 
 std::ostream& operator<<(std::ostream& s, const msp::Message& val) {
     return val.print(s);
