@@ -44,7 +44,7 @@ target_link_libraries(msp_fcu mspclient)
 ### examples / tests
 
 if(BUILD_EXAMPLES)
-       
+
     # testing publish/subscribe
     add_executable(fcu_test examples/fcu_test.cpp)
     target_link_libraries(fcu_test msp_fcu)
@@ -139,9 +139,5 @@ if(BUILD_TESTS)
     add_executable(bytevector_test test/ByteVector_test.cpp)
     target_link_libraries(bytevector_test gtest_main)
     add_test(NAME bytevector_test COMMAND bytevector_test)
-
-    add_executable(msp_msg_test test/msp_msg_test.cpp)
-    target_link_libraries(msp_msg_test gtest_main)
-    add_test(NAME msp_msg_test COMMAND msp_msg_test)
 
 endif()
