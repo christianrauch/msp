@@ -123,7 +123,7 @@ bool Client::sendMessage(msp::Message& message, const double& timeout) {
     std::unique_lock<std::mutex> lock(cv_response_mtx);
     const auto predicate = [&] {
         mutex_response.lock();
-        const bool received = (request_received != NULL) &&
+        const bool received = (request_received != nullptr) &&
                               (request_received->id == message.id());
         // unlock to wait for next message
         if(!received) {
@@ -243,7 +243,7 @@ ByteVector Client::packMessageV2(const msp::ID id, const ByteVector& data) {
     msg.push_back(uint8_t(uint16_t(id) & 0xFF));  // message_id low bits
     msg.push_back(uint8_t(uint16_t(id) >> 8));    // message_id high bits
 
-    uint16_t size = (uint16_t)data.size();
+    const uint16_t size = uint16_t(data.size());
     msg.push_back(uint8_t(size & 0xFF));  // data size low bits
     msg.push_back(uint8_t(size >> 8));    // data size high bits
 
@@ -343,8 +343,8 @@ void Client::processOneMessage(const asio::error_code& ec,
 }
 
 std::pair<iterator, bool> Client::messageReady(iterator begin, iterator end) {
-    iterator i       = begin;
-    size_t available = std::distance(begin, end);
+    iterator i             = begin;
+    const size_t available = std::distance(begin, end);
 
     if(available < 2) return std::make_pair(begin, false);
 
@@ -352,7 +352,7 @@ std::pair<iterator, bool> Client::messageReady(iterator begin, iterator end) {
         // not even enough data for a header
         if(available < 6) return std::make_pair(begin, false);
 
-        uint8_t payload_size = *(i + 3);
+        const uint8_t payload_size = *(i + 3);
         // incomplete xfer
         if(available < size_t(5 + payload_size + 1))
             return std::make_pair(begin, false);
@@ -363,7 +363,8 @@ std::pair<iterator, bool> Client::messageReady(iterator begin, iterator end) {
         // not even enough data for a header
         if(available < 9) return std::make_pair(begin, false);
 
-        uint16_t payload_size = uint8_t(*(i + 6)) | uint8_t(*(i + 7)) << 8;
+        const uint16_t payload_size = uint8_t(*(i + 6)) | uint8_t(*(i + 7))
+                                                              << 8;
 
         // incomplete xfer
         if(available < size_t(8 + payload_size + 1))
@@ -395,7 +396,7 @@ ReceivedMessage Client::processOneMessageV1() {
 
     // message ID
     uint8_t id = extractChar();
-    ret.id     = (msp::ID)id;
+    ret.id     = msp::ID(id);
 
     if(log_level_ >= WARNING && !ok_id) {
         std::cerr << "Message v1 with ID " << size_t(ret.id)
@@ -452,7 +453,7 @@ ReceivedMessage Client::processOneMessageV2() {
     const uint8_t id_low  = extractChar();
     const uint8_t id_high = extractChar();
     uint16_t id           = uint16_t(id_low) | (uint16_t(id_high) << 8);
-    ret.id                = (msp::ID)id;
+    ret.id                = msp::ID(id);
     if(log_level_ >= DEBUG) std::cout << "id: " << id << std::endl;
     exp_crc = crcV2(exp_crc, id_low);
     exp_crc = crcV2(exp_crc, id_high);

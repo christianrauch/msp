@@ -151,11 +151,11 @@ void FlightController::generateMSP() {
         cmds[2] = (rpyt_[1] * 500) + 1500;
         cmds[3] = (rpyt_[2] * 500) + 1500;
 
-        if(!((uint32_t)flight_mode_.modifier &
-             (uint32_t)FlightMode::MODIFIER::ARM))
+        if(!(uint32_t(flight_mode_.modifier) &
+             uint32_t(FlightMode::MODIFIER::ARM)))
             cmds[4] = 1000;
-        else if((uint32_t)flight_mode_.secondary &
-                (uint32_t)FlightMode::SECONDARY_MODE::NAV_ALTHOLD)
+        else if(uint32_t(flight_mode_.secondary) &
+                uint32_t(FlightMode::SECONDARY_MODE::NAV_ALTHOLD))
             cmds[4] = 2000;
         else
             cmds[4] = 1500;

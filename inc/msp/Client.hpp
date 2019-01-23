@@ -149,18 +149,23 @@ public:
         const std::function<void(const T&)>& recv_callback, const double& tp) {
         // validate the period
         if(!(tp >= 0.0)) throw std::runtime_error("Period must be positive!");
+
         // get the id of the message in question
         const msp::ID id = T(fw_variant).id();
         if(log_level_ >= INFO)
             std::cout << "SUBSCRIBING TO " << id << std::endl;
+
         // generate the callback for sending messages
         std::function<bool(const Message&)> send_callback =
             std::bind(&Client::sendMessageNoWait, this, std::placeholders::_1);
+
         // create a shared pointer to a new Subscription and set all properties
         auto subscription = std::make_shared<Subscription<T>>(
             recv_callback, send_callback, std::make_unique<T>(fw_variant), tp);
+
         // gonna modify the subscription map, so lock the mutex
         std::lock_guard<std::mutex> lock(mutex_subscriptions);
+
         // move the new subscription into the subscription map
         subscriptions.emplace(id, std::move(subscription));
         return subscriptions[id];
