@@ -426,9 +426,6 @@ ReceivedMessage Client::processOneMessageV1() {
         ret.status = FAIL_CRC;
     }
 
-    if(ret.status != OK)
-        std::cout << "v1 ret status " << ret.status << std::endl;
-
     return ret;
 }
 
