@@ -11,7 +11,9 @@ namespace client {
 
 class SubscriptionBase {
 public:
-    SubscriptionBase(){};
+    SubscriptionBase() {}
+
+    virtual ~SubscriptionBase() {}
 
     virtual void decode(msp::ByteVector& data) = 0;
 
@@ -83,7 +85,8 @@ protected:
 
 template <typename T> class Subscription : public SubscriptionBase {
 public:
-    // typedef std::function<void(T&)> Callback;
+    typedef std::function<void(const T&)> CallbackT;
+    typedef std::function<void(const msp::Message&)> CallbackM;
 
     /**
      * @brief Subscription constructor
@@ -97,8 +100,7 @@ public:
      * @param io_object Object which is used for encoding/decoding data
      * @param period Repition rate of the request
      */
-    Subscription(const std::function<void(const T&)>& recv_callback,
-                 const std::function<void(const msp::Message&)>& send_callback,
+    Subscription(const CallbackT& recv_callback, const CallbackM& send_callback,
                  std::unique_ptr<T>&& io_object, const double& period = 0.0) :
         recv_callback_(recv_callback),
         send_callback_(send_callback),
@@ -141,8 +143,7 @@ public:
      * @brief Sets the callback to be executed on success
      * @param recv_callback the callback to be executed
      */
-    void setReceiveCallback(
-        const std::function<void(const T&)>& recv_callback) {
+    void setReceiveCallback(const CallbackT& recv_callback) {
         recv_callback_ = recv_callback;
     }
 
@@ -157,8 +158,7 @@ public:
      * @brief Sets the callback used to send the request
      * @param send_callback the callback to be executed
      */
-    void setSendCallback(
-        const std::function<void(const msp::Message&)>& send_callback) {
+    void setSendCallback(const CallbackM& send_callback) {
         send_callback_ = send_callback;
     }
 
@@ -170,8 +170,8 @@ public:
     }
 
 protected:
-    std::function<void(const T&)> recv_callback_;
-    std::function<void(const msp::Message&)> send_callback_;
+    CallbackT recv_callback_;
+    CallbackM send_callback_;
     std::unique_ptr<T> io_object_;
 };
 
