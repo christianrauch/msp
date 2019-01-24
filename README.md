@@ -39,13 +39,11 @@ You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-t
 - change the update rate for the serial task in the range 100 ... 2000Hz
     - e.g. to 2000Hz: `set serial_update_rate_hz=2000`, then `save`
 - it might be necessary to increase the serial baudrate in the Ports configuration tab
-- test communication with higher baudrate: `./get_msp_info /dev/ttyUSB0 1000000`
 
 ### Sending and Receiving RC commands
 - activate feature `RX_MSP`
     - via GUI: `Configuration` -> `Receiver` -> `Receiver Mode` -> `MSP RX input`
     - via CLI: execute `feature RX_MSP`
-    - via API: `FlightController::enableRxMSP()` and reboot
 
 Beginning with Cleanflight 2 and Betaflight 3, `MSP_SET_RAW_RC` messages are ignored on some targets with insufficient flash memory (like the naze32). You can verify this, if `MSP_RC` messages return an empty list of channels. To activate `MSP_SET_RAW_RC` messages on these targets, you need to add `#define USE_RX_MSP` to your `target.h`, e.g. `src/main/target/NAZE/target.h`.
 
@@ -58,7 +56,7 @@ Instantiate and setup the `FlightController` class:
 ```C++
 #include <FlightController.hpp>
 
-fcu::FlightController fcu();
+fcu::FlightController fcu;
 
 // do connection and setup
 fcu.connect("/dev/ttyUSB0", 115200);
@@ -98,9 +96,8 @@ Requests are sent to and processed by the flight controller as fast as possible.
 The `FlightController::subscribe` method is restricted to callbacks which return `void` and take an argument of `const msp::Message&`. In order to call a method that doesn't match that signature (maybe it needs additional information), it sometimes is useful to wrap the non-compliant method in a lambda that matches the expected signature.
 
 ```C++
-//ScaledImu is not a subclass of msp::Message, so its not suitable for use as a callback argument
-
 auto callback = [](const msp::msg::RawImu& imu){
+    //ScaledImu is not a subclass of msp::Message, so its not suitable for use as a callback argument
     std::cout << msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
 }
 
@@ -129,7 +126,7 @@ calibration.acc_gain_x = 1;
 calibration.acc_gain_y = 1;
 calibration.acc_gain_z = 1;
 if (fcu.sendMessage(calibration) ) {
-    //calibration data has been sent 
+    //calibration data has been sent
     //since this message does not have any return data, the values are unchanged
 }
 ```
