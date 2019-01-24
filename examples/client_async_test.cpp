@@ -8,9 +8,8 @@ struct SubCallbacks {
     void onStatus(const msp::msg::Status& status) { std::cout << status; }
 
     void onImu(const msp::msg::RawImu& imu) {
-        std::cout << imu;
-        // std::cout<<msp::msg::ImuSI(imu, 512.0, 1.0/4.096,
-        // 0.92f/10.0f, 9.80665f);
+        std::cout << msp::msg::ImuSI(
+            imu, 512.0, 1.0 / 4.096, 0.92f / 10.0f, 9.80665f);
     }
 
     void onServo(const msp::msg::Servo& servo) { std::cout << servo; }
@@ -83,8 +82,8 @@ int main(int argc, char* argv[]) {
     const std::function<void(const msp::msg::RawImu&)> imu_cb2 =
         [](const msp::msg::RawImu& imu) {
             std::cout << imu;
-            std::cout << msp::msg::ScaledImu(
-                imu, 9.80665f / 512.0, 1.0 / 4.096, 0.92f / 10.0f);
+            std::cout << msp::msg::ImuSI(
+                imu, 512.0, 1.0 / 4.096, 0.92f / 10.0f, 9.80665f);
         };
     client.subscribe(imu_cb2, 0.1);
 

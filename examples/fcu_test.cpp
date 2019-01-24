@@ -82,8 +82,8 @@ int main(int argc, char* argv[]) {
 
     fcu.subscribe<msp::msg::RawImu>(
         [](const msp::msg::RawImu& imu) {
-            std::cout << msp::msg::ScaledImu(
-                imu, 9.80665f / 512.0, 1.0 / 4.096, 0.92f / 10.0f);
+            std::cout << msp::msg::ImuSI(
+                imu, 512.0, 1.0 / 4.096, 0.92f / 10.0f, 9.80665f);
         },
         0.1);
 

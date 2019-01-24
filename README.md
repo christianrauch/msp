@@ -97,8 +97,8 @@ The `FlightController::subscribe` method is restricted to callbacks which return
 
 ```C++
 auto callback = [](const msp::msg::RawImu& imu){
-    //ScaledImu is not a subclass of msp::Message, so its not suitable for use as a callback argument
-    std::cout << msp::msg::ScaledImu(imu, 9.80665f/512.0, 1.0/4.096, 0.92f/10.0f);
+    // ImuSI is not a subclass of msp::Message, so it's not suitable for use as a callback argument
+    std::cout << msp::msg::ImuSI(imu, 512.0, 1.0/4.096, 0.92f/10.0f, 9.80665f);
 }
 
 fcu.subscribe<msp::msg::RawImu>(callback, 0.1);
@@ -115,7 +115,7 @@ You need to instantiate an instance of the object matching the message you want 
 ```C++
 msp::Status status;
 if (fcu.sendMessage(status) ) {
-    //status will contain the values returned by the flight controller
+    // status will contain the values returned by the flight controller
 }
 
 msp::SetCalibrationData calibration;
@@ -126,8 +126,8 @@ calibration.acc_gain_x = 1;
 calibration.acc_gain_y = 1;
 calibration.acc_gain_z = 1;
 if (fcu.sendMessage(calibration) ) {
-    //calibration data has been sent
-    //since this message does not have any return data, the values are unchanged
+    // calibration data has been sent
+    // since this message does not have any return data, the values are unchanged
 }
 ```
 

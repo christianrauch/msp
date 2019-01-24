@@ -2862,20 +2862,27 @@ struct RawImu : public Message {
     }
 };
 
-struct ScaledImu {
-    std::array<Value<float>, 3> acc;
-    std::array<Value<float>, 3> gyro;
-    std::array<Value<float>, 3> mag;
+// helper class to convert raw imu readigs into standard physic units
+// custom scaling factors have to be derived from the sensor documentation
+struct ImuSI {
+    std::array<Value<float>, 3> acc;   // m/s^2
+    std::array<Value<float>, 3> gyro;  // deg/s
+    std::array<Value<float>, 3> mag;   // uT
 
-    ScaledImu(RawImu raw, float acc_scale, float gyro_scale, float mag_scale) {
+    ImuSI(RawImu raw,
+          const float acc_1g,     // sensor value at 1g
+          const float gyro_unit,  // resolution in 1/(deg/s)
+          const float magn_gain,  // scale magnetic value to uT (micro Tesla)
+          const float si_unit_1g  // acceleration at 1g (in m/s^2))
+    ) {
         for(int i = 0; i < 3; ++i) {
-            acc[i] = raw.acc[i]() * acc_scale;
+            acc[i] = raw.acc[i]() / acc_1g * si_unit_1g;
         }
         for(int i = 0; i < 3; ++i) {
-            gyro[i] = raw.gyro[i]() * gyro_scale;
+            gyro[i] = raw.gyro[i]() * gyro_unit;
         }
         for(int i = 0; i < 3; ++i) {
-            mag[i] = raw.mag[i]() * mag_scale;
+            mag[i] = raw.mag[i]() * magn_gain;
         }
     }
 
@@ -5489,7 +5496,7 @@ struct InavAirSpeed : public InavMiscSettings, public Message {
 }  // namespace msg
 }  // namespace msp
 
-std::ostream& operator<<(std::ostream& s, const msp::msg::ScaledImu& val) {
+std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& val) {
     return val.print(s);
 }
 

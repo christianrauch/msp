@@ -31,9 +31,8 @@ int main(int argc, char *argv[]) {
     msp::msg::RawImu imu_raw(fw_variant);
     if(client.sendMessage(imu_raw) == 1) {
         std::cout << imu_raw;
-        msp::msg::ScaledImu imu_scale(
-            imu_raw, 9.80665f / 512.0, 1.0 / 4.096, 0.92f / 10.0f);
-        std::cout << imu_scale;
+        std::cout << msp::msg::ImuSI(
+            imu_raw, 512.0, 1.0 / 4.096, 0.92f / 10.0f, 9.80665f);
     }
     else
         std::cerr << "unsupported: " << size_t(imu_raw.id()) << std::endl;
