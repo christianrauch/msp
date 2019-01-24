@@ -424,7 +424,7 @@ struct ApiVersion : public Message {
         s << " API: " << major << "." << minor << std::endl;
         s << " Protocol: " << protocol << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_FC_VARIANT: 2
@@ -443,7 +443,7 @@ struct FcVariant : public Message {
         s << "#FC variant:" << std::endl;
         s << " Identifier: " << identifier << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_FC_VERSION: 3
@@ -469,7 +469,7 @@ struct FcVersion : public Message {
         s << " Version: " << major << "." << minor << "." << patch_level
           << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_BOARD_INFO: 4
@@ -504,7 +504,7 @@ struct BoardInfo : public Message {
         s << " Comms bitmask: " << comms_capabilites << std::endl;
         s << " Board Name: " << name << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_BUILD_INFO: 5
@@ -531,7 +531,7 @@ struct BuildInfo : public Message {
         s << " Time: " << buildTime << std::endl;
         s << " Git revision: " << shortGitRevision << std::endl;
         return s;
-    };
+    }
 };
 
 struct InavPidSettings {
@@ -1238,7 +1238,7 @@ struct RxConfigSettings {
         s << " fpvCamAngleDegrees: " << fpvCamAngleDegrees << std::endl;
         s << " receiverType: " << receiverType << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_RX_CONFIG: 44
@@ -2859,7 +2859,7 @@ struct RawImu : public Message {
         s << " Magnetometer: " << mag[0] << ", " << mag[1] << ", " << mag[2]
           << std::endl;
         return s;
-    };
+    }
 };
 
 struct ScaledImu {
@@ -2888,7 +2888,7 @@ struct ScaledImu {
         s << " Magnetometer: " << mag[0] << ", " << mag[1] << ", " << mag[2]
           << " uT" << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_SERVO: 103
@@ -2912,7 +2912,7 @@ struct Servo : public Message {
         s << " " << servo[4] << " " << servo[5] << " " << servo[6] << " "
           << servo[7] << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_MOTOR: 104
@@ -2936,7 +2936,7 @@ struct Motor : public Message {
         s << " " << motor[4] << " " << motor[5] << " " << motor[6] << " "
           << motor[7] << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_RC: 105
@@ -2965,7 +2965,7 @@ struct Rc : public Message {
         }
         s << " " << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_RAW_GPS: 106
@@ -3011,7 +3011,7 @@ struct RawGPS : public Message {
         s << " Ground course: " << ground_course << " deg" << std::endl;
         if(hdop_set) s << " HDOP: " << hdop << std::endl;
         return s;
-    };
+    }
 };
 
 // MSP_COMP_GPS: 107
@@ -3039,7 +3039,7 @@ struct CompGPS : public Message {
         s << " Update: " << update << std::endl;
 
         return s;
-    };
+    }
 };
 
 // TODO validate units
@@ -3067,7 +3067,7 @@ struct Attitude : public Message {
         s << " Pitch : " << pitch << " deg" << std::endl;
         s << " Heading: " << yaw << " deg" << std::endl;
         return s;
-    };
+    }
 };
 
 // TODO validate units
@@ -3104,7 +3104,7 @@ struct Altitude : public Message {
             s << "<unset>";
         s << std::endl;
         return s;
-    };
+    }
 };
 
 // TODO check amperage units
@@ -3135,7 +3135,7 @@ struct Analog : public Message {
         s << " Power consumption: " << powerMeterSum << " Ah" << std::endl;
         s << " RSSI: " << rssi << std::endl;
         return s;
-    };
+    }
 };
 
 struct RcTuningSettings {
@@ -3160,7 +3160,7 @@ struct RcTuningSettings {
         s << " Throttle MID: " << throttle_mid << std::endl;
         s << " Throttle Expo: " << throttle_expo << std::endl;
         return s;
-    };
+    }
 };
 
 // Differences between iNav and BF/CF
@@ -3274,7 +3274,7 @@ struct PidSettings {
           << std::endl;
 
         return s;
-    };
+    }
 };
 
 // TODO: revisit
@@ -3347,7 +3347,7 @@ struct ActiveBoxes : public Message {
         }
 
         return s;
-    };
+    }
 };
 
 struct MiscSettings {
@@ -4466,7 +4466,7 @@ struct SetServoConf : public Message {
         rc &= data->pack(reversed_sources);
         if(!rc) data.reset();
         return data;
-    };
+    }
 };
 
 // MSP_SET_MOTOR: 214
@@ -5113,30 +5113,10 @@ struct InavStatus : public StatusBase, public Message {
 
     virtual ID id() const override { return ID::MSP2_INAV_STATUS; }
 
-    Value<uint16_t> cycle_time;
-    Value<uint16_t> i2c_errors;
-    // Value<uint16_t> sensor_status;
-    std::set<Sensor> sensors;
-
     Value<uint16_t> avg_system_load_pct;
     Value<uint8_t> config_profile;
     Value<uint32_t> arming_flags;
-    // Value<uint32_t> box_mode_flags;
-    std::set<size_t> box_mode_flags;
 
-    /*
-    virtual bool decode(const ByteVector& data) override {
-        bool rc = true;
-        rc &= data.unpack(cycle_time);
-        rc &= data.unpack(i2c_errors);
-        rc &= data.unpack(sensor_status);
-        rc &= data.unpack(avg_system_load_pct);
-        rc &= data.unpack(config_profile);
-        rc &= data.unpack(arming_flags);
-        rc &= data.unpack(box_mode_flags);
-        return rc;
-    }
-    */
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
         rc &= data.unpack(cycle_time);
