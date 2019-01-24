@@ -19,7 +19,7 @@ if(WIN32)
 endif()
 
 OPTION(BUILD_EXAMPLES "Build Library with examples" ON)
-OPTION(BUILD_TESTS "Build Library with tests" ON)
+OPTION(BUILD_TESTS "Build Library with tests" OFF)
 
 find_package(Threads)
 
