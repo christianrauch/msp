@@ -1,35 +1,37 @@
 #include <FlightController.hpp>
-
 #include <iostream>
 
-struct MyIdent : public msp::Request {
+struct MyIdent : public msp::Message {
+    MyIdent(msp::FirmwareVariant v) : Message(v) {}
+
     msp::ID id() const { return msp::ID::MSP_IDENT; }
 
     msp::ByteVector raw_data;
 
-    void decode(const msp::ByteVector &data) {
+    virtual bool decode(const msp::ByteVector &data) override {
         raw_data = data;
+        return true;
     }
-
 };
 
 struct Callbacks {
     void onIdent(const MyIdent &ident) {
         std::cout << "Raw Ident data: ";
         for(auto d : ident.raw_data) {
-            std::cout << int(d) << ",";
+            std::cout << int(d) << " ";
         }
         std::cout << std::endl;
     }
 };
 
 int main(int argc, char *argv[]) {
-    const std::string device = (argc>1) ? std::string(argv[1]) : "/dev/ttyUSB0";
-    const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+    const std::string device =
+        (argc > 1) ? std::string(argv[1]) : "/dev/ttyUSB0";
+    const size_t baudrate = (argc > 2) ? std::stoul(argv[2]) : 115200;
 
     Callbacks cbs;
-    fcu::FlightController fcu(device, baudrate);
-    fcu.initialise();
+    fcu::FlightController fcu;
+    fcu.connect(device, baudrate);
 
     // subscribe with costum type
     fcu.subscribe(&Callbacks::onIdent, &cbs, 1);

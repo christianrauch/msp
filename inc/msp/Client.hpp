@@ -1,343 +1,368 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <asio.hpp>
+#include <condition_variable>
+#include <functional>
+#include <map>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
-#include <map>
-#include "types.hpp"
-
-namespace msp {
-
-struct SerialPortImpl;
-
-class PeriodicTimer {
-public:
-
-    /**
-     * @brief PeriodicTimer define a periodic timer
-     * @param funct function that is called periodically
-     * @param period_seconds period in seconds
-     */
-    PeriodicTimer(const std::function<void()> funct, const double period_seconds);
-
-    ~PeriodicTimer() { stop(); }
-
-    /**
-     * @brief start define and start background thread
-     */
-    void start();
-
-    /**
-     * @brief stop tell thread to stop and wait for end
-     */
-    void stop();
-
-    /**
-     * @brief getPeriod get period in seconds
-     * @return period in seconds
-     */
-    double getPeriod() {
-        return period_us.count()/1.e6;
-    }
-
-    /**
-     * @brief setPeriod change the update period of timer thread
-     * This will stop and restart the thread.
-     * @param period_seconds period in seconds
-     */
-    void setPeriod(const double period_seconds);
-
-private:
-    std::shared_ptr<std::thread> thread_ptr;
-    std::function<void()> funct;
-    std::chrono::duration<size_t, std::micro> period_us;
-    std::timed_mutex mutex_timer;
-    bool running;
-};
-
-} // namespace msp
+#include "ByteVector.hpp"
+#include "FirmwareVariants.hpp"
+#include "Message.hpp"
+#include "Subscription.hpp"
 
 namespace msp {
 namespace client {
 
-class SubscriptionBase {
-public:
-    SubscriptionBase(PeriodicTimer *timer=NULL) : timer(timer) { }
+typedef asio::buffers_iterator<asio::streambuf::const_buffers_type> iterator;
 
-    virtual ~SubscriptionBase() {
-        if(timer!=NULL) { delete timer; }
-    }
-
-    virtual void call(const msp::Request &req) = 0;
-
-    bool hasTimer() {
-        // subscription with manual sending of requests
-        return !(timer->getPeriod()>0);
-    }
-
-    /**
-     * @brief setTimerPeriod change the period of the timer
-     * @param period_seconds period in seconds
-     */
-    void setTimerPeriod(const double period_seconds) {
-        timer->setPeriod(period_seconds);
-    }
-
-    /**
-     * @brief setTimerFrequency change the update rate of timer
-     * @param rate_hz frequency in Hz
-     */
-    void setTimerFrequency(const double rate_hz) {
-        timer->setPeriod(1.0/rate_hz);
-    }
-
-protected:
-    PeriodicTimer *timer;
-};
-
-template<typename T>
-class Subscription : public SubscriptionBase {
-public:
-    typedef std::function<void(const T&)> Callback;
-
-    Subscription(const Callback &callback) : callback(callback) { }
-
-    Subscription(const Callback &callback, PeriodicTimer *timer)
-        : SubscriptionBase(timer), callback(callback)
-    {
-        this->timer->start();
-    }
-
-    void call(const msp::Request &req) {
-        callback( dynamic_cast<const T&>(req) );
-    }
-
-private:
-    Callback callback;
-};
+enum LoggingLevel { SILENT, WARNING, INFO, DEBUG };
 
 enum MessageStatus {
-    OK,         // no errors
-    FAIL_ID,    // message ID is unknown
-    FAIL_CRC    // wrong CRC
+    OK,       // no errors
+    FAIL_ID,  // message ID is unknown
+    FAIL_CRC  // wrong CRC
 };
 
 struct ReceivedMessage {
-    uint8_t id;
-    std::vector<uint8_t> data;
+    msp::ID id;
+    ByteVector payload;
     MessageStatus status;
 };
 
 class Client {
 public:
+    /**
+     * @brief Client Constructor
+     * @param device String describing the path to the serial device
+     * @param baudrate Baudrate of the connection (default 115200,
+     * unnecessary for direct USB connection)
+     */
     Client();
 
+    /**
+     * @brief ~Client Destructor
+     */
     ~Client();
 
-    void setPrintWarnings(const bool warnings) {
-        print_warnings = warnings;
-    }
+    /**
+     * @brief Set the verbosity of the output
+     * @param level LoggingLevel matching the desired amount of output (default
+     * to WARNING)
+     */
+    void setLoggingLevel(const LoggingLevel& level);
 
     /**
-     * @brief connect establish connection to serial device
-     * @param device path or name of serial device
-     * @param baudrate serial baudrate (default: 115200)
+     * @brief Change the device path on the next connect
+     * @param ver Version of MSP to use
+     * @return True if successful
+     */
+    bool setVersion(const int& ver);
+
+    /**
+     * @brief Query the cached device path
+     * @return Cached path to device
+     */
+    int getVersion();
+
+    /**
+     * @brief Change the device path on the next connect
+     * @param device Path to device
+     */
+    void setVariant(const FirmwareVariant& v);
+
+    /**
+     * @brief Query the cached device path
+     * @return Cached path to device
+     */
+    FirmwareVariant getVariant();
+
+    /**
+     * @brief Start communications with a flight controller
+     * @return True on success
+     */
+    bool start(const std::string& device, const size_t baudrate = 115200);
+
+    /**
+     * @brief Stop communications with a flight controller
+     * @return True on success
+     */
+    bool stop();
+
+    /**
+     * @brief Query the system to see if a connection is active
      * @return true on success
      */
-    void connect(const std::string &device, const size_t baudrate=115200);
+    bool isConnected();
 
     /**
-     * @brief start starts the receiver thread that handles incomming messages
+     * @brief Send a message to the connected flight controller. If
+     * the message sends data to the flight controller, it will be packed into
+     * a buffer and sent. The method will block (optionally for a finite amount
+     * of time) until a matching response is received from the flight
+     * controller. If the response includes data, it will be unpacked back into
+     * the same Message object.
+     * @param message Reference to a Message-derived object to be sent/recieved.
+     * @param timeout Maximum amount of time to block waiting for a response.
+     * A value of 0 (default) means wait forever.
      */
-    void start();
+    bool sendMessage(msp::Message& message, const double& timeout = 0);
 
     /**
-     * @brief stop stops the receiver thread
+     * @brief Send a message, but do not wait for any response
+     * @param message Reference to a Message-derived object to be sent
      */
-    void stop();
+    bool sendMessageNoWait(const msp::Message& message);
 
     /**
-     * @brief sendData send raw data and ID to flight controller, accepts any uint8 id
-     * @param id message ID
-     * @param data raw data
-     * @return true on success
-     * @return false on failure
-     */
-    bool sendData(const uint8_t id, const ByteVector &data = ByteVector(0));
-
-    /**
-     * @brief sendRequest request payload from FC
-     * @param id message ID
-     * @return true on success
-     * @return false on failure
-     */
-    bool sendRequest(const uint8_t id) {
-        return sendData(id, ByteVector());
-    }
-
-    bool sendRequest(const msp::ID id) {
-        return sendData(uint8_t(id), ByteVector());
-    }
-
-    /**
-     * @brief sendResponse send payload to FC
-     * @param response response with payload
-     * @return true on success
-     * @return false on failure
-     */
-    bool sendResponse(const msp::Response &response) {
-        return sendData(uint8_t(response.id()), response.encode());
-    }
-
-    /**
-     * @brief request requests payload from FC and block until payload has been received
-     * @param request request whose data will be set by the received payload
-     * @param timeout (optional) timeout in seconds
-     * @return true on success
-     * @return false on failure
-     * @return -1 on timeout
-     */
-    int request(msp::Request &request, const double timeout = 0);
-
-    /**
-     * @brief request_raw request raw unstructured payload data
-     * @param id message ID
-     * @param data reference to data buffer at which the received data will be stores
-     * @param timeout (optional) timeout in seconds
-     * @return 1 on success
-     * @return 0 on failure
-     * @return -1 on timeout
-     */
-    int request_raw(const uint8_t id, ByteVector &data, const double timeout = 0);
-
-    /**
-     * @brief respond send payload to FC and block until an ACK has been received
-     * @param response response with payload
-     * @param wait_ack if set, method will wait for message acknowledgement
-     * @return true on success
-     * @return false on failure
-     */
-    bool respond(const msp::Response &response, const bool wait_ack=true);
-
-    /**
-     * @brief respond_raw send raw unstructured payload data
-     * @param id message ID
-     * @param data raw payload
-     * @param wait_ack if set, method will wait for message acknowledgement
-     * @return true on success
-     * @return false on failure
-     */
-    bool respond_raw(const uint8_t id, const ByteVector &data, const bool wait_ack=true);
-
-    /**
-     * @brief subscribe register callback function that is called when type is received
-     * @param callback pointer to callback function (class method)
-     * @param context class with callback method
-     * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
+     * @brief Register callback function that is called when a message of
+     * matching ID is received
+     * @param callback Pointer to callback function (class method)
+     * @param context Object containing callback method
+     * @param tp Period of timer that will send subscribed requests (in
+     * seconds).
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T, typename C>
-    SubscriptionBase* subscribe(void (C::*callback)(const T&), C *context, const double tp = 0.0) {
-        return subscribe<T>(std::bind(callback, context, std::placeholders::_1), tp);
+    template <typename T, typename C,
+              class = typename std::enable_if<
+                  std::is_base_of<msp::Message, T>::value>::type>
+    std::shared_ptr<SubscriptionBase> subscribe(void (C::*callback)(const T&),
+                                                C* context, const double& tp) {
+        return subscribe<T>(std::bind(callback, context, std::placeholders::_1),
+                            tp);
     }
 
     /**
-     * @brief subscribe register callback function that is called when type is received
-     * @param callback function (e.g. lambda, class method, function pointer)
-     * @param tp period of timer that will send subscribed requests (in seconds), by default this is 0 and requests are not sent periodically
+     * @brief Register callback function that is called when a
+     * message of matching ID is received
+     * @param recv_callback Function to be called upon receipt of message
+     * @param tp Period of timer that will send subscribed requests (in
+     * seconds).
      * @return pointer to subscription that is added to internal list
      */
-    template<typename T>
-    SubscriptionBase* subscribe(const std::function<void(const T&)> &callback, const double tp = 0.0) {
+    template <typename T, class = typename std::enable_if<
+                              std::is_base_of<msp::Message, T>::value>::type>
+    std::shared_ptr<SubscriptionBase> subscribe(
+        const std::function<void(const T&)>& recv_callback, const double& tp) {
+        // validate the period
+        if(!(tp >= 0.0)) throw std::runtime_error("Period must be positive!");
 
-        if(!std::is_base_of<msp::Request, T>::value)
-            throw std::runtime_error("Callback parameter needs to be of Request type!");
+        // get the id of the message in question
+        const msp::ID id = T(fw_variant).id();
+        if(log_level_ >= INFO)
+            std::cout << "SUBSCRIBING TO " << id << std::endl;
 
-        if(!(tp>=0.0))
-            throw std::runtime_error("Period must be positive!");
+        // generate the callback for sending messages
+        std::function<bool(const Message&)> send_callback =
+            std::bind(&Client::sendMessageNoWait, this, std::placeholders::_1);
 
-        const msp::ID id = T().id();
+        // create a shared pointer to a new Subscription and set all properties
+        auto subscription = std::make_shared<Subscription<T>>(
+            recv_callback, send_callback, std::make_unique<T>(fw_variant), tp);
 
-        std::lock_guard<std::mutex> lock(mutex_callbacks);
+        // gonna modify the subscription map, so lock the mutex
+        std::lock_guard<std::mutex> lock(mutex_subscriptions);
 
-        // register message
-        if(subscribed_requests.count(id)) { delete subscribed_requests[id]; }
-        subscribed_requests[id] = new T();
-
-        // register subscription
-        subscriptions[id] = new Subscription<T>(callback,
-            new PeriodicTimer(
-                std::bind(static_cast<bool(Client::*)(msp::ID)>(&Client::sendRequest), this, id),
-                tp
-            )
-        );
-
+        // move the new subscription into the subscription map
+        subscriptions.emplace(id, std::move(subscription));
         return subscriptions[id];
     }
 
     /**
-     * @brief hasSubscription check if message ID is subscribed
-     * @param id message ID
-     * @return true if there is already a subscription
-     * @return false if ID is not subscribed
+     * @brief Check if message ID already has a subscription
+     * @param id Message ID
+     * @return True if there is already a matching subscription
      */
     bool hasSubscription(const msp::ID& id) {
-        return (subscriptions.count(id)==1);
+        return (subscriptions.count(id) == 1);
     }
 
     /**
-     * @brief getSubscription get pointer to subscription
-     * @param id message ID
-     * @return pointer to subscription
+     * @brief Get pointer to subscription
+     * @param id Message ID
+     * @return Shared pointer to subscription (empty if there was no match)
      */
-    SubscriptionBase* getSubscription(const msp::ID& id) {
+    std::shared_ptr<SubscriptionBase> getSubscription(const msp::ID& id) {
         return subscriptions.at(id);
     }
 
-private:
     /**
-     * @brief crc compute checksum of data package
-     * @param id message ID
-     * @param data raw data vector
-     * @return checksum
+     * @brief Main entry point for processing received data. It
+     * is called directly by the ASIO library, and as such it much match the
+     * function signatures expected by ASIO.
+     * @param ec ASIO error code
+     * @param bytes_transferred Number of byte available for processing
      */
-    uint8_t crc(const uint8_t id, const ByteVector &data);
+    void processOneMessage(const asio::error_code& ec,
+                           const std::size_t& bytes_transferred);
 
     /**
-     * @brief waitForOneMessage block until one message has been received
+     * @brief Send an ID and payload to the flight controller
+     * @param id Message ID
+     * @param data Raw data (default zero length, meaning no data to send
+     * outbound)
+     * @return true on success
      */
-    void waitForOneMessage();
+    bool sendData(const msp::ID id, const ByteVector& data = ByteVector(0));
 
-    void waitForOneMessageBlock();
+    /**
+     * @brief Send an ID and payload to the flight controller
+     * @param id Message ID
+     * @param data Unique pointer to data. May be empty if there is no data to
+     * send
+     * @return true on success
+     */
+    bool sendData(const msp::ID id, const ByteVectorUptr&& data) {
+        if(!data) return sendData(id);
+        return sendData(id, *data);
+    }
 
-    void processOneMessage();
+protected:
+    /**
+     * @brief Establish connection to serial device and start read thread
+     * @return True on success
+     */
+    bool connectPort(const std::string& device, const size_t baudrate = 115200);
 
-private:
-    // I/O
-    std::unique_ptr<SerialPortImpl> pimpl;
-    // threading
+    /**
+     * @brief Break connection to serial device and stop read thread
+     * @return True on success
+     */
+    bool disconnectPort();
+
+    /**
+     * @brief Starts the receiver thread that handles incomming messages
+     * @return True on success
+     */
+    bool startReadThread();
+
+    /**
+     * @brief Stops the receiver thread
+     * @return True on success
+     */
+    bool stopReadThread();
+
+    /**
+     * @brief Starts the receiver thread that handles incomming messages
+     * @return True on success
+     */
+    bool startSubscriptions();
+
+    /**
+     * @brief Stops the receiver thread
+     * @return True on success
+     */
+    bool stopSubscriptions();
+
+    /**
+     * @brief Read a single byte from either the buffer or the serial device
+     * @return byte from buffer or device
+     */
+    uint8_t extractChar();
+
+    /**
+     * @brief messageReady Method used by ASIO library to determine if a
+     * full message is present in receiving buffer. It must match the function
+     * signature expected by ASIO.
+     * @return std::pair<iterator, bool> indicating where the start the next
+     * message check operation and whether the current check was successful
+     */
+    std::pair<iterator, bool> messageReady(iterator begin, iterator end);
+
+    /**
+     * @brief processOneMessageV1 Iterates over characters in the ASIO buffer
+     * to identify and unpack a MSPv1 encoded message
+     * @return ReceivedMessage data structure containing the results of
+     * unpacking
+     */
+    ReceivedMessage processOneMessageV1();
+
+    /**
+     * @brief processOneMessageV2 Iterates over characters in the ASIO buffer
+     * to identify and unpack a MSPv2 encoded message
+     * @return ReceivedMessage data structure containing the results of
+     * unpacking
+     */
+    ReceivedMessage processOneMessageV2();
+
+    /**
+     * @brief packMessageV1 Packs data ID and data payload into a MSPv1
+     * formatted buffer ready for sending to the serial device
+     * @param id msp::ID of the message being packed
+     * @param data Optional binary payload to be packed into the outbound buffer
+     * @return ByteVector of full MSPv1 message ready for sending
+     */
+    ByteVector packMessageV1(const msp::ID id,
+                             const ByteVector& data = ByteVector(0));
+
+    /**
+     * @brief crcV1 Computes a checksum for MSPv1 messages
+     * @param id uint8_t MSP ID
+     * @param data Payload which is also part of the checksum
+     * @return uint8_t checksum
+     */
+    uint8_t crcV1(const uint8_t id, const ByteVector& data);
+
+    /**
+     * @brief packMessageV2 Packs data ID and data payload into a MSPv2
+     * formatted buffer ready for sending to the serial device
+     * @param id msp::ID of the message being packed
+     * @param data Optional binary payload to be packed into the outbound buffer
+     * @return ByteVector of full MSPv2 message ready for sending
+     */
+    ByteVector packMessageV2(const msp::ID id,
+                             const ByteVector& data = ByteVector(0));
+
+    /**
+     * @brief crcV2 Computes a checksum for MSPv2 messages
+     * @param crc Checksum value from which to start calculations
+     * @param data ByteVector of data to be wrapped into the checksum
+     * @return uint8_t checksum
+     */
+    uint8_t crcV2(uint8_t crc, const ByteVector& data);
+
+    /**
+     * @brief crcV2 Computes a checksum for MSPv2 messages
+     * @param crc Checksum value from which to start calculations
+     * @param data Single byte to use in the checksum calculation
+     * @return uint8_t checksum
+     */
+    uint8_t crcV2(uint8_t crc, const uint8_t& b);
+
+protected:
+    asio::io_service io;     ///<! io service
+    asio::serial_port port;  ///<! port for serial device
+    asio::streambuf buffer;
+
+    // read thread management
     std::thread thread;
-    bool running;
-    std::condition_variable cv_request;
-    std::condition_variable cv_ack;
-    std::mutex mutex_cv_request;
-    std::mutex mutex_cv_ack;
-    std::mutex mutex_request;
-    std::mutex mutex_callbacks;
+    std::atomic_flag running_;
+
+    // thread safety and synchronization
+    std::condition_variable cv_response;
+    std::mutex cv_response_mtx;
+    std::mutex mutex_response;
+    std::mutex mutex_buffer;
     std::mutex mutex_send;
-    // message for request method
-    ReceivedMessage request_received;
-    // subscriptions
-    std::map<msp::ID, SubscriptionBase*> subscriptions;
-    std::map<msp::ID, msp::Request*> subscribed_requests;
+
+    // holder for received data
+    std::unique_ptr<ReceivedMessage> request_received;
+
+    // subscription management
+    std::mutex mutex_subscriptions;
+    std::map<msp::ID, std::shared_ptr<SubscriptionBase>> subscriptions;
+
     // debugging
-    bool print_warnings;
+    LoggingLevel log_level_;
+
+    // reference values
+    int msp_ver_;
+    FirmwareVariant fw_variant;
 };
 
-} // namespace client
-} // namespace msp
+}  // namespace client
+}  // namespace msp
 
-#endif // CLIENT_HPP
+#endif  // CLIENT_HPP
