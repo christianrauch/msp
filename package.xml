@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>msp</name>
-  <version>2.2.1</version>
+  <version>3.0.0</version>
   <description>Implementation of the MultiWii Serial Protocol (MSP)</description>
 
   <maintainer email="Rauch.Christian@gmx.de">Christian Rauch</maintainer>
