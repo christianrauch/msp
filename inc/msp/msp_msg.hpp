@@ -263,7 +263,7 @@ enum class ArmingFlags : uint32_t {
          ARMING_DISABLED_INVALID_SETTING)
 };
 
-std::string armingFlagToString(uint32_t flag) {
+inline std::string armingFlagToString(uint32_t flag) {
     std::string val;
     if(flag & (1 << 2)) val += "ARMED ";
     if(flag & (1 << 3)) val += "WAS_EVER_ARMED ";
@@ -5500,7 +5500,7 @@ struct InavAirSpeed : public InavMiscSettings, public Message {
 }  // namespace msg
 }  // namespace msp
 
-std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& val) {
+inline std::ostream& operator<<(std::ostream& s, const msp::msg::ImuSI& val) {
     return val.print(s);
 }
 

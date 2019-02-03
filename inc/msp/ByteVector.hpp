@@ -454,7 +454,7 @@ typedef std::unique_ptr<ByteVector> ByteVectorUptr;
 
 }  // namespace msp
 
-std::ostream& operator<<(std::ostream& s, const msp::ByteVector& val) {
+inline std::ostream& operator<<(std::ostream& s, const msp::ByteVector& val) {
     s << std::hex;
     for(const auto& v : val) {
         s << uint32_t(v) << " ";

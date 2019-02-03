@@ -70,12 +70,12 @@ protected:
 
 }  // namespace msp
 
-std::ostream& operator<<(std::ostream& s, const msp::ID& id) {
-    s << (int)id;
+inline std::ostream& operator<<(std::ostream& s, const msp::ID& id) {
+    s << int(id);
     return s;
 }
 
-std::ostream& operator<<(std::ostream& s, const msp::Message& val) {
+inline std::ostream& operator<<(std::ostream& s, const msp::Message& val) {
     return val.print(s);
 }
 

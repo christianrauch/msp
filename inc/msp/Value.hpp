@@ -65,7 +65,7 @@ private:
 }  // namespace msp
 
 template <class T>
-std::ostream& operator<<(std::ostream& s, const msp::Value<T>& val) {
+inline std::ostream& operator<<(std::ostream& s, const msp::Value<T>& val) {
     if(val.set())
         s << val();
     else
@@ -74,7 +74,8 @@ std::ostream& operator<<(std::ostream& s, const msp::Value<T>& val) {
 }
 
 template <>
-std::ostream& operator<<(std::ostream& s, const msp::Value<uint8_t>& val) {
+inline std::ostream& operator<<(std::ostream& s,
+                                const msp::Value<uint8_t>& val) {
     if(val.set())
         s << uint32_t(val());
     else
@@ -83,7 +84,8 @@ std::ostream& operator<<(std::ostream& s, const msp::Value<uint8_t>& val) {
 }
 
 template <>
-std::ostream& operator<<(std::ostream& s, const msp::Value<int8_t>& val) {
+inline std::ostream& operator<<(std::ostream& s,
+                                const msp::Value<int8_t>& val) {
     if(val.set())
         s << int32_t(val());
     else

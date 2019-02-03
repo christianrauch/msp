@@ -33,7 +33,7 @@ const static std::map<std::string, FirmwareVariant> variant_map = {
  * @param variant Enum of FirmwareVariant
  * @returns A string matching the firmware type
  */
-std::string firmwareVariantToString(FirmwareVariant variant) {
+inline std::string firmwareVariantToString(FirmwareVariant variant) {
     std::string var;
     switch(variant) {
     case FirmwareVariant::MWII:
