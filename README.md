@@ -15,7 +15,7 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 #### Requirements
 - CMake
 - asio: download [asio-1.10.8.zip](https://sourceforge.net/projects/asio/files/latest/download?source=files) and extract the header files, e.g. to `C:\asio-1.10.8`
-- Visual C++ Build Tools: http://landinghub.visualstudio.com/visual-cpp-build-tools
+- Visual C++ Build Tools: https://visualstudio.microsoft.com/de/downloads/
 
 #### Build
 - open the Developer Command Prompt for Visual Studio
