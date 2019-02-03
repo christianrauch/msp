@@ -51,22 +51,6 @@ public:
     bool isConnected();
 
     /**
-     * @brief Sets internal flag to arm the flight controller
-     */
-    void arm();
-
-    /**
-     * @brief Sets internal flag to disarm the flight controller
-     */
-    void disarm();
-
-    /**
-     * @brief Queries internal flag governing flight controller arming
-     * @return True if arm flag is set
-     */
-    bool armSet();
-
-    /**
      * @brief Sets data structure with all flags governing flight mode
      * @param mode FlightMode object
      */
@@ -371,7 +355,6 @@ private:
 
     // parameters updated by the user, and consumed by MSP control messages
     std::array<double, 4> rpyt_;
-    bool armed_;
     FlightMode flight_mode_;
 
     std::mutex msp_updates_mutex;

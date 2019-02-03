@@ -5,7 +5,6 @@ namespace fcu {
 
 FlightController::FlightController() :
     msp_version_(1),
-    armed_(false),
     control_source_(ControlSource::NONE),
     msp_timer_(std::bind(&FlightController::generateMSP, this), 0.1) {}
 
@@ -76,12 +75,6 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
 }
 
 bool FlightController::disconnect() { return client_.stop(); }
-
-void FlightController::arm() { armed_ = true; }
-
-void FlightController::disarm() { armed_ = false; }
-
-bool FlightController::armSet() { return armed_; }
 
 void FlightController::setLoggingLevel(const msp::client::LoggingLevel &level) {
     client_.setLoggingLevel(level);
