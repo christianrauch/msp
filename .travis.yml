@@ -1,0 +1,25 @@
+language: cpp
+
+dist: bionic
+sudo: required
+os: linux
+
+matrix:
+  include:
+    # GCC with tests
+    - compiler: gcc
+      env: TEST="-DBUILD_TESTS=ON"
+    # Clang without tests
+    - compiler: clang
+      env: TEST="-DBUILD_TESTS=OFF"
+
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt install -y libasio-dev libgtest-dev
+  - mkdir build
+  - cd build
+
+script:
+  - cmake -DBUILD_EXAMPLES=ON $TEST ..
+  - make
