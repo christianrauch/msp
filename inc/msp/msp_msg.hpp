@@ -14,6 +14,8 @@
 #include <vector>
 #include "Message.hpp"
 
+typedef unsigned int uint;
+
 /*================================================================
  * actual messages have id and the relevant encode decode methods
  * the logic for encoding and decoding must be within a message-derived class
