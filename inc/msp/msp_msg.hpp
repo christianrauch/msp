@@ -1611,7 +1611,7 @@ struct SonarAltitude : public Message {
 
     virtual ID id() const override { return ID::MSP_SONAR_ALTITUDE; }
 
-    Value<uint32_t> altitude_cm;  // meters
+    Value<uint32_t> altitude_cm;
 
     virtual bool decode(const ByteVector& data) override {
         return data.unpack(altitude_cm);
