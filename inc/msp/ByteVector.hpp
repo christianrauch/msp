@@ -444,6 +444,7 @@ protected:
  * class can pack itself into a ByteVector and unpack itself from a ByteVector.
  */
 struct Packable {
+    virtual ~Packable() {}
     virtual bool pack_into(ByteVector& data) const   = 0;
     virtual bool unpack_from(const ByteVector& data) = 0;
 };

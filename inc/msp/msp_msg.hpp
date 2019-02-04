@@ -599,7 +599,9 @@ struct BoardName : public Message {
 
     Value<std::string> name;
 
-    bool decode(ByteVector& data) { return data.unpack(name); }
+    virtual bool decode(const ByteVector& data) override {
+        return data.unpack(name);
+    }
 };
 
 // MSP_SET_NAME: 11

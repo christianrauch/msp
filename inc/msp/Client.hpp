@@ -338,7 +338,7 @@ protected:
 
     // read thread management
     std::thread thread;
-    std::atomic_flag running_;
+    std::atomic_flag running_ = ATOMIC_FLAG_INIT;
 
     // thread safety and synchronization
     std::condition_variable cv_response;
