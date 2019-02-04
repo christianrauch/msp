@@ -16,6 +16,10 @@ matrix:
     - os: osx
       compiler: clang
       env: TEST="-DBUILD_TESTS=OFF"
+    - os: windows
+      env:
+        - TEST="-DBUILD_TESTS=OFF"
+        - ASIO="-DASIO_HEADER_PATH=C:\asio\asio-1.12.2\include"
 
 
 before_script:
@@ -27,9 +31,13 @@ before_script:
       brew update;
       brew install asio;
     fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+      wget https://sourceforge.net/projects/asio/files/asio/1.12.2%20%28Stable%29/asio-1.12.2.zip -O asio.zip;
+      7z x asio.zip -o"C:/asio/" -y;
+    fi
   - mkdir build
   - cd build
 
 script:
-  - cmake -DBUILD_EXAMPLES=ON $TEST ..
-  - make
+  - cmake -DBUILD_EXAMPLES=ON $TEST $ASIO ..
+  - cmake --build .
