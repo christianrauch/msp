@@ -5,6 +5,21 @@ sudo: required
 
 matrix:
   include:
+    # clang format check
+    - os: linux
+      before_script:
+        - true  # do nothing
+      script:
+        - RETURN=0;
+          FILES=`find . -iname '*.h' -or -iname '*.hpp' -or -iname '*.c' -or -iname '*.cc' -or -iname '*.cpp' -or -iname '*.cxx'`;
+          for FILE in $FILES; do
+              clang-format --style=file $FILE | git diff --exit-code --no-index $FILE -;
+              if [ $? -ne 0 ]; then
+                  echo "invalid formatting in file $FILE (see above for diff)" >&2;
+                  RETURN=1;
+              fi;
+          done;
+          exit $RETURN;
     # GCC with tests
     - os: linux
       compiler: gcc
