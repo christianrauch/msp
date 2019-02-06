@@ -4,8 +4,7 @@ namespace msp {
 
 PeriodicTimer::PeriodicTimer(std::function<void()> funct,
                              const double period_seconds) :
-    funct(funct),
-    running_(ATOMIC_FLAG_INIT) {
+    funct(funct) {
     period_us =
         std::chrono::duration<size_t, std::micro>(size_t(period_seconds * 1e6));
 }

@@ -7,7 +7,6 @@ namespace client {
 
 Client::Client() :
     port(io),
-    running_(ATOMIC_FLAG_INIT),
     log_level_(SILENT),
     msp_ver_(1),
     fw_variant(FirmwareVariant::INAV) {}

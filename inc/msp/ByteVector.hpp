@@ -444,6 +444,7 @@ protected:
  * class can pack itself into a ByteVector and unpack itself from a ByteVector.
  */
 struct Packable {
+    virtual ~Packable() {}
     virtual bool pack_into(ByteVector& data) const   = 0;
     virtual bool unpack_from(const ByteVector& data) = 0;
 };
@@ -453,7 +454,7 @@ typedef std::unique_ptr<ByteVector> ByteVectorUptr;
 
 }  // namespace msp
 
-std::ostream& operator<<(std::ostream& s, const msp::ByteVector& val) {
+inline std::ostream& operator<<(std::ostream& s, const msp::ByteVector& val) {
     s << std::hex;
     for(const auto& v : val) {
         s << uint32_t(v) << " ";

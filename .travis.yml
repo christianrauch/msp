@@ -1,0 +1,58 @@
+language: cpp
+
+dist: bionic
+sudo: required
+
+matrix:
+  include:
+    # clang format check
+    - os: linux
+      before_script:
+        - true  # do nothing
+      script:
+        - RETURN=0;
+          FILES=`find . -iname '*.h' -or -iname '*.hpp' -or -iname '*.c' -or -iname '*.cc' -or -iname '*.cpp' -or -iname '*.cxx'`;
+          for FILE in $FILES; do
+              clang-format --style=file $FILE | git diff --exit-code --no-index $FILE -;
+              if [ $? -ne 0 ]; then
+                  echo "invalid formatting in file $FILE (see above for diff)" >&2;
+                  RETURN=1;
+              fi;
+          done;
+          exit $RETURN;
+    # GCC with tests
+    - os: linux
+      compiler: gcc
+      env: TEST="-DBUILD_TESTS=ON"
+    # Clang without tests
+    - os: linux
+      compiler: clang
+      env: TEST="-DBUILD_TESTS=OFF"
+    - os: osx
+      compiler: clang
+      env: TEST="-DBUILD_TESTS=OFF"
+    - os: windows
+      env:
+        - TEST="-DBUILD_TESTS=OFF"
+        - ASIO="-DASIO_HEADER_PATH=C:\asio\asio-1.12.2\include"
+
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      sudo apt update -qq;
+      sudo apt install -y libasio-dev libgtest-dev;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update;
+      brew install asio;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+      wget https://sourceforge.net/projects/asio/files/asio/1.12.2%20%28Stable%29/asio-1.12.2.zip -O asio.zip;
+      7z x asio.zip -o"C:/asio/" -y;
+    fi
+  - mkdir build
+  - cd build
+
+script:
+  - cmake -DBUILD_EXAMPLES=ON $TEST $ASIO ..
+  - cmake --build .

@@ -55,7 +55,7 @@ private:
     std::timed_mutex mutex_timer;
     std::chrono::steady_clock::time_point tstart;
 
-    std::atomic_flag running_;
+    std::atomic_flag running_ = ATOMIC_FLAG_INIT;
 };
 
 }  // namespace msp

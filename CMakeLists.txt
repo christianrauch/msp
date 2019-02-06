@@ -13,6 +13,11 @@ if(UNIX)
 endif()
 
 add_definitions(-DASIO_STANDALONE)
+add_definitions(-DASIO_HAS_STD_ADDRESSOF)
+add_definitions(-DASIO_HAS_STD_ARRAY)
+add_definitions(-DASIO_HAS_CSTDINT)
+add_definitions(-DASIO_HAS_STD_SHARED_PTR)
+add_definitions(-DASIO_HAS_STD_TYPE_TRAITS)
 
 if(WIN32)
     include_directories(${ASIO_HEADER_PATH})
