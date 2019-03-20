@@ -14,10 +14,6 @@ class FlightController {
 public:
     /**
      * @brief FlightController Constructor
-     * @param device Name of serial device (e.g. /dev/ttyACM0)
-     * @param baudrate Speed of serial connection (not necessary for direct USB
-     * connection)
-     * @return
      */
     FlightController();
 
