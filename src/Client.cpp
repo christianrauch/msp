@@ -112,7 +112,8 @@ bool Client::stopSubscriptions() {
 
 bool Client::sendMessage(msp::Message& message, const double& timeout) {
     if(log_level_ >= DEBUG)
-        std::cout << "sending message - ID " << message.id() << std::endl;
+        std::cout << "sending message - ID " << size_t(message.id())
+                  << std::endl;
     if(!sendData(message.id(), message.encode())) {
         if(log_level_ >= WARNING)
             std::cerr << "message failed to send" << std::endl;
@@ -139,7 +140,7 @@ bool Client::sendMessage(msp::Message& message, const double& timeout) {
                predicate)) {
             if(log_level_ >= INFO)
                 std::cout << "timed out waiting for response to message ID "
-                          << message.id() << std::endl;
+                          << size_t(message.id()) << std::endl;
             return false;
         }
     }
@@ -159,13 +160,13 @@ bool Client::sendMessage(msp::Message& message, const double& timeout) {
     if(recv_success) {
         decode_success = message.decode(data);
     }
-    if(log_level_ >= DEBUG) std::cout << "" << std::endl;
     return recv_success && decode_success;
 }
 
 bool Client::sendMessageNoWait(const msp::Message& message) {
     if(log_level_ >= DEBUG)
-        std::cout << "async sending message - ID " << message.id() << std::endl;
+        std::cout << "async sending message - ID " << size_t(message.id())
+                  << std::endl;
     if(!sendData(message.id(), message.encode())) {
         if(log_level_ >= WARNING)
             std::cerr << "async sendData failed" << std::endl;
@@ -185,7 +186,8 @@ uint8_t Client::extractChar() {
 }
 
 bool Client::sendData(const msp::ID id, const ByteVector& data) {
-    if(log_level_ >= DEBUG) std::cout << "sending: " << id << " | " << data;
+    if(log_level_ >= DEBUG)
+        std::cout << "sending: " << size_t(id) << " | " << data;
     ByteVector msg;
     if(msp_ver_ == 2) {
         msg = packMessageV2(id, data);
@@ -288,8 +290,8 @@ void Client::processOneMessage(const asio::error_code& ec,
     // ignore and remove header bytes
     const uint8_t msg_marker = extractChar();
     if(msg_marker != '$')
-        std::cerr << "Message marker " << msg_marker << " is not recognised!"
-                  << std::endl;
+        std::cerr << "Message marker " << size_t(msg_marker)
+                  << " is not recognised!" << std::endl;
 
     // message version
     int ver                  = 0;
@@ -297,8 +299,8 @@ void Client::processOneMessage(const asio::error_code& ec,
     if(ver_marker == 'M') ver = 1;
     if(ver_marker == 'X') ver = 2;
     if(ver == 0) {
-        std::cerr << "Version marker " << ver_marker << " is not recognised!"
-                  << std::endl;
+        std::cerr << "Version marker " << size_t(ver_marker)
+                  << " is not recognised!" << std::endl;
     }
 
     ReceivedMessage recv_msg;
@@ -437,12 +439,12 @@ ReceivedMessage Client::processOneMessageV2() {
 
     // message direction
     const uint8_t dir = extractChar();
-    if(log_level_ >= DEBUG) std::cout << "dir: " << dir << std::endl;
+    if(log_level_ >= DEBUG) std::cout << "dir: " << size_t(dir) << std::endl;
     const bool ok_id = (dir != '!');
 
     // flag
     const uint8_t flag = extractChar();
-    if(log_level_ >= DEBUG) std::cout << "flag: " << flag << std::endl;
+    if(log_level_ >= DEBUG) std::cout << "flag: " << size_t(flag) << std::endl;
     exp_crc = crcV2(exp_crc, flag);
 
     // message ID
@@ -450,7 +452,7 @@ ReceivedMessage Client::processOneMessageV2() {
     const uint8_t id_high = extractChar();
     uint16_t id           = uint16_t(id_low) | (uint16_t(id_high) << 8);
     ret.id                = msp::ID(id);
-    if(log_level_ >= DEBUG) std::cout << "id: " << id << std::endl;
+    if(log_level_ >= DEBUG) std::cout << "id: " << size_t(id) << std::endl;
     exp_crc = crcV2(exp_crc, id_low);
     exp_crc = crcV2(exp_crc, id_high);
 
@@ -463,8 +465,8 @@ ReceivedMessage Client::processOneMessageV2() {
     if(log_level_ >= DEBUG) std::cout << "len: " << len << std::endl;
 
     if(log_level_ >= WARNING && !ok_id) {
-        std::cerr << "Message v2 with ID " << ret.id << " is not recognised!"
-                  << std::endl;
+        std::cerr << "Message v2 with ID " << size_t(ret.id)
+                  << " is not recognised!" << std::endl;
     }
 
     // payload
@@ -481,7 +483,7 @@ ReceivedMessage Client::processOneMessageV2() {
     const bool ok_crc = (rcv_crc == exp_crc);
 
     if(log_level_ >= WARNING && !ok_crc) {
-        std::cerr << "Message v2 with ID " << ret.id
+        std::cerr << "Message v2 with ID " << size_t(ret.id)
                   << " has wrong CRC! (expected: " << size_t(exp_crc)
                   << ", received: " << size_t(rcv_crc) << ")" << std::endl;
     }
