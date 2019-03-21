@@ -85,6 +85,21 @@ TYPED_TEST(valueTest, AssignmentMin) {
     EXPECT_TRUE(v2.set());
 }
 
+TYPED_TEST(valueTest, AssignmentCast) {
+    Value<TypeParam> v;
+    EXPECT_FALSE(v.set());
+
+    const TypeParam ref1 = std::numeric_limits<TypeParam>::max();
+
+    v = ref1;
+    EXPECT_TRUE(v.set());
+
+    EXPECT_EQ(ref1, v());
+
+    const TypeParam ref2 = v;
+    EXPECT_EQ(ref1, ref2);
+}
+
 TEST(valueTest, stringInit) {
     Value<std::string> v;
     EXPECT_EQ("", v());
