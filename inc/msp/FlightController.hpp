@@ -14,10 +14,6 @@ class FlightController {
 public:
     /**
      * @brief FlightController Constructor
-     * @param device Name of serial device (e.g. /dev/ttyACM0)
-     * @param baudrate Speed of serial connection (not necessary for direct USB
-     * connection)
-     * @return
      */
     FlightController();
 
@@ -35,7 +31,7 @@ public:
      * @return True on success
      */
     bool connect(const std::string &device, const size_t baudrate = 115200,
-                 const double &timeout = 0.0);
+                 const double &timeout = 0.0, const bool print_info = false);
 
     /**
      * @brief Stops MSP control if active, and disconnects the internal Client

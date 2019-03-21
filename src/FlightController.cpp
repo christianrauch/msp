@@ -11,46 +11,50 @@ FlightController::FlightController() :
 FlightController::~FlightController() { disconnect(); }
 
 bool FlightController::connect(const std::string &device, const size_t baudrate,
-                               const double &timeout) {
+                               const double &timeout, const bool print_info) {
     if(!client_.start(device, baudrate)) return false;
 
     msp::msg::FcVariant fcvar(fw_variant_);
     if(client_.sendMessage(fcvar, timeout)) {
         fw_variant_ = msp::variant_map.at(fcvar.identifier());
-        std::cout << fcvar;
+        if(print_info) std::cout << fcvar;
     }
 
     if(fw_variant_ != msp::FirmwareVariant::MWII) {
         msp::msg::ApiVersion api_version(fw_variant_);
         if(client_.sendMessage(api_version, timeout)) {
-            std::cout << api_version;
+            if(print_info) std::cout << api_version;
             msp_version_ = api_version.major();
             client_.setVersion(msp_version_);
         }
     }
 
-    msp::msg::FcVersion fcver(fw_variant_);
-    if(client_.sendMessage(fcver, timeout)) {
-        std::cout << fcver;
+    if(print_info) {
+        msp::msg::FcVersion fcver(fw_variant_);
+        if(client_.sendMessage(fcver, timeout)) {
+            std::cout << fcver;
+        }
     }
 
     msp::msg::BoardInfo boardinfo(fw_variant_);
     if(client_.sendMessage(boardinfo, timeout)) {
-        std::cout << boardinfo;
+        if(print_info) std::cout << boardinfo;
         board_name_ = boardinfo.name();
     }
 
-    msp::msg::BuildInfo buildinfo(fw_variant_);
-    if(client_.sendMessage(buildinfo, timeout)) std::cout << buildinfo;
+    if(print_info) {
+        msp::msg::BuildInfo buildinfo(fw_variant_);
+        if(client_.sendMessage(buildinfo, timeout)) std::cout << buildinfo;
+    }
 
     msp::msg::Status status(fw_variant_);
     client_.sendMessage(status, timeout);
-    std::cout << status;
+    if(print_info) std::cout << status;
     sensors_ = status.sensors;
 
     msp::msg::Ident ident(fw_variant_);
     client_.sendMessage(ident, timeout);
-    std::cout << ident;
+    if(print_info) std::cout << ident;
     capabilities_ = ident.capabilities;
 
     // get boxes
@@ -67,7 +71,7 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
         // get channel mapping from MSP_RX_MAP
         msp::msg::RxMap rx_map(fw_variant_);
         client_.sendMessage(rx_map, timeout);
-        std::cout << rx_map;
+        if(print_info) std::cout << rx_map;
         channel_map_ = rx_map.map;
     }
 
@@ -191,12 +195,11 @@ void FlightController::initBoxes() {
     msp::msg::BoxNames box_names(fw_variant_);
     if(!client_.sendMessage(box_names))
         throw std::runtime_error("Cannot get BoxNames!");
-    std::cout << box_names << std::endl;
+
     // get box IDs
     msp::msg::BoxIds box_ids(fw_variant_);
     if(!client_.sendMessage(box_ids))
         throw std::runtime_error("Cannot get BoxIds!");
-    std::cout << box_ids << std::endl;
     assert(box_names.box_names.size() == box_ids.box_ids.size());
 
     box_name_ids_.clear();
