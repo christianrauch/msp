@@ -14,8 +14,6 @@
 #include <vector>
 #include "Message.hpp"
 
-typedef unsigned int uint;
-
 /*================================================================
  * actual messages have id and the relevant encode decode methods
  * the logic for encoding and decoding must be within a message-derived class
@@ -1009,7 +1007,7 @@ struct ModeRanges : public Message {
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
-        for(uint i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        for(size_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
             rc &= data.unpack(boxes[i].id);
             rc &= data.unpack(boxes[i].aux_channel_index);
             rc &= data.unpack(boxes[i].startStep);
