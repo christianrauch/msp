@@ -122,7 +122,7 @@ ControlSource FlightController::getControlSource() {
     msp::msg::RxConfig rxConfig(fw_variant_);
     client_.sendMessage(rxConfig);
 
-    if(rxConfig.receiverType && rxConfig.receiverType() == 4)
+    if(rxConfig.receiverType.set() && rxConfig.receiverType() == 4)
         return ControlSource::MSP;
     else if(rxConfig.serialrx_provider() == 2)
         return ControlSource::SBUS;

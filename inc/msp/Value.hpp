@@ -21,12 +21,12 @@ public:
     /**
      * @brief cast to the internal type
      */
-    operator T() const { return data.first; }
+    explicit operator T() const { return data.first; }
 
     /**
      * @brief cast to the writable refernce of internal type
      */
-    operator T&() { return data.first; }
+    explicit operator T&() { return data.first; }
 
     /**
      * @brief Assignment operator for non-Value objects
