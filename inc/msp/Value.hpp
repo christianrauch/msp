@@ -12,17 +12,27 @@ public:
      * @brief Copy assignment operator
      * @returns Reference to this object
      */
-    Value<T>& operator=(Value<T>& rhs) {
+    Value<T>& operator=(const Value<T>& rhs) {
         data.first  = rhs();
         data.second = rhs.set();
         return *this;
     }
 
     /**
+     * @brief cast to the internal type
+     */
+    explicit operator T() const { return data.first; }
+
+    /**
+     * @brief cast to the writable refernce of internal type
+     */
+    explicit operator T&() { return data.first; }
+
+    /**
      * @brief Assignment operator for non-Value objects
      * @returns Reference to this object
      */
-    Value<T>& operator=(T rhs) {
+    Value<T>& operator=(const T rhs) {
         data.first  = rhs;
         data.second = true;
         return *this;
@@ -51,12 +61,6 @@ public:
      * @returns Reference to the data valid flag
      */
     bool& set() { return data.second; }
-
-    /**
-     * @brief Checks if the data has been set
-     * @returns True if the data has been set
-     */
-    operator bool() const { return data.second; }
 
 private:
     std::pair<T, bool> data;

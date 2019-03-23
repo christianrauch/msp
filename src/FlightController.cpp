@@ -122,7 +122,7 @@ ControlSource FlightController::getControlSource() {
     msp::msg::RxConfig rxConfig(fw_variant_);
     client_.sendMessage(rxConfig);
 
-    if(rxConfig.receiverType && rxConfig.receiverType() == 4)
+    if(rxConfig.receiverType.set() && rxConfig.receiverType() == 4)
         return ControlSource::MSP;
     else if(rxConfig.serialrx_provider() == 2)
         return ControlSource::SBUS;
@@ -143,10 +143,10 @@ void FlightController::generateMSP() {
     // TODO: make this respect channel mapping
     {
         std::lock_guard<std::mutex> lock(msp_updates_mutex);
-        cmds[0] = (rpyt_[3] * 500) + 1500;
-        cmds[1] = (rpyt_[0] * 500) + 1500;
-        cmds[2] = (rpyt_[1] * 500) + 1500;
-        cmds[3] = (rpyt_[2] * 500) + 1500;
+        cmds[0] = uint16_t(rpyt_[3] * 500) + 1500;
+        cmds[1] = uint16_t(rpyt_[0] * 500) + 1500;
+        cmds[2] = uint16_t(rpyt_[1] * 500) + 1500;
+        cmds[3] = uint16_t(rpyt_[2] * 500) + 1500;
 
         if(!(uint32_t(flight_mode_.modifier) &
              uint32_t(FlightMode::MODIFIER::ARM)))

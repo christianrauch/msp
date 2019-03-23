@@ -6,7 +6,8 @@ sudo: required
 matrix:
   include:
     # clang format check
-    - os: linux
+    - name: "Clang-Format Style Check"
+      os: linux
       before_script:
         - true  # do nothing
       script:
@@ -23,17 +24,17 @@ matrix:
     # GCC with tests
     - os: linux
       compiler: gcc
-      env: TEST="-DBUILD_TESTS=ON"
+      env: TEST="ON"
     # Clang without tests
     - os: linux
       compiler: clang
-      env: TEST="-DBUILD_TESTS=OFF"
+      env: TEST="OFF"
     - os: osx
       compiler: clang
-      env: TEST="-DBUILD_TESTS=OFF"
+      env: TEST="OFF"
     - os: windows
       env:
-        - TEST="-DBUILD_TESTS=OFF"
+        - TEST="OFF"
         - ASIO="-DASIO_HEADER_PATH=C:\asio\asio-1.12.2\include"
 
 
@@ -54,5 +55,8 @@ before_script:
   - cd build
 
 script:
-  - cmake -DBUILD_EXAMPLES=ON $TEST $ASIO ..
+  - cmake -DBUILD_EXAMPLES=ON -DBUILD_TESTS=$TEST $ASIO ..
   - cmake --build .
+  - if [[ "$TEST" == "ON" ]]; then
+      ctest --output-on-failure;
+    fi
