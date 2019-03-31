@@ -231,6 +231,17 @@ public:
     }
 
     /**
+     * @brief unpack Extracts a boolen from a single byte
+     * @param val Destination of unpack operation.
+     * @return True on successful unpack
+     */
+    bool unpack(bool& val) const {
+        if(unpacking_remaining() < 1) return false;
+        val = (*this)[offset++];
+        return true;
+    }
+
+    /**
      * @brief Extracts floating point numbers from the ByteVector.
      * Consumes a number of bytes matching sizeof(T). Fails if not enough
      * bytes are available.
