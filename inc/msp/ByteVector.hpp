@@ -423,8 +423,9 @@ public:
      * @returns False if there were not enough bytes to satisfy the request
      */
     bool consume(std::size_t count) const {
-        if(count < -offset) return false;
-        if(count > this->size() - offset) return false;
+        if(count > unpacking_remaining()) {
+            return false;
+        }
         offset += count;
         return true;
     }
