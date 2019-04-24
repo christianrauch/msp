@@ -2,6 +2,12 @@
 #include <cstdlib>
 #include <iostream>
 
+#if defined(__unix__) || defined(__APPLE__)
+#include <sys/ioctl.h>
+#elif defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#endif
+
 typedef unsigned int uint;
 
 namespace msp {
@@ -41,6 +47,27 @@ bool Client::stop() {
 }
 
 bool Client::connectPort(const std::string& device, const size_t baudrate) {
+    // disable DTR (Data Terminal Ready)
+#if defined(__unix__) || defined(__APPLE__)
+    {
+        // http://www.embeddedlinux.org.cn/EmbLinux/ch06lev1sec2.htm
+        const int fd = open(device.c_str(), O_RDWR);
+
+        struct termios tio;
+        tcgetattr(fd, &tio);
+        tio.c_cflag &= ~HUPCL;
+        tcsetattr(fd, TCSANOW, &tio);
+
+        close(fd);
+    }
+
+#elif defined(_WIN32) || defined(_WIN64)
+    DCB dcb;
+    GetCommState(port.native_handle(), &dcb);
+    dcb.fDtrControl = DTR_CONTROL_DISABLE;
+    SetCommState(port.native_handle(), &dcb);
+#endif
+
     try {
         port.open(device);
         port.set_option(asio::serial_port::baud_rate(uint(baudrate)));
