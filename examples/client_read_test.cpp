@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
     msp::client::Client client;
     client.setLoggingLevel(msp::client::LoggingLevel::WARNING);
     client.setVariant(msp::FirmwareVariant::INAV);
-    client.setVersion(2);
     client.start(device, baudrate);
 
     msp::FirmwareVariant fw_variant = msp::FirmwareVariant::INAV;
