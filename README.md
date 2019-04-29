@@ -34,6 +34,7 @@ You can connect to Arduino or Naze32 boards either by (1) using a built-in USB-t
 ### MultiWii
 - the MSP update rate is determined by variable `LOOP_TIME` in `config.h`
     - e.g. `#define LOOP_TIME 2800` sets the loop time to 2800µs and the update rate to 1/0.0028 s = 357.14 Hz
+- Some Arduino boards with an integrated USB-to-serial converter auto-reset themselves when a serial connection is established. If you send messages to the FC right after opening a connection the FC will miss your request and will not send a response. You can prevent this by either a delay between opening a connection and sending messages, or by disabling the Data Terminal Ready (DTR) line, e.g. via `stty -F /dev/ttyUSB0 -hupcl`.
 
 ### Cleanflight / Betaflight
 - change the update rate for the serial task in the range 100 ... 2000Hz

@@ -41,16 +41,24 @@ bool Client::stop() {
 }
 
 bool Client::connectPort(const std::string& device, const size_t baudrate) {
-    asio::error_code ec;
-    port.open(device, ec);
-    if(ec) return false;
-    port.set_option(asio::serial_port::baud_rate(uint(baudrate)));
-    port.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
-    port.set_option(asio::serial_port::character_size(
-        asio::serial_port::character_size(8)));
-    port.set_option(
-        asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
-    return true;
+    try {
+        port.open(device);
+        port.set_option(asio::serial_port::baud_rate(uint(baudrate)));
+        port.set_option(
+            asio::serial_port::parity(asio::serial_port::parity::none));
+        port.set_option(asio::serial_port::character_size(
+            asio::serial_port::character_size(8)));
+        port.set_option(
+            asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    }
+    catch(const std::system_error& e) {
+        const int ecode = e.code().value();
+        throw std::runtime_error("Error when opening '" + device +
+                                 "': " + e.code().category().message(ecode) +
+                                 " (error code: " + std::to_string(ecode) +
+                                 ")");
+    }
+    return isConnected();
 }
 
 bool Client::disconnectPort() {
