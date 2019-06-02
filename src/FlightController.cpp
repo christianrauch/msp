@@ -80,6 +80,8 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
 
 bool FlightController::disconnect() { return client_.stop(); }
 
+bool FlightController::isConnected() { return client_.isConnected(); }
+
 void FlightController::setLoggingLevel(const msp::client::LoggingLevel &level) {
     client_.setLoggingLevel(level);
 }
