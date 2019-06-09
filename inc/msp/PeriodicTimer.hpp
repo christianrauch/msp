@@ -39,7 +39,7 @@ public:
      * @brief getPeriod get period in seconds
      * @return period in seconds
      */
-    double getPeriod() { return period_us.count() / 1.e6; }
+    double getPeriod() const { return period_us.count() / 1.e6; }
 
     /**
      * @brief setPeriod change the update period of timer thread
