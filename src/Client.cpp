@@ -25,11 +25,11 @@ bool Client::setVersion(const int& ver) {
     return false;
 }
 
-int Client::getVersion() { return msp_ver_; }
+int Client::getVersion() const { return msp_ver_; }
 
 void Client::setVariant(const FirmwareVariant& v) { fw_variant = v; }
 
-FirmwareVariant Client::getVariant() { return fw_variant; }
+FirmwareVariant Client::getVariant() const { return fw_variant; }
 
 bool Client::start(const std::string& device, const size_t baudrate) {
     return connectPort(device, baudrate) && startReadThread() &&
@@ -68,7 +68,7 @@ bool Client::disconnectPort() {
     return true;
 }
 
-bool Client::isConnected() { return port.is_open(); }
+bool Client::isConnected() const { return port.is_open(); }
 
 bool Client::startReadThread() {
     // no point reading if we arent connected to anything
@@ -225,7 +225,8 @@ bool Client::sendData(const msp::ID id, const ByteVector& data) {
     return (bytes_written == msg.size());
 }
 
-ByteVector Client::packMessageV1(const msp::ID id, const ByteVector& data) {
+ByteVector Client::packMessageV1(const msp::ID id,
+                                 const ByteVector& data) const {
     ByteVector msg;
     msg.push_back('$');                               // preamble1
     msg.push_back('M');                               // preamble2
@@ -237,7 +238,7 @@ ByteVector Client::packMessageV1(const msp::ID id, const ByteVector& data) {
     return msg;
 }
 
-uint8_t Client::crcV1(const uint8_t id, const ByteVector& data) {
+uint8_t Client::crcV1(const uint8_t id, const ByteVector& data) const {
     uint8_t crc = uint8_t(data.size()) ^ id;
     for(const uint8_t d : data) {
         crc = crc ^ d;
@@ -245,7 +246,8 @@ uint8_t Client::crcV1(const uint8_t id, const ByteVector& data) {
     return crc;
 }
 
-ByteVector Client::packMessageV2(const msp::ID id, const ByteVector& data) {
+ByteVector Client::packMessageV2(const msp::ID id,
+                                 const ByteVector& data) const {
     ByteVector msg;
     msg.push_back('$');                           // preamble1
     msg.push_back('X');                           // preamble2
@@ -264,14 +266,14 @@ ByteVector Client::packMessageV2(const msp::ID id, const ByteVector& data) {
     return msg;
 }
 
-uint8_t Client::crcV2(uint8_t crc, const ByteVector& data) {
+uint8_t Client::crcV2(uint8_t crc, const ByteVector& data) const {
     for(const uint8_t& p : data) {
         crc = crcV2(crc, p);
     }
     return crc;
 }
 
-uint8_t Client::crcV2(uint8_t crc, const uint8_t& b) {
+uint8_t Client::crcV2(uint8_t crc, const uint8_t& b) const {
     crc ^= b;
     for(int ii = 0; ii < 8; ++ii) {
         if(crc & 0x80) {
@@ -353,7 +355,8 @@ void Client::processOneMessage(const asio::error_code& ec,
         std::cout << "processOneMessage finished" << std::endl;
 }
 
-std::pair<iterator, bool> Client::messageReady(iterator begin, iterator end) {
+std::pair<iterator, bool> Client::messageReady(iterator begin,
+                                               iterator end) const {
     iterator i             = begin;
     const size_t available = size_t(std::distance(begin, end));
 
