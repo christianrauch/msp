@@ -44,7 +44,7 @@ public:
      * @brief Tests connection to a flight controller
      * @return True if connected
      */
-    bool isConnected();
+    bool isConnected() const;
 
     /**
      * @brief Sets data structure with all flags governing flight mode
@@ -56,7 +56,7 @@ public:
      * @brief Queries data structure with all flags governing flight mode
      * @return FlightMode object matchhing current flight mode flags
      */
-    FlightMode getFlightMode();
+    FlightMode getFlightMode() const;
 
     /**
      * @brief Sets which instruction source the flight controller should
@@ -103,19 +103,19 @@ public:
      * Betaflight, etc.)
      * @return msp::FirmwareVariant enum matching the current firmware
      */
-    msp::FirmwareVariant getFwVariant();
+    msp::FirmwareVariant getFwVariant() const;
 
     /**
      * @brief Queries the currently set protocol (MSPv1 or MSPv2)
      * @return integer matching the protocol version
      */
-    int getProtocolVersion();
+    int getProtocolVersion() const;
 
     /**
      * @brief Queries the currently set board name
      * @return std::String of the board name
      */
-    std::string getBoardName();
+    std::string getBoardName() const;
 
     /**
      * @brief Set the verbosity of the output
@@ -187,7 +187,7 @@ public:
      * @param id Message ID
      * @return True if there is already a subscription
      */
-    bool hasSubscription(const msp::ID &id) {
+    bool hasSubscription(const msp::ID &id) const {
         return client_.hasSubscription(id);
     }
 
@@ -221,7 +221,9 @@ public:
      * @brief Gets the information collected by the initBoxes() method
      * @return Reference to the internal mapping of strings to box IDs
      */
-    std::map<std::string, size_t> &getBoxNames() { return box_name_ids_; }
+    const std::map<std::string, size_t> &getBoxNames() const {
+        return box_name_ids_;
+    }
 
     /**
      * @brief Queries the cached flight controller information to see

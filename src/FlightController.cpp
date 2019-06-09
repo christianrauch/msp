@@ -80,7 +80,7 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
 
 bool FlightController::disconnect() { return client_.stop(); }
 
-bool FlightController::isConnected() { return client_.isConnected(); }
+bool FlightController::isConnected() const { return client_.isConnected(); }
 
 void FlightController::setLoggingLevel(const msp::client::LoggingLevel &level) {
     client_.setLoggingLevel(level);
@@ -94,7 +94,7 @@ void FlightController::setFlightMode(FlightMode mode) {
     generateMSP();
 }
 
-FlightMode FlightController::getFlightMode() { return flight_mode_; }
+FlightMode FlightController::getFlightMode() const { return flight_mode_; }
 
 void FlightController::setControlSource(ControlSource source) {
     if(source == control_source_) return;
@@ -186,11 +186,13 @@ bool FlightController::reboot() {
     return client_.sendMessage(reboot);
 }
 
-msp::FirmwareVariant FlightController::getFwVariant() { return fw_variant_; }
+msp::FirmwareVariant FlightController::getFwVariant() const {
+    return fw_variant_;
+}
 
-int FlightController::getProtocolVersion() { return msp_version_; }
+int FlightController::getProtocolVersion() const { return msp_version_; }
 
-std::string FlightController::getBoardName() { return board_name_; }
+std::string FlightController::getBoardName() const { return board_name_; }
 
 void FlightController::initBoxes() {
     // get box names
