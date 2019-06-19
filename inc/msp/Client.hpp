@@ -65,7 +65,7 @@ public:
      * @brief Query the cached device path
      * @return Cached path to device
      */
-    int getVersion();
+    int getVersion() const;
 
     /**
      * @brief Change the device path on the next connect
@@ -77,7 +77,7 @@ public:
      * @brief Query the cached device path
      * @return Cached path to device
      */
-    FirmwareVariant getVariant();
+    FirmwareVariant getVariant() const;
 
     /**
      * @brief Start communications with a flight controller
@@ -95,7 +95,7 @@ public:
      * @brief Query the system to see if a connection is active
      * @return true on success
      */
-    bool isConnected();
+    bool isConnected() const;
 
     /**
      * @brief Send a message to the connected flight controller. If
@@ -175,7 +175,7 @@ public:
      * @param id Message ID
      * @return True if there is already a matching subscription
      */
-    bool hasSubscription(const msp::ID& id) {
+    bool hasSubscription(const msp::ID& id) const {
         return (subscriptions.count(id) == 1);
     }
 
@@ -269,7 +269,7 @@ protected:
      * @return std::pair<iterator, bool> indicating where the start the next
      * message check operation and whether the current check was successful
      */
-    std::pair<iterator, bool> messageReady(iterator begin, iterator end);
+    std::pair<iterator, bool> messageReady(iterator begin, iterator end) const;
 
     /**
      * @brief processOneMessageV1 Iterates over characters in the ASIO buffer
@@ -295,7 +295,7 @@ protected:
      * @return ByteVector of full MSPv1 message ready for sending
      */
     ByteVector packMessageV1(const msp::ID id,
-                             const ByteVector& data = ByteVector(0));
+                             const ByteVector& data = ByteVector(0)) const;
 
     /**
      * @brief crcV1 Computes a checksum for MSPv1 messages
@@ -303,7 +303,7 @@ protected:
      * @param data Payload which is also part of the checksum
      * @return uint8_t checksum
      */
-    uint8_t crcV1(const uint8_t id, const ByteVector& data);
+    uint8_t crcV1(const uint8_t id, const ByteVector& data) const;
 
     /**
      * @brief packMessageV2 Packs data ID and data payload into a MSPv2
@@ -313,7 +313,7 @@ protected:
      * @return ByteVector of full MSPv2 message ready for sending
      */
     ByteVector packMessageV2(const msp::ID id,
-                             const ByteVector& data = ByteVector(0));
+                             const ByteVector& data = ByteVector(0)) const;
 
     /**
      * @brief crcV2 Computes a checksum for MSPv2 messages
@@ -321,7 +321,7 @@ protected:
      * @param data ByteVector of data to be wrapped into the checksum
      * @return uint8_t checksum
      */
-    uint8_t crcV2(uint8_t crc, const ByteVector& data);
+    uint8_t crcV2(uint8_t crc, const ByteVector& data) const;
 
     /**
      * @brief crcV2 Computes a checksum for MSPv2 messages
@@ -329,7 +329,7 @@ protected:
      * @param data Single byte to use in the checksum calculation
      * @return uint8_t checksum
      */
-    uint8_t crcV2(uint8_t crc, const uint8_t& b);
+    uint8_t crcV2(uint8_t crc, const uint8_t& b) const;
 
 protected:
     asio::io_service io;     ///<! io service

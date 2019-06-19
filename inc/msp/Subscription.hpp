@@ -15,37 +15,39 @@ public:
 
     virtual ~SubscriptionBase() {}
 
-    virtual void decode(msp::ByteVector& data) = 0;
+    virtual void decode(msp::ByteVector& data) const = 0;
 
-    virtual void makeRequest() = 0;
+    virtual void makeRequest() const = 0;
 
-    virtual void handleResponse() = 0;
+    virtual void handleResponse() const = 0;
 
-    virtual msp::Message& getMsgObject() = 0;
+    virtual const msp::Message& getMsgObject() const = 0;
 
     /**
      * @brief Checks to see if the subscription fires automatically
      * @returns True if the request happens automatically
      */
-    bool isAutomatic() { return hasTimer() && (timer_->getPeriod() > 0.0); }
+    bool isAutomatic() const {
+        return hasTimer() && (timer_->getPeriod() > 0.0);
+    }
 
     /**
      * @brief Checks to see if the timer has been created
      * @returns True if there is a timer
      */
-    bool hasTimer() { return timer_ ? true : false; }
+    bool hasTimer() const { return timer_ ? true : false; }
 
     /**
      * @brief Start the timer for automatic execution
      * @returns True if the timer starts successfully
      */
-    bool start() { return this->timer_->start(); }
+    bool start() const { return this->timer_->start(); }
 
     /**
      * @brief Stop the timer's automatic execution
      * @returns True if the timer stops successfully
      */
-    bool stop() { return this->timer_->stop(); }
+    bool stop() const { return this->timer_->stop(); }
 
     /**
      * @brief setTimerPeriod change the period of the timer
@@ -116,7 +118,7 @@ public:
      * @brief Virtual method for decoding received data
      * @param data Data to be unpacked
      */
-    virtual void decode(msp::ByteVector& data) override {
+    virtual void decode(msp::ByteVector& data) const override {
         io_object_->decode(data);
         recv_callback_(*io_object_);
     }
@@ -125,32 +127,36 @@ public:
      * @brief Sets the object used for packing and unpacking data
      * @param obj unique_ptr to a Message-derived object
      */
-    void setIoObject(std::unique_ptr<T>&& obj) { io_object_ = std::move(obj); }
+    void setIoObject(std::unique_ptr<T>&& obj) const {
+        io_object_ = std::move(obj);
+    }
 
     /**
      * @brief Gets a reference to the IO object
      * @returns
      */
-    T& getIoObject() { return *io_object_; }
+    const T& getIoObject() const { return *io_object_; }
 
     /**
      * @brief Gets a reference to the internal IO object as a Message
      * @returns reference to a Message
      */
-    virtual msp::Message& getMsgObject() override { return *io_object_; }
+    virtual const msp::Message& getMsgObject() const override {
+        return *io_object_;
+    }
 
     /**
      * @brief Sets the callback to be executed on success
      * @param recv_callback the callback to be executed
      */
-    void setReceiveCallback(const CallbackT& recv_callback) {
+    void setReceiveCallback(const CallbackT& recv_callback) const {
         recv_callback_ = recv_callback;
     }
 
     /**
      * @brief Calls the receive callback if it exists
      */
-    virtual void handleResponse() override {
+    virtual void handleResponse() const override {
         if(recv_callback_) recv_callback_(*io_object_);
     }
 
@@ -158,14 +164,14 @@ public:
      * @brief Sets the callback used to send the request
      * @param send_callback the callback to be executed
      */
-    void setSendCallback(const CallbackM& send_callback) {
+    void setSendCallback(const CallbackM& send_callback) const {
         send_callback_ = send_callback;
     }
 
     /**
      * @brief Calls the send callback if it exists
      */
-    virtual void makeRequest() override {
+    virtual void makeRequest() const override {
         if(send_callback_) send_callback_(*io_object_);
     }
 
