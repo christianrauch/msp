@@ -12,11 +12,7 @@ public:
      * @brief Copy assignment operator
      * @returns Reference to this object
      */
-    Value<T>& operator=(const Value<T>& rhs) {
-        data.first  = rhs();
-        data.second = rhs.set();
-        return *this;
-    }
+    Value<T>& operator=(const Value<T>& rhs) = default;
 
     /**
      * @brief cast to the internal type
