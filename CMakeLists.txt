@@ -10,6 +10,10 @@ elseif(MSVC)
   add_compile_options(/W4 /WX)
 endif()
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
+
+find_package(ASIO REQUIRED)
+
 if(UNIX)
     set(BUILD_SHARED_LIBS "ON")
 endif()
@@ -20,10 +24,6 @@ add_definitions(-DASIO_HAS_STD_ARRAY)
 add_definitions(-DASIO_HAS_CSTDINT)
 add_definitions(-DASIO_HAS_STD_SHARED_PTR)
 add_definitions(-DASIO_HAS_STD_TYPE_TRAITS)
-
-if(WIN32)
-    include_directories(${ASIO_HEADER_PATH})
-endif()
 
 OPTION(BUILD_EXAMPLES "Build Library with examples" ON)
 OPTION(BUILD_TESTS "Build Library with tests" OFF)
@@ -40,7 +40,7 @@ include_directories(${MSP_INCLUDE_DIR})
 
 # client library
 add_library(mspclient ${MSP_SOURCE_DIR}/Client.cpp ${MSP_SOURCE_DIR}/PeriodicTimer.cpp)
-target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(mspclient ${CMAKE_THREAD_LIBS_INIT} ASIO::ASIO)
 
 # high-level API
 add_library(msp_fcu ${MSP_SOURCE_DIR}/FlightController.cpp)

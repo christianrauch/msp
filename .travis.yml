@@ -35,7 +35,7 @@ matrix:
     - os: windows
       env:
         - TEST="OFF"
-        - ASIO="-DASIO_HEADER_PATH=C:\asio\asio-1.12.2\include"
+        - ASIO="-DASIO_ROOT=C:\asio\asio-1.12.2"
 
 
 before_script:

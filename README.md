@@ -21,7 +21,7 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 - open the Developer Command Prompt for Visual Studio
 - change to the directory where you checked out msp
 - `mkdir build`, `cd build`
-- `cmake -DASIO_HEADER_PATH=C:\asio-1.10.8\include ..`
+- `cmake -DASIO_ROOT=C:\asio-1.10.8 ..`
 - build: `cmake --build .`
 
 #### Test
