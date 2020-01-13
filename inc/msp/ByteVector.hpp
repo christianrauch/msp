@@ -92,7 +92,7 @@ public:
               typename std::enable_if<std::is_arithmetic<T2>::value,
                                       T2>::type* = nullptr>
     bool pack(const T1 val, const T2 scale, const T2 offset = 0) {
-        auto tmp = (val + offset) * scale;
+        const T1 tmp = (val + offset) * scale;
         if(tmp <= std::numeric_limits<encoding_T>::min())
             return pack(std::numeric_limits<encoding_T>::min());
         else if(tmp >= std::numeric_limits<encoding_T>::max())
