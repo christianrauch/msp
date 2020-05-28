@@ -17,6 +17,23 @@ elseif(MSVC)
   add_compile_options(/W4 /WX)
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+    -fsanitize=address \
+    -fsanitize=bool \
+    -fsanitize=bounds \
+    -fsanitize=enum \
+    -fsanitize=float-cast-overflow \
+    -fsanitize=float-divide-by-zero \
+    -fsanitize=nonnull-attribute \
+    -fsanitize=returns-nonnull-attribute \
+    -fsanitize=signed-integer-overflow \
+    -fsanitize=undefined \
+    -fsanitize=vla-bound \
+    -fno-sanitize=alignment \
+    -fsanitize=leak \
+    -fsanitize=object-size \
+")
+
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
 find_package(ASIO REQUIRED)
