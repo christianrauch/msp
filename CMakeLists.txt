@@ -101,7 +101,6 @@ endif()
 ################################################################################
 ### installation
 
-#install(TARGETS msp msp_msg_print msp_fcu mspclient
 install(TARGETS msp_fcu mspclient
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib)
