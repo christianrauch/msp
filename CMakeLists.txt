@@ -90,11 +90,11 @@ if(BUILD_EXAMPLES)
 
     # client test for asynchronous callbacks
     add_executable(client_async_test examples/client_async_test.cpp)
-    target_link_libraries(client_async_test mspclient )
+    target_link_libraries(client_async_test mspclient)
 
     # client test for blocking read
     add_executable(client_read_test examples/client_read_test.cpp)
-    target_link_libraries(client_read_test mspclient )
+    target_link_libraries(client_read_test mspclient)
 
 endif()
 
@@ -106,10 +106,10 @@ install(TARGETS msp_fcu mspclient
     ARCHIVE DESTINATION lib)
 install(DIRECTORY ${MSP_INCLUDE_DIR} DESTINATION include/ FILES_MATCHING PATTERN "*.hpp")
 
-SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib" )
-SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/" )
-SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp_fcu -lmspclient" )
-SET(PKG_CONFIG_CFLAGS       "-I\${includedir}" )
+SET(PKG_CONFIG_LIBDIR       "\${prefix}/lib")
+SET(PKG_CONFIG_INCLUDEDIR   "\${prefix}/include/")
+SET(PKG_CONFIG_LIBS         "-L\${libdir} -lmsp_fcu -lmspclient")
+SET(PKG_CONFIG_CFLAGS       "-I\${includedir}")
 
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
@@ -130,13 +130,13 @@ if(BUILD_TESTS)
     configure_file(CMakeLists.txt.in googletest/CMakeLists.txt)
     execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
       RESULT_VARIABLE result
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest )
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest)
     if(result)
       message(FATAL_ERROR "CMake step for googletest failed: ${result}")
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} --build .
       RESULT_VARIABLE result
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest )
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest)
     if(result)
       message(FATAL_ERROR "Build step for googletest failed: ${result}")
     endif()
