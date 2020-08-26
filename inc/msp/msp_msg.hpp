@@ -743,11 +743,11 @@ struct PositionEstimationConfig : public PositionEstimationConfigSettings,
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
-        rc &= data.unpack<uint16_t>(w_z_baro_p, 0.01);
-        rc &= data.unpack<uint16_t>(w_z_gps_p, 0.01);
-        rc &= data.unpack<uint16_t>(w_z_gps_v, 0.01);
-        rc &= data.unpack<uint16_t>(w_xy_gps_p, 0.01);
-        rc &= data.unpack<uint16_t>(w_xy_gps_v, 0.01);
+        rc &= data.unpack<uint16_t>(w_z_baro_p, 100);
+        rc &= data.unpack<uint16_t>(w_z_gps_p, 100);
+        rc &= data.unpack<uint16_t>(w_z_gps_v, 100);
+        rc &= data.unpack<uint16_t>(w_xy_gps_p, 100);
+        rc &= data.unpack<uint16_t>(w_xy_gps_v, 100);
         rc &= data.unpack(gps_min_sats);
         rc &= data.unpack(use_gps_vel_NED);
         return rc;
@@ -766,11 +766,11 @@ struct SetPositionEstimationConfig : public PositionEstimationConfigSettings,
     virtual ByteVectorUptr encode() const override {
         ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc             = true;
-        rc &= data->pack(static_cast<uint16_t>(w_z_baro_p() * 100));
-        rc &= data->pack(static_cast<uint16_t>(w_z_gps_p() * 100));
-        rc &= data->pack(static_cast<uint16_t>(w_z_gps_v() * 100));
-        rc &= data->pack(static_cast<uint16_t>(w_xy_gps_p() * 100));
-        rc &= data->pack(static_cast<uint16_t>(w_xy_gps_v() * 100));
+        rc &= data->pack<uint16_t>(w_z_baro_p, 100);
+        rc &= data->pack<uint16_t>(w_z_gps_p, 100);
+        rc &= data->pack<uint16_t>(w_z_gps_v, 100);
+        rc &= data->pack<uint16_t>(w_xy_gps_p, 100);
+        rc &= data->pack<uint16_t>(w_xy_gps_v, 100);
         rc &= data->pack(gps_min_sats);
         rc &= data->pack(use_gps_vel_NED);
         if(!rc) data.reset();
@@ -2438,7 +2438,7 @@ struct PidAdvancedSettings {
     Value<uint8_t> deltaMethod;
     Value<uint8_t> vbatPidCompensation;
     Value<uint8_t> setpointRelaxRatio;
-    Value<float> dterm_setpoint_weight;  // TODO scaled value
+    Value<float> dterm_setpoint_weight;
     Value<uint16_t> pidSumLimit;
     Value<uint8_t> itermThrottleGain;
     Value<uint32_t>
@@ -2461,14 +2461,11 @@ struct PidAdvanced : public PidAdvancedSettings, public Message {
         rc &= data.unpack(deltaMethod);
         rc &= data.unpack(vbatPidCompensation);
         rc &= data.unpack(setpointRelaxRatio);
-        rc &= data.unpack<uint8_t>(dterm_setpoint_weight, 0.01);
+        rc &= data.unpack<uint8_t>(dterm_setpoint_weight, 100);
         rc &= data.unpack(pidSumLimit);
         rc &= data.unpack(itermThrottleGain);
-        Value<uint16_t> tmp16;
-        rc &= data.unpack(tmp16);
-        axisAccelerationLimitRollPitch = tmp16() * 10;
-        rc &= data.unpack(tmp16);
-        axisAccelerationLimitYaw = tmp16() * 10;
+        rc &= data.unpack<uint16_t>(axisAccelerationLimitRollPitch, 0.1);
+        rc &= data.unpack<uint16_t>(axisAccelerationLimitYaw, 0.1);
         return rc;
     }
 };
@@ -2488,11 +2485,11 @@ struct SetPidAdvanced : public PidAdvancedSettings, public Message {
         rc &= data->pack(deltaMethod);
         rc &= data->pack(vbatPidCompensation);
         rc &= data->pack(setpointRelaxRatio);
-        rc &= data->pack(uint8_t(dterm_setpoint_weight() * 100));
+        rc &= data->pack<uint8_t>(dterm_setpoint_weight, 100);
         rc &= data->pack(pidSumLimit);
         rc &= data->pack(itermThrottleGain);
-        rc &= data->pack(axisAccelerationLimitRollPitch() / 10);
-        rc &= data->pack(axisAccelerationLimitYaw() / 10);
+        rc &= data->pack<uint16_t>(axisAccelerationLimitRollPitch, 0.1);
+        rc &= data->pack<uint16_t>(axisAccelerationLimitYaw, 0.1);
         if(!rc) data.reset();
         return data;
     }
@@ -2906,7 +2903,7 @@ struct Servo : public Message {
 
     virtual ID id() const override { return ID::MSP_SERVO; }
 
-    std::array<uint16_t, N_SERVO> servo;
+    std::array<uint16_t, N_SERVO> servo;  // [1000, 2000]
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
@@ -2930,7 +2927,7 @@ struct Motor : public Message {
 
     virtual ID id() const override { return ID::MSP_MOTOR; }
 
-    std::array<uint16_t, N_MOTOR> motor;
+    std::array<uint16_t, N_MOTOR> motor;  // [1000, 2000]
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
@@ -2954,7 +2951,7 @@ struct Rc : public Message {
 
     virtual ID id() const override { return ID::MSP_RC; }
 
-    std::vector<uint16_t> channels;
+    std::vector<uint16_t> channels;  // [1000, 2000]
 
     virtual bool decode(const ByteVector& data) override {
         channels.clear();
@@ -2998,14 +2995,14 @@ struct RawGPS : public Message {
         hdop_set = false;
         rc &= data.unpack(fix);
         rc &= data.unpack(numSat);
-        rc &= data.unpack<int32_t>(lat, 1.f / 1e-7);
-        rc &= data.unpack<int32_t>(lon, 1.f / 1e-7);
-        rc &= data.unpack<int16_t>(altitude, 1.f);
-        rc &= data.unpack<uint16_t>(ground_speed, 100.f);
-        rc &= data.unpack<uint16_t>(ground_course, 10.f);
+        rc &= data.unpack<int32_t>(lat, 1e7);
+        rc &= data.unpack<int32_t>(lon, 1e7);
+        rc &= data.unpack<int16_t>(altitude);
+        rc &= data.unpack<uint16_t>(ground_speed, 100);
+        rc &= data.unpack<uint16_t>(ground_course, 10);
         if(data.unpacking_remaining()) {
             hdop_set = true;
-            rc &= data.unpack<uint16_t>(hdop, 100.f);
+            rc &= data.unpack<uint16_t>(hdop, 100);
         }
         return rc;
     }
@@ -3030,7 +3027,7 @@ struct CompGPS : public Message {
     virtual ID id() const override { return ID::MSP_COMP_GPS; }
 
     Value<uint16_t> distanceToHome;   // meter
-    Value<uint16_t> directionToHome;  // degree
+    Value<uint16_t> directionToHome;  // [-180, +180] degree
     Value<uint8_t> update;
 
     virtual bool decode(const ByteVector& data) override {
@@ -3051,21 +3048,20 @@ struct CompGPS : public Message {
     }
 };
 
-// TODO validate units
 // MSP_ATTITUDE: 108
 struct Attitude : public Message {
     Attitude(FirmwareVariant v) : Message(v) {}
 
     virtual ID id() const override { return ID::MSP_ATTITUDE; }
 
-    Value<int16_t> roll;   // degree
-    Value<int16_t> pitch;  // degree
-    Value<int16_t> yaw;    // degree
+    Value<float> roll;   // [-180, +180] degree
+    Value<float> pitch;  // [-90, +90] degree
+    Value<int16_t> yaw;  // [-180, +180] degree
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
-        rc &= data.unpack(roll);
-        rc &= data.unpack(pitch);
+        rc &= data.unpack<int16_t>(roll, 10);
+        rc &= data.unpack<int16_t>(pitch, 10);
         rc &= data.unpack(yaw);
         return rc;
     }
@@ -3093,11 +3089,11 @@ struct Altitude : public Message {
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
-        rc &= data.unpack<int32_t>(altitude, 100.f);
-        rc &= data.unpack<int16_t>(vario, 100.f);
+        rc &= data.unpack<int32_t>(altitude, 100);
+        rc &= data.unpack<int16_t>(vario, 100);
         if(data.unpacking_remaining()) {
             baro_altitude_set = true;
-            rc &= data.unpack<int32_t>(baro_altitude, 100.f);
+            rc &= data.unpack<int32_t>(baro_altitude, 100);
         }
         return rc;
     }
@@ -3116,7 +3112,6 @@ struct Altitude : public Message {
     }
 };
 
-// TODO check amperage units
 // MSP_ANALOG: 110
 struct Analog : public Message {
     Analog(FirmwareVariant v) : Message(v) {}
@@ -3125,15 +3120,15 @@ struct Analog : public Message {
 
     Value<float> vbat;           // Volt
     Value<float> powerMeterSum;  // Ah
-    Value<uint16_t> rssi;   // Received Signal Strength Indication [0; 1023]
+    Value<uint16_t> rssi;   // Received Signal Strength Indication [0, 1023]
     Value<float> amperage;  // Ampere
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
-        rc &= data.unpack<uint8_t>(vbat, 0.1);
-        rc &= data.unpack<uint16_t>(powerMeterSum, 0.001);
+        rc &= data.unpack<uint8_t>(vbat, 10);
+        rc &= data.unpack<uint16_t>(powerMeterSum, 1000);
         rc &= data.unpack(rssi);
-        rc &= data.unpack<int8_t>(amperage, 0.1);
+        rc &= data.unpack<int8_t>(amperage, 100);
         return rc;
     }
 
@@ -3361,10 +3356,10 @@ struct ActiveBoxes : public Message {
 
 struct MiscSettings {
     Value<uint16_t> mid_rc;
-    Value<uint16_t> min_throttle;
-    Value<uint16_t> max_throttle;
-    Value<uint16_t> min_command;
-    Value<uint16_t> failsafe_throttle;
+    Value<uint16_t> min_throttle;       // [1000, 2000]
+    Value<uint16_t> max_throttle;       // [1000, 2000]
+    Value<uint16_t> min_command;        // [1000, 2000]
+    Value<uint16_t> failsafe_throttle;  // [1000, 2000]
     Value<uint8_t> gps_provider;
     Value<uint8_t> gps_baudrate;
     Value<uint8_t> gps_ubx_sbas;
@@ -3412,11 +3407,11 @@ struct Misc : public MiscSettings, public Message {
         rc &= data.unpack(rssi_channel);
         rc &= data.unpack(reserved);
 
-        rc &= data.unpack<uint16_t>(mag_declination, 0.1);
-        rc &= data.unpack<uint8_t>(voltage_scale, 0.1);
-        rc &= data.unpack<uint8_t>(cell_min, 0.1);
-        rc &= data.unpack<uint8_t>(cell_max, 0.1);
-        rc &= data.unpack<uint8_t>(cell_warning, 0.1);
+        rc &= data.unpack<uint16_t>(mag_declination, 10);
+        rc &= data.unpack<uint8_t>(voltage_scale, 10);
+        rc &= data.unpack<uint8_t>(cell_min, 10);
+        rc &= data.unpack<uint8_t>(cell_max, 10);
+        rc &= data.unpack<uint8_t>(cell_warning, 10);
         return rc;
     }
 };
@@ -3560,10 +3555,10 @@ struct BoxIds : public Message {
 };
 
 struct ServoConfRange {
-    Value<uint16_t> min;
-    Value<uint16_t> max;
-    Value<uint16_t> middle;
-    Value<uint8_t> rate;
+    Value<uint16_t> min;     // [1000, 2000]
+    Value<uint16_t> max;     // [1000, 2000]
+    Value<uint16_t> middle;  // [1000, 2000]
+    Value<uint8_t> rate;     // [0, 100]
 };
 
 // MSP_SERVO_CONF: 120
@@ -4218,7 +4213,7 @@ struct SetRawRc : public Message {
 
     virtual ID id() const override { return ID::MSP_SET_RAW_RC; }
 
-    std::vector<uint16_t> channels;
+    std::vector<uint16_t> channels;  // [1000, 2000]
 
     virtual ByteVectorUptr encode() const override {
         ByteVectorUptr data = std::make_unique<ByteVector>();
@@ -4239,20 +4234,20 @@ struct SetRawGPS : public Message {
 
     Value<uint8_t> fix;
     Value<uint8_t> numSat;
-    Value<uint32_t> lat;
-    Value<uint32_t> lon;
-    Value<uint16_t> altitude;
-    Value<uint16_t> speed;
+    Value<float> lat;          // degree
+    Value<float> lon;          // degree
+    Value<uint16_t> altitude;  // meter
+    Value<float> speed;        // m/s
 
     virtual ByteVectorUptr encode() const override {
         ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc             = true;
         rc &= data->pack(fix);
         rc &= data->pack(numSat);
-        rc &= data->pack(lat);
-        rc &= data->pack(lon);
+        rc &= data->pack<int32_t>(lat, 1e7);
+        rc &= data->pack<int32_t>(lon, 1e7);
         rc &= data->pack(altitude);
-        rc &= data->pack(speed);
+        rc &= data->pack<uint16_t>(speed, 100);
         assert(data->size() == 14);
         if(!rc) data.reset();
         return data;
@@ -4362,11 +4357,11 @@ struct SetMisc : public MiscSettings, public Message {
         rc &= data->pack(multiwii_current_meter_output);
         rc &= data->pack(rssi_channel);
         rc &= data->pack(reserved);
-        rc &= data->pack<uint16_t>(mag_declination, 10.f);
-        rc &= data->pack<uint8_t>(voltage_scale, 10.f);
-        rc &= data->pack<uint8_t>(cell_min, 10.f);
-        rc &= data->pack<uint8_t>(cell_max, 10.f);
-        rc &= data->pack<uint8_t>(cell_warning, 10.f);
+        rc &= data->pack<uint16_t>(mag_declination, 10);
+        rc &= data->pack<uint8_t>(voltage_scale, 10);
+        rc &= data->pack<uint8_t>(cell_min, 10);
+        rc &= data->pack<uint8_t>(cell_max, 10);
+        rc &= data->pack<uint8_t>(cell_warning, 10);
         if(!rc) data.reset();
         return data;
     }
@@ -4447,6 +4442,7 @@ struct SetHeading : public Message {
     }
 };
 
+// TODO: check number of servos
 // MSP_SET_SERVO_CONF: 212
 struct SetServoConf : public Message {
     SetServoConf(FirmwareVariant v) : Message(v) {}
@@ -4957,9 +4953,7 @@ struct CommonSetting : public Message {
         return data;
     }
 
-    // TODO
     virtual bool decode(const ByteVector& data) override {
-        std::cout << "decoding " << data;
         switch(expected_data_type) {
         case DATA_TYPE::UINT8:
             return data.unpack(uint8_val);
@@ -5065,19 +5059,19 @@ struct MotorMixer : public Packable {
 
     bool unpack_from(const ByteVector& data) {
         bool rc = true;
-        rc &= data.unpack<uint16_t>(throttle, 1000.0);
-        rc &= data.unpack<uint16_t>(roll, 1000.0, 1.0);
-        rc &= data.unpack<uint16_t>(pitch, 1000.0, 1.0);
-        rc &= data.unpack<uint16_t>(yaw, 1000.0, 1.0);
+        rc &= data.unpack<uint16_t>(throttle, 1000);
+        rc &= data.unpack<uint16_t>(roll, 1000, 1);
+        rc &= data.unpack<uint16_t>(pitch, 1000, 1);
+        rc &= data.unpack<uint16_t>(yaw, 1000, 1);
         return rc;
     }
 
     bool pack_into(ByteVector& data) const {
         bool rc = true;
-        rc &= data.pack<uint16_t>(throttle, 1000.0, 1.0);
-        rc &= data.pack<uint16_t>(roll, 1000.0, 1.0);
-        rc &= data.pack<uint16_t>(pitch, 1000.0, 1.0);
-        rc &= data.pack<uint16_t>(yaw, 1000.0, 1.0);
+        rc &= data.pack<uint16_t>(throttle, 1000, 1);
+        rc &= data.pack<uint16_t>(roll, 1000, 1);
+        rc &= data.pack<uint16_t>(pitch, 1000, 1);
+        rc &= data.pack<uint16_t>(yaw, 1000, 1);
         return rc;
     }
 };

@@ -325,7 +325,7 @@ public:
         bool rc        = true;
         encoding_T tmp = 0;
         rc &= unpack(tmp);
-        val = tmp / scale;
+        val = static_cast<T1>(tmp) / scale;
         val -= offset;
         return rc;
     }
@@ -388,14 +388,14 @@ public:
      * @tparam encoding_T data type used to store the scaled Value (usually an
      * integral type)
      * @tparam T1 type of output Value (usually a floating point type)
-     * @tparam T2 type of scale and offset coefficients
+     * @tparam T2 type of scale and offset coefficients (default: float)
      * @param val Destination of unpack operation
      * @param scale Value of scaling to apply to the offset value
      * @param offset Value of offset to apply to the input value (optional,
      * defaults to 0)
      * @return True if successful
      */
-    template <typename encoding_T, typename T1, typename T2,
+    template <typename encoding_T, typename T1, typename T2 = float,
               typename std::enable_if<std::is_arithmetic<T1>::value,
                                       T1>::type* = nullptr,
               typename std::enable_if<std::is_arithmetic<T2>::value,
