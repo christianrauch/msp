@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html dir="ltr" class="client-js" lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Multiwii Serial Protocol - MultiWii</title>
+	<style>
+		@media screen {
+			table.wikitable {
+				margin: 1em 0;
+				background-color: #f9f9f9;
+				border: 1px solid #aaa;
+				border-collapse: collapse;
+				color: #000
+			}
+
+			table.wikitable>*>tr>td,
+			table.wikitable>*>tr>th,
+			table.wikitable>tr>td,
+			table.wikitable>tr>th {
+				border: 1px solid #aaa;
+				padding: .2em .4em
+			}
+
+			table.wikitable>*>tr>th,
+			table.wikitable>tr>th {
+				background-color: #f2f2f2;
+				text-align: center
+			}
+		}
+
+		@media screen {
+
+			h1,
+			h2,
+			h3,
+			h4,
+			h5,
+			h6 {
+				color: #000;
+				background: 0 0;
+				font-weight: 400;
+				margin: 0;
+				overflow: hidden;
+				padding-top: .5em;
+				padding-bottom: .17em;
+				border-bottom: 1px solid #aaa
+			}
+
+			h1 {
+				font-size: 188%
+			}
+
+			h2 {
+				font-size: 150%
+			}
+
+			h3,
+			h4,
+			h5,
+			h6 {
+				border-bottom: none;
+				font-weight: 700
+			}
+
+			h3 {
+				font-size: 128%
+			}
+
+			h4 {
+				font-size: 116%
+			}
+
+			h5 {
+				font-size: 108%
+			}
+
+			h6 {
+				font-size: 100%
+			}
+
+			h1,
+			h2 {
+				margin-bottom: .6em
+			}
+
+			h3,
+			h4,
+			h5 {
+				margin-bottom: .3em
+			}
+
+			p {
+				margin: .4em 0 .5em 0
+			}
+
+			table {
+				font-size: 100%
+			}
+
+			select {
+				vertical-align: top
+			}
+
+			.firstHeading {
+				margin-bottom: .1em;
+				line-height: 1.2em;
+				padding-bottom: 0
+			}
+		}
+
+		@media screen {
+			html {
+				font-size: 100%
+			}
+
+			body,
+			html {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				font-family: sans-serif
+			}
+
+			body {
+				background-color: #f6f6f6
+			}
+
+			.mw-body {
+				padding: 1em;
+				border: 1px solid #a7d7f9;
+				border-right-width: 0;
+				margin-top: -1px;
+				background-color: #fff;
+				color: #252525;
+				direction: ltr
+			}
+
+			.mw-body p {
+				line-height: inherit;
+				margin: .5em 0
+			}
+
+			.mw-body h1,
+			.mw-body h2 {
+				font-family: "Linux Libertine", Georgia, Times, serif;
+				line-height: 1.3;
+				margin-bottom: .25em;
+				padding: 0
+			}
+
+			.mw-body h1 {
+				font-size: 1.8em
+			}
+
+			.mw-body h2 {
+				font-size: 1.5em;
+				margin-top: 1em
+			}
+
+			.mw-body h3,
+			.mw-body h4,
+			.mw-body h5,
+			.mw-body h6 {
+				line-height: 1.6;
+				margin-top: .3em;
+				margin-bottom: 0;
+				padding-bottom: 0
+			}
+
+			.mw-body h3 {
+				font-size: 1.17em
+			}
+
+			.mw-body h3,
+			.mw-body h4 {
+				font-weight: 700
+			}
+
+			.mw-body h4,
+			.mw-body h5,
+			.mw-body h6 {
+				font-size: 100%
+			}
+
+			.mw-body .firstHeading {
+				overflow: visible
+			}
+
+			.mw-body-content {
+				position: relative;
+				line-height: 1.6;
+				font-size: .875em;
+				z-index: 0
+			}
+
+			x:-moz-any-link {
+				min-width: 5em
+			}
+
+			x:-moz-any-link,
+			x:default {
+				min-width: 0
+			}
+		}
+	</style>
+</head>
+
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-Multiwii_Serial_Protocol skin-vector action-view"
+	data-gr-c-s-loaded="true">
+	<div id="content" class="mw-body" role="main">
+		<a id="top"></a>
+		<h1 id="firstHeading" class="firstHeading" lang="en">Multiwii Serial Protocol</h1>
+		<div id="bodyContent" class="mw-body-content">
+			<div id="mw-content-text" dir="ltr" class="mw-content-ltr" lang="en">
+				<p>A discussion on the MSP is in this thread: <a rel="nofollow" class="external free"
+						href="http://web.archive.org/web/20190812122529/http://www.multiwii.com/forum/viewtopic.php?f=8&amp;t=1516">http://www.multiwii.com/forum/viewtopic.php?f=8&amp;t=1516</a>
+				</p>
+				<p>The general format of an MSP message is:
+				</p>
+				<p>&lt;preamble&gt;,&lt;direction&gt;,&lt;size&gt;,&lt;command&gt;,<data>,&lt;crc&gt;
+					</data></p>
+				<p>Where:
+				</p>
+				<p>preamble = the ASCII characters '$M'
+				</p>
+				<p>direction = the ASCII character '&lt;' if to the MWC or '&gt;' if from the MWC
+				</p>
+				<p>size = number of data bytes, binary. Can be zero as in the case of a data request to the MWC
+				</p>
+				<p>command = message_id as per the table below
+				</p>
+				<p>data = as per the table below. UINT16 values are LSB first.
+				</p>
+				<p>crc = XOR of &lt;size&gt;, &lt;command&gt; and each data byte into a zero'ed sum
+				</p>
+				<p><br>
+				</p>
+				<table class="wikitable">
+					<tbody>
+						<tr>
+							<th>command</th>
+							<th>message_id</th>
+							<th>direction</th>
+							<th>data</th>
+							<th>type</th>
+							<th>comment
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_IDENT</td>
+							<td>100</td>
+							<td>FC →</td>
+							<td>VERSION</td>
+							<td>UINT 8</td>
+							<td>version of MultiWii
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MULTITYPE</td>
+							<td>UINT 8</td>
+							<td>type of multi:
+								<p>TRI/QUADP,QUADX,BI,GIMBAL,Y6,HEX6,FLYING_WING,Y4,HEX6X,OCTOX8,
+									OCTOFLATP,OCTOFLATX,AIRPLANE,HELI_120,HELI_90,VTAIL4,HEX6H,SINGLECOPTER,DUALCOPTER
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MSP_VERSION</td>
+							<td>UINT 8</td>
+							<td>not used currently
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>capability</td>
+							<td>UINT 32</td>
+							<td>A 32 bit variable to indicate capability of FC board.
+								<p>Currently, BIND button is used on first bit, DYNBAL on second, FLAP on third
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_STATUS</td>
+							<td>101</td>
+							<td>FC →</td>
+							<td>cycleTime</td>
+							<td>UINT 16</td>
+							<td>unit: microseconds
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>i2c_errors_count</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>sensor</td>
+							<td>UINT 16</td>
+							<td>BARO&lt;&lt;1|MAG&lt;&lt;2|GPS&lt;&lt;3|SONAR&lt;&lt;4
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>flag</td>
+							<td>UINT 32</td>
+							<td>a bit variable to indicate which BOX are active, the bit position depends on the BOX
+								which are configured
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>global_conf.currentSet</td>
+							<td>UINT 8</td>
+							<td>to indicate the current configuration setting
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_RAW_IMU</td>
+							<td>102</td>
+							<td>FC →</td>
+							<td>accx</td>
+							<td>INT 16</td>
+							<td>unit: it depends on ACC sensor and is based on ACC_1G definition
+								<p>MMA7455 64 / MMA8451Q 512 / ADXL345 265 / BMA180 255 / BMA020 63 /
+									NUNCHUCK 200 / LIS3LV02 256 / LSM303DLx_ACC 256 / MPU6050 512 / LSM330
+									256
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>accy</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>accz</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>gyrx</td>
+							<td>INT 16</td>
+							<td>unit: it depends on GYRO sensor.
+								<p>For MPU6050, 1 unit = 1/4.096 deg/s
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>gyry</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>gyrz</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>magx</td>
+							<td>INT 16</td>
+							<td>unit: it depends on MAG sensor.
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>magy</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>magz</td>
+							<td>INT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SERVO</td>
+							<td>103</td>
+							<td>FC →</td>
+							<td>Servo*8</td>
+							<td>16 x UINT 16</td>
+							<td>Range [1000;2000]
+								<p>The servo order depends on multi type
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_MOTOR</td>
+							<td>104</td>
+							<td>FC →</td>
+							<td>Motor*8</td>
+							<td>16 x UINT 16</td>
+							<td>Range [1000;2000]
+								<p>The motor order depends on multi type
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_MOTOR</td>
+							<td>214</td>
+							<td>→ FC</td>
+							<td>Motor*8</td>
+							<td>16 x UINT 16</td>
+							<td>use to set individual motor value (to be used only with DYNBALANCE config)
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_RC</td>
+							<td>105</td>
+							<td>FC →</td>
+							<td>rcData[RC_CHANS]</td>
+							<td>16 x UINT 16</td>
+							<td>Range [1000;2000]
+								<p>ROLL/PITCH/YAW/THROTTLE/AUX1/AUX2/AUX3AUX4
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_RAW_RC</td>
+							<td>200</td>
+							<td>→ FC</td>
+							<td>rcData[RC_CHANS]</td>
+							<td>16 x UINT 16</td>
+							<td>Range [1000;2000]
+								<p>ROLL/PITCH/YAW/THROTTLE/AUX1/AUX2/AUX3AUX4
+								</p>
+								<p>This request is used to inject RC channel via MSP.
+									Each chan overrides legacy RX as long as it is refreshed at least every second. See
+									UART radio projects for more details.
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_RAW_GPS</td>
+							<td>106</td>
+							<td>FC →</td>
+							<td>GPS_FIX</td>
+							<td>UINT 8</td>
+							<td>0 or 1
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_numSat</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_coord[LAT]</td>
+							<td>UINT 32</td>
+							<td>1 / 10 000 000 deg
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_coord[LON]</td>
+							<td>UINT 32</td>
+							<td>1 / 10 000 000 deg
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_altitude</td>
+							<td>UINT 16</td>
+							<td>meter
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_speed</td>
+							<td>UINT 16</td>
+							<td>cm/s
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_ground_course</td>
+							<td>UINT 16</td>
+							<td>unit: degree*10
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_RAW_GPS</td>
+							<td>201</td>
+							<td>→ FC</td>
+							<td>GPS_FIX</td>
+							<td>UINT 8</td>
+							<td>this request is used to inject GPS data (annex GPS device or simulation purpose)
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_numSat</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_coord[LAT]</td>
+							<td>UINT 32</td>
+							<td>1 / 10 000 000 deg
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_coord[LON]</td>
+							<td>UINT 32</td>
+							<td>1 / 10 000 000 deg
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_altitude</td>
+							<td>UINT 16</td>
+							<td>meter
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_speed</td>
+							<td>UINT 16</td>
+							<td>cm/s
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_COMP_GPS</td>
+							<td>107</td>
+							<td>FC →</td>
+							<td>GPS_distanceToHome</td>
+							<td>UINT 16</td>
+							<td>unit: meter
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_directionToHome</td>
+							<td>UINT 16</td>
+							<td>unit: degree (range [-180;+180])
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>GPS_update</td>
+							<td>UINT 8</td>
+							<td>a flag to indicate when a new GPS frame is received (the GPS fix is not dependent of
+								this)
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_ATTITUDE</td>
+							<td>108</td>
+							<td>FC →</td>
+							<td>angx</td>
+							<td>INT 16</td>
+							<td>Range [-1800;1800] (unit: 1/10 degree)
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>angy</td>
+							<td>INT 16</td>
+							<td>Range [-900;900] (unit: 1/10 degree)
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>heading</td>
+							<td>INT 16</td>
+							<td>Range [-180;180]
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_ALTITUDE</td>
+							<td>109</td>
+							<td>FC →</td>
+							<td>EstAlt</td>
+							<td>INT 32</td>
+							<td>cm
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>vario</td>
+							<td>INT 16</td>
+							<td>cm/s
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_ANALOG</td>
+							<td>110</td>
+							<td>FC →</td>
+							<td>vbat</td>
+							<td>UINT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>intPowerMeterSum</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>rssi</td>
+							<td>UINT 16</td>
+							<td>range: [0;1023]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>amperage</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_RC_TUNING</td>
+							<td>111</td>
+							<td>FC →</td>
+							<td>byteRC_RATE</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteRC_EXPO</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteRollPitchRate</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteYawRate</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteDynThrPID</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteThrottle_MID</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteThrottle_EXPO</td>
+							<td>UINT 8</td>
+							<td>range [0;100]
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_RC_TUNING</td>
+							<td>204</td>
+							<td>→ FC</td>
+							<td>byteRC_RATE</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteRC_EXPO</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteRollPitchRate</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteYawRate</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteDynThrPID</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteThrottle_MID</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>byteThrottle_EXPO</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_PID</td>
+							<td>112</td>
+							<td>FC →</td>
+							<td>PIDITEMS x conf.pid[]</td>
+							<td>3*PIDITEMS x UINT 8</td>
+							<td>Currently, PIDITEMS is constant = 10
+								<p>Order&nbsp;: ROLL / PITCH / YAW / ALT / POS / POSR / NAVR / LEVEL /MAG / VEL
+									VEL is not used
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_PID</td>
+							<td>202</td>
+							<td>→ FC</td>
+							<td>PIDITEMS x conf.pid[]</td>
+							<td>3*PIDITEMS x UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_BOX</td>
+							<td>113</td>
+							<td>FC →</td>
+							<td>BOXITEMS x conf.activate[]</td>
+							<td>BOXITEMS x UINT 16</td>
+							<td>BOXITEMS number is dependant of multiwii configuration
+								<p>The size of the message is enough to know the number of BOX
+									For each BOX, there is a 16 bit variable which indicates the AUX1-&gt;AUX4
+									activation switch.
+									Bit 1: AUX1 LOW state / bit 2: AUX1 MID state / bit 3: AUX1 HIGH state / bit 4: AUX2
+									LOW state ….. bit 13: AUX 4 HIGH state
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_BOX</td>
+							<td>203</td>
+							<td>→ FC</td>
+							<td>BOXITEMS x conf.activate[]</td>
+							<td>BOXITEMS x UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_MISC</td>
+							<td>114</td>
+							<td>FC →</td>
+							<td>intPowerTrigger1</td>
+							<td>UNIT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.minthrottle</td>
+							<td>UNIT 16</td>
+							<td> minimum throttle to run motor in idle state ( range [1000;2000] )
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MAXTHROTTLE</td>
+							<td>UNIT 16</td>
+							<td> maximum throttle ( range [1000;2000] )
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MINCOMMAND</td>
+							<td>UNIT 16</td>
+							<td> throttle at the lowest position ( range [1000;2000] , could be occasionally a little
+								bit less than 1000 depending on ESCs)
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.failsafe_throttle</td>
+							<td>UNIT 16</td>
+							<td> should be set less than hover state ( range [1000;2000] )
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>plog.arm</td>
+							<td>UNIT 16</td>
+							<td>counter
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>plog.lifetime</td>
+							<td>UNIT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.mag_declination</td>
+							<td>UNIT 16</td>
+							<td>magnetic declination ( unit:1/10 degree )
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatscale</td>
+							<td>UNIT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_warn1</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_warn2</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_crit</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_MISC</td>
+							<td>207</td>
+							<td>→ FC</td>
+							<td>intPowerTrigger1</td>
+							<td>UNIT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.minthrottle</td>
+							<td>UNIT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MAXTHROTTLE</td>
+							<td>UNIT 16</td>
+							<td>not used currently as a set variable
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>MINCOMMAND</td>
+							<td>UNIT 16</td>
+							<td>not used currently as a set variable
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.failsafe_throttle</td>
+							<td>UNIT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>plog.arm</td>
+							<td>UNIT 16</td>
+							<td>not used, it's here to have the same struct as get
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>plog.lifetime</td>
+							<td>UNIT 32</td>
+							<td>not used, it's here to have the same struct as get
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.mag_declination</td>
+							<td>UNIT 16</td>
+							<td>magnetic declination ( unit:1/10 degree )
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatscale</td>
+							<td>UNIT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_warn1</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_warn2</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>conf.vbatlevel_crit</td>
+							<td>UNIT 8</td>
+							<td>unit: 1/10 volt
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_MOTOR_PINS</td>
+							<td>115</td>
+							<td>FC →</td>
+							<td>8*PWM_PIN</td>
+							<td>8 x UNIT 8</td>
+							<td>motor pin indication
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_BOXNAMES</td>
+							<td>116</td>
+							<td>FC →</td>
+							<td>string of BOX items</td>
+							<td>string</td>
+							<td>all the configured CHECKBOX name separated by&nbsp;;
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_PIDNAMES</td>
+							<td>117</td>
+							<td>FC →</td>
+							<td>string of PID items</td>
+							<td>string</td>
+							<td>all the PID name separated by&nbsp;;
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_WP</td>
+							<td>118</td>
+							<td>FC →</td>
+							<td>wp_no</td>
+							<td>UINT 8</td>
+							<td>not fully implemented yet, works partially for HOME POSITION (wp 0) and HOLD position
+								(wp 15)
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>lat</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>lon</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>AltHold</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>heading</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>time to stay</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>nav flag</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_WP</td>
+							<td>209</td>
+							<td>→ FC</td>
+							<td>wp_no</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>lat</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>lon</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>AltHold</td>
+							<td>UINT 32</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>heading</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>time to stay</td>
+							<td>UINT 16</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>nav flag</td>
+							<td>UINT 8</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_BOXIDS</td>
+							<td>119</td>
+							<td>FC →</td>
+							<td>ID*CHECKBOXITEMS</td>
+							<td>CHECKBOXITEMS x UINT 8</td>
+							<td>each BOX (used or not) have a unique ID.
+								<p>In order to retrieve the number of BOX and which BOX are in used, this request can be
+									used.
+									It is more efficient than retrieving BOX names if you know what BOX function is
+									behing the ID.
+									See enum MultiWii.cpp (0: ARM, 1 ANGLE, 2 HORIZON, …)
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SERVO_CONF</td>
+							<td>120</td>
+							<td>FC →</td>
+							<td>8 x conf.servoConf[]</td>
+							<td>8 x [UINT 16, UINT 16, UINT 16, UINT 8]</td>
+							<td>struct servo_conf_ is 7 bytes length: min:2 / max:2 / middle:2 / rate:1
+								<p>[1000;2000], [1000;2000], [1000;2000], [0;100]
+									Special use:
+									middle normal range is [1000;2000]
+									If middle &lt; RC_CHANS =&gt; the relevant rc channel is the middle
+									position of the servo (usefull for gimbal where you wnt to control the
+									middle axis via a rc chan)
+								</p>
+								<p>Depending on the servo use in multiwii type, rate is used to
+									reverse the direction of servo (first bit) or to set a proportional
+									range
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_SERVO_CONF</td>
+							<td>212</td>
+							<td>→ FC</td>
+							<td>8 x conf.servoConf[]</td>
+							<td>8 x [UINT 16, UINT 16, UINT 16, UINT 8]</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_ACC_CALIBRATION</td>
+							<td>205</td>
+							<td>→ FC</td>
+							<td>no param</td>
+							<td></td>
+							<td>used to calibrate the ACC
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_MAG_CALIBRATION</td>
+							<td>206</td>
+							<td>→ FC</td>
+							<td>no param</td>
+							<td></td>
+							<td>used to calibrate the MAG
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_RESET_CONF</td>
+							<td>208</td>
+							<td>→ FC</td>
+							<td>no param</td>
+							<td></td>
+							<td>reset all params to default
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SELECT_SETTING</td>
+							<td>210</td>
+							<td>→ FC</td>
+							<td>global_conf.currentSet</td>
+							<td>UINT 8</td>
+							<td>select the setting configuration (you can set for instance different pid and rate)
+								<p>Range: 0, 1 or 2
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_SET_HEAD</td>
+							<td>211</td>
+							<td>→ FC</td>
+							<td>magHold</td>
+							<td>INT 16</td>
+							<td>Set a new head lock reference
+								<p>Range [-180;+180]
+								</p>
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_BIND</td>
+							<td>240</td>
+							<td>→ FC</td>
+							<td>no param</td>
+							<td></td>
+							<td>Currently only uses to bind spektrum sttellites
+							</td>
+						</tr>
+						<tr>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th>
+							</th>
+						</tr>
+						<tr>
+							<td>MSP_EEPROM_WRITE</td>
+							<td>250</td>
+							<td>→ FC</td>
+							<td>no param</td>
+							<td></td>
+							<td>write the settings to the eeprom
+							</td>
+						</tr>
+
+						<tr>
+							<th> </th>
+							<th> </th>
+							<th> </th>
+							<th> </th>
+							<th> </th>
+							<th>
+							</th>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>
