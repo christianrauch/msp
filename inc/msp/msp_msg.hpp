@@ -4386,6 +4386,7 @@ struct SetWp : public Message {
     virtual ID id() const override { return ID::MSP_SET_WP; }
 
     Value<uint8_t> wp_no;
+    Value<uint8_t> action;
     Value<uint32_t> lat;
     Value<uint32_t> lon;
     Value<uint32_t> alt;
@@ -4399,6 +4400,9 @@ struct SetWp : public Message {
         ByteVectorUptr data = std::make_unique<ByteVector>();
         bool rc             = true;
         rc &= data->pack(wp_no);
+        if(fw_variant == FirmwareVariant::INAV) {
+            rc &= data->pack(action);
+        }
         rc &= data->pack(lat);
         rc &= data->pack(lon);
         rc &= data->pack(alt);
