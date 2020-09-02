@@ -96,6 +96,10 @@ if(BUILD_EXAMPLES)
     add_executable(client_read_test examples/client_read_test.cpp)
     target_link_libraries(client_read_test mspclient)
 
+    # client test for blocking read
+    add_executable(inav_wp examples/inav_wp.cpp)
+    target_link_libraries(inav_wp msp_fcu)
+
 endif()
 
 ################################################################################
