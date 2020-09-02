@@ -3769,7 +3769,7 @@ struct LedStripModecolor : public Message {
 
 struct VoltageMeter {
     Value<uint8_t> id;
-    Value<uint8_t> val;
+    Value<float> voltage;
 };
 
 struct VoltageMeters : public Message {
@@ -3780,19 +3780,29 @@ struct VoltageMeters : public Message {
     std::vector<VoltageMeter> meters;
 
     virtual bool decode(const ByteVector& data) override {
+        const size_t nmeter = data.size() / 2;
+        meters.resize(nmeter);
         bool rc = true;
-        for(auto& meter : meters) {
-            rc &= data.unpack(meter.id);
-            rc &= data.unpack(meter.val);
+        for(size_t i = 0; i < nmeter; i++) {
+            rc &= data.unpack(meters[i].id);
+            rc &= data.unpack<uint8_t>(meters[i].voltage, 10);
         }
         return rc;
+    }
+
+    virtual std::ostream& print(std::ostream& s) const override {
+        s << "#Voltages (" << meters.size() << "):" << std::endl;
+        for(const VoltageMeter& meter : meters) {
+            s << meter.id << ": " << meter.voltage << "V" << std::endl;
+        }
+        return s;
     }
 };
 
 struct CurrentMeter {
     Value<uint8_t> id;
-    Value<uint16_t> mAh_drawn;
-    Value<uint16_t> mA;
+    Value<uint16_t> mAh_drawn;  // mAh
+    Value<float> amperage;      // A
 };
 
 struct CurrentMeters : public Message {
@@ -3803,37 +3813,83 @@ struct CurrentMeters : public Message {
     std::vector<CurrentMeter> meters;
 
     virtual bool decode(const ByteVector& data) override {
+        const size_t nmeter = data.size() / 5;
+        meters.resize(nmeter);
         bool rc = true;
-        for(auto& meter : meters) {
-            rc &= data.unpack(meter.id);
-            rc &= data.unpack(meter.mAh_drawn);
-            rc &= data.unpack(meter.mA);
+        for(size_t i = 0; i < nmeter; i++) {
+            rc &= data.unpack(meters[i].id);
+            rc &= data.unpack(meters[i].mAh_drawn);
+            rc &= data.unpack<uint16_t>(meters[i].amperage, 1000);
         }
         return rc;
+    }
+
+    virtual std::ostream& print(std::ostream& s) const override {
+        s << "#Current (" << meters.size() << "):" << std::endl;
+        for(const CurrentMeter& meter : meters) {
+            s << meter.id << ": " << meter.mAh_drawn << "mAh ("
+              << meter.amperage << "A)" << std::endl;
+        }
+        return s;
     }
 };
 
 struct BatteryState : public Message {
+    enum class state_t : uint8_t { OK, WARNING, CRITICAL, NOT_PRESENT, INIT };
+
     BatteryState(FirmwareVariant v) : Message(v) {}
 
     virtual ID id() const override { return ID::MSP_BATTERY_STATE; }
 
-    Value<uint8_t> cell_count;
-    Value<uint16_t> capacity_mAh;
-    Value<uint8_t> voltage;
-    Value<uint16_t> mAh_drawn;
-    Value<uint16_t> current;
-    Value<uint8_t> state;
+    Value<uint8_t> cell_count;     // S
+    Value<uint16_t> capacity_mAh;  // mAh
+    Value<float> voltage;          // V
+    Value<uint16_t> mAh_drawn;     // mAh
+    Value<uint16_t> amperage;      // A
+    Value<state_t> state;
 
     virtual bool decode(const ByteVector& data) override {
         bool rc = true;
         rc &= data.unpack(cell_count);
         rc &= data.unpack(capacity_mAh);
-        rc &= data.unpack(voltage);
+        rc &= data.unpack<uint8_t>(voltage, 10);
         rc &= data.unpack(mAh_drawn);
-        rc &= data.unpack(current);
-        rc &= data.unpack(state);
+        rc &= data.unpack<uint16_t>(amperage, 100);
+        uint8_t state_tmp;
+        rc &= data.unpack(state_tmp);
+        state = state_t(state_tmp);
         return rc;
+    }
+
+    virtual std::ostream& print(std::ostream& s) const override {
+        s << "#Battery:" << std::endl
+          << " Cells: " << cell_count << "S" << std::endl
+          << " Capacity: " << capacity_mAh << "mAh" << std::endl
+          << " Voltage: " << voltage << "V" << std::endl
+          << " Current drawn: " << mAh_drawn << "mAh" << std::endl
+          << " Current: " << amperage << "A" << std::endl;
+        s << " State: ";
+        switch(state) {
+        case state_t::OK:
+            s << "OK";
+            break;
+        case state_t::WARNING:
+            s << "WARNING";
+            break;
+        case state_t::CRITICAL:
+            s << "CRITICAL";
+            break;
+        case state_t::NOT_PRESENT:
+            s << "NOT_PRESENT";
+            break;
+        case state_t::INIT:
+            s << "INIT";
+            break;
+        default:
+            s << "UNKNOWN";
+        }
+        s << std::endl;
+        return s;
     }
 };
 
