@@ -136,7 +136,8 @@ public:
 
     /**
      * @brief Register callback function that is called when a
-     * message of matching ID is received
+     * message of matching ID is received. Replaces the previous callback of the
+     * same ID.
      * @param recv_callback Function to be called upon receipt of message
      * @param tp Period of timer that will send subscribed requests (in
      * seconds).
@@ -164,6 +165,9 @@ public:
 
         // gonna modify the subscription map, so lock the mutex
         std::lock_guard<std::mutex> lock(mutex_subscriptions);
+
+        // delete old subscription
+        if(subscriptions.count(id)) subscriptions.erase(id);
 
         // move the new subscription into the subscription map
         subscriptions.emplace(id, std::move(subscription));

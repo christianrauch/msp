@@ -220,7 +220,8 @@ void FlightController::initBoxes() {
     }
 }
 
-bool FlightController::isStatusActive(const std::string &status_name) {
+bool FlightController::isStatusActive(const std::string &status_name,
+                                      const double &timeout) {
     if(box_name_ids_.count(status_name) == 0) {
         // box ids have not been initialised or requested status is unsupported
         // by FC
@@ -230,7 +231,7 @@ bool FlightController::isStatusActive(const std::string &status_name) {
     }
 
     msp::msg::Status status(fw_variant_);
-    client_.sendMessage(status);
+    client_.sendMessage(status, timeout);
 
     // check if ARM box id is amongst active box IDs
     return status.box_mode_flags.count(box_name_ids_.at(status_name));

@@ -166,10 +166,7 @@ bool Client::sendMessage(msp::Message& message, const double& timeout) {
     }
     mutex_response.unlock();
     // decode the local copy of the payload
-    bool decode_success = false;
-    if(recv_success) {
-        decode_success = message.decode(data);
-    }
+    const bool decode_success = data.size() == 0 ? true : message.decode(data);
     return recv_success && decode_success;
 }
 

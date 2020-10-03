@@ -1,6 +1,6 @@
 language: cpp
 
-dist: bionic
+dist: focal
 sudo: required
 
 matrix:
@@ -37,16 +37,14 @@ matrix:
         - TEST="OFF"
         - ASIO="-DASIO_ROOT=C:\asio\asio-1.12.2"
 
+addons:
+    apt:
+        packages: [libasio-dev, libgtest-dev, clang-6.0]
+    homebrew:
+        update: true
+        packages: [asio]
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      sudo apt update -qq;
-      sudo apt install -y libasio-dev libgtest-dev;
-    fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update;
-      brew install asio;
-    fi
   - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
       wget https://sourceforge.net/projects/asio/files/asio/1.12.2%20%28Stable%29/asio-1.12.2.zip -O asio.zip;
       7z x asio.zip -o"C:/asio/" -y;

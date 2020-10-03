@@ -299,9 +299,12 @@ public:
 
     /**
      * @brief Queries the flight controller to see if a status is active
+     * @param status_name of boxitems
+     * @param timeout Maximum amount of time to block waiting for a response.
      * @return True if status if active
      */
-    bool isStatusActive(const std::string &status_name);
+    bool isStatusActive(const std::string &status_name,
+                        const double &timeout = 0);
 
     /**
      * @brief Queries the flight controller to see if the ARM status is active.
@@ -309,7 +312,7 @@ public:
      * controller has been instructued to turn on the ARM status.
      * @return True if the ARM status is active
      */
-    bool isArmed() { return isStatusActive("ARM"); }
+    bool isArmed() { return isStatusActive("ARM", 0.1); }
 
     /**
      * @brief Queries the flight controller to see if the FAILSAFE status is
