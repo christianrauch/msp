@@ -1,0 +1,70 @@
+name: MSP CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: build (${{ matrix.config.name }})
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { name: "Linux", os: ubuntu-latest, test: ON }
+          - { name: "Windows", os: windows-latest, test: OFF }
+          - { name: "macOS", os: macos-latest, test: OFF }
+
+    steps:
+    - name: install Linux dependencies
+      if: runner.os == 'Linux'
+      run: sudo apt install -y --no-install-recommends ninja-build libasio-dev clang-format-12 libgtest-dev
+
+    - name: install Microsoft Visual C++ (Windows)
+      uses: ilammy/msvc-dev-cmd@v1
+      if: runner.os == 'Windows'
+
+    - name: install Windows dependencies
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        choco install ninja wget
+        wget https://sourceforge.net/projects/asio/files/asio/1.20.0%20%28Stable%29/asio-1.20.0.zip
+        7z x asio-1.20.0.zip -o"C:/" -y
+        echo "ASIO='-DASIO_ROOT=C:\asio-1.20.0'" >> $GITHUB_ENV
+
+    - name: install macOS dependencies
+      if: runner.os == 'macOS'
+      run: brew install ninja asio
+
+    - uses: actions/checkout@v2
+
+    - name: Clang-Format Style Check
+      if: runner.os == 'Linux'
+      run: |
+        RETURN=0;
+        FILES=`find . -iname '*.h' -or -iname '*.hpp' -or -iname '*.c' -or -iname '*.cc' -or -iname '*.cpp' -or -iname '*.cxx'`;
+        for FILE in $FILES; do
+            clang-format --style=file $FILE | git diff --exit-code --no-index $FILE -;
+            if [ $? -ne 0 ]; then
+                echo "invalid formatting in file $FILE (see above for diff)" >&2;
+                RETURN=1;
+            fi;
+        done;
+        exit $RETURN;
+
+    - name: Build
+      run: |
+        cmake -B ${{github.workspace}}/build -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTS=${{ matrix.config.test }} ${{ env.ASIO }}
+        cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      if: matrix.config.test == 'ON'
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure

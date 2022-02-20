@@ -7,25 +7,37 @@ The communication has been tested with MultiWii 2.4 on an Arduino Nano 3.0 where
 
 ## Installation and Test
 ### Linux (Ubuntu / Debian)
-- install asio: `sudo apt install --no-install-recommends libasio-dev`
-- check out the source code and use cmake to compile: `mkdir build && cd build && cmake ..&& make -j`
-- run the example program given the path to the serial device, e.g.: `./msp_read_test /dev/ttyUSB0`
+- install asio and ninja:
+  ```sh
+  sudo apt install -y --no-install-recommends ninja-build libasio-dev
+  ```
+- check out the source code and use cmake to compile:
+  ```sh
+  cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+  cmake --build build
+  ```
+- run the example program given the path to the serial device:
+  ```sh
+  ./msp_read_test /dev/ttyUSB0
+  ```
 
 ### Windows
 #### Requirements
 - CMake
-- asio: download [asio-1.10.8.zip](https://sourceforge.net/projects/asio/files/latest/download?source=files) and extract the header files, e.g. to `C:\asio-1.10.8`
+- asio: download [asio-1.20.0.zip](https://sourceforge.net/projects/asio/files/latest/download?source=files) and extract the header files, e.g. to `C:\asio-1.20.0`
 - Visual C++ Build Tools: https://visualstudio.microsoft.com/de/downloads/
 
-#### Build
+#### Build and Test
 - open the Developer Command Prompt for Visual Studio
-- change to the directory where you checked out msp
-- `mkdir build`, `cd build`
-- `cmake -DASIO_ROOT=C:\asio-1.10.8 ..`
-- build: `cmake --build .`
-
-#### Test
-- `msp_read_test.exe COM3`
+- change to the directory where you checked out msp and run:
+  ```sh
+  cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DASIO_ROOT=C:\asio-1.20.0
+  cmake --build build
+  ```
+- test with serial device:
+  ```sh
+  msp_read_test.exe COM3
+  ```
 
 ## Hardware Setup
 
