@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(msp VERSION 3.3.0 LANGUAGES CXX)
+project(msp VERSION 3.4.0 LANGUAGES CXX)
 
 set(PROJECT_DESCRIPTION "Implementation of the MultiWii Serial Protocol (MSP) for MultiWii and Cleanflight flight controller")
 
