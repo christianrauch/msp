@@ -36,8 +36,7 @@ public:
      */
     template <typename T1, typename T2>
     ByteVector(T1 arg1, T2 arg2) :
-        std::vector<uint8_t>(arg1, arg2),
-        offset(0) {}
+        std::vector<uint8_t>(arg1, arg2), offset(0) {}
 
     /**
      * @brief Packs integer types into the ByteVector. Ensures little endian
