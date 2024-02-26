@@ -310,6 +310,14 @@ protected:
     uint8_t crcV1(const uint8_t id, const ByteVector& data) const;
 
     /**
+     * @brief crcV1_2 Computes a checksum for MSPv1 messages
+     * @param start_val uint8_t start value for crc
+     * @param data Bytes which are part of the checksum
+     * @return uint8_t checksum
+     */
+    uint8_t crcV1_2(const uint8_t start_val, const ByteVector& data) const;
+
+    /**
      * @brief packMessageV2 Packs data ID and data payload into a MSPv2
      * formatted buffer ready for sending to the serial device
      * @param id msp::ID of the message being packed

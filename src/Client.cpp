@@ -243,6 +243,14 @@ uint8_t Client::crcV1(const uint8_t id, const ByteVector& data) const {
     return crc;
 }
 
+uint8_t Client::crcV1_2(const uint8_t start_val, const ByteVector& data) const {
+    uint8_t crc = start_val;
+    for(const uint8_t d : data) {
+        crc = crc ^ d;
+    }
+    return crc;
+}
+
 ByteVector Client::packMessageV2(const msp::ID id,
                                  const ByteVector& data) const {
     ByteVector msg;
@@ -363,12 +371,23 @@ std::pair<iterator, bool> Client::messageReady(iterator begin,
         // not even enough data for a header
         if(available < 6) return std::make_pair(begin, false);
 
-        const uint8_t payload_size = uint8_t(*(i + 3));
+        uint16_t payload_size = uint8_t(*(i + 3));
+        uint8_t extra_idx = 0;
+        if (payload_size == 0xFF) {
+            if(available < 8) return std::make_pair(begin, false);
+
+            payload_size = *(i + 5);
+            payload_size += static_cast<uint16_t>(*(i + 6)) << 8;
+            extra_idx = 2;
+            if(log_level_ >= DEBUG) std::cout << "received jumbo message with payload_size "
+                << payload_size << " available bytes " << available <<std::endl;
+        }
+
         // incomplete xfer
-        if(available < size_t(5 + payload_size + 1))
+        if(available < size_t(5 + extra_idx + payload_size + 1))
             return std::make_pair(begin, false);
 
-        std::advance(i, 5 + payload_size + 1);
+        std::advance(i, 5 + extra_idx + payload_size + 1);
     }
     else if(*i == '$' && *(i + 1) == 'X') {
         // not even enough data for a header
@@ -403,11 +422,22 @@ ReceivedMessage Client::processOneMessageV1() {
     const bool ok_id  = (dir != '!');
 
     // payload length
-    const uint8_t len = extractChar();
+    uint16_t len = extractChar();
 
     // message ID
     uint8_t id = extractChar();
     ret.id     = msp::ID(id);
+
+    uint8_t crc_start_val = len ^ id;
+
+    if (len == 0xFF) {
+        len = extractChar();
+        crc_start_val ^= len;
+        uint8_t temp = extractChar();
+        len += temp << 8;
+        crc_start_val ^= temp;
+        if(log_level_ >= DEBUG) std::cout << "received jumbo message with length " << len << std::endl;
+    }
 
     if(log_level_ >= WARNING && !ok_id) {
         std::cerr << "Message v1 with ID " << size_t(ret.id)
@@ -421,7 +451,7 @@ ReceivedMessage Client::processOneMessageV1() {
 
     // CRC
     const uint8_t rcv_crc = extractChar();
-    const uint8_t exp_crc = crcV1(id, ret.payload);
+    const uint8_t exp_crc = crcV1_2(crc_start_val, ret.payload);
     const bool ok_crc     = (rcv_crc == exp_crc);
 
     if(log_level_ >= WARNING && !ok_crc) {
