@@ -15,9 +15,15 @@ bool FlightController::connect(const std::string &device, const size_t baudrate,
     if(!client_.start(device, baudrate)) return false;
 
     msp::msg::FcVariant fcvar(fw_variant_);
-    if(client_.sendMessage(fcvar, timeout)) {
+    if(client_.sendMessage(fcvar, 1.0) && !fcvar.identifier().empty()) {
         fw_variant_ = msp::variant_map.at(fcvar.identifier());
         if(print_info) std::cout << fcvar;
+    }
+    else {
+        std::cerr
+            << "cannot determine the flight controller variant (MSP_FC_VARIANT)"
+            << std::endl;
+        return false;
     }
 
     if(fw_variant_ != msp::FirmwareVariant::MWII) {

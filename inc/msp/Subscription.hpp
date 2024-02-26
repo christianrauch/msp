@@ -41,13 +41,13 @@ public:
      * @brief Start the timer for automatic execution
      * @returns True if the timer starts successfully
      */
-    bool start() const { return this->timer_->start(); }
+    bool start() const { return hasTimer() && this->timer_->start(); }
 
     /**
      * @brief Stop the timer's automatic execution
      * @returns True if the timer stops successfully
      */
-    bool stop() const { return this->timer_->stop(); }
+    bool stop() const { return hasTimer() && this->timer_->stop(); }
 
     /**
      * @brief setTimerPeriod change the period of the timer
@@ -164,7 +164,7 @@ public:
      * @brief Sets the callback used to send the request
      * @param send_callback the callback to be executed
      */
-    void setSendCallback(const CallbackM& send_callback) const {
+    void setSendCallback(const CallbackM& send_callback) {
         send_callback_ = send_callback;
     }
 
