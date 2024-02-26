@@ -1,6 +1,7 @@
 #ifndef BYTE_VECTOR_HPP
 #define BYTE_VECTOR_HPP
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -91,12 +92,9 @@ public:
               typename std::enable_if<std::is_arithmetic<T2>::value,
                                       T2>::type* = nullptr>
     bool pack(const T1 val, const T2 scale, const T2 offset = 0) {
-        const T1 tmp = (val + offset) * scale;
-        if(tmp <= std::numeric_limits<encoding_T>::min())
-            return pack(std::numeric_limits<encoding_T>::min());
-        else if(tmp >= std::numeric_limits<encoding_T>::max())
-            return pack(std::numeric_limits<encoding_T>::max());
-        return pack(static_cast<encoding_T>(tmp));
+        return pack(std::clamp(static_cast<encoding_T>((val + offset) * scale),
+                               std::numeric_limits<encoding_T>::min(),
+                               std::numeric_limits<encoding_T>::max()));
     }
 
     /**
