@@ -319,11 +319,14 @@ public:
               typename std::enable_if<std::is_arithmetic<T2>::value,
                                       T2>::type* = nullptr>
     bool unpack(T1& val, T2 scale, T2 offset = 0) const {
+        using cast_type = std::common_type_t<T1, T2>;
+
         bool rc        = true;
         encoding_T tmp = 0;
         rc &= unpack(tmp);
-        val = static_cast<T1>(tmp) / scale;
-        val -= offset;
+        val = static_cast<T1>(static_cast<cast_type>(tmp) /
+                                  static_cast<cast_type>(scale) -
+                              static_cast<cast_type>(offset));
         return rc;
     }
 
