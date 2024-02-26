@@ -372,15 +372,17 @@ std::pair<iterator, bool> Client::messageReady(iterator begin,
         if(available < 6) return std::make_pair(begin, false);
 
         uint16_t payload_size = uint8_t(*(i + 3));
-        uint8_t extra_idx = 0;
-        if (payload_size == 0xFF) {
+        uint8_t extra_idx     = 0;
+        if(payload_size == 0xFF) {
             if(available < 8) return std::make_pair(begin, false);
 
             payload_size = *(i + 5);
             payload_size += static_cast<uint16_t>(*(i + 6)) << 8;
             extra_idx = 2;
-            if(log_level_ >= DEBUG) std::cout << "received jumbo message with payload_size "
-                << payload_size << " available bytes " << available <<std::endl;
+            if(log_level_ >= DEBUG)
+                std::cout << "received jumbo message with payload_size "
+                          << payload_size << " available bytes " << available
+                          << std::endl;
         }
 
         // incomplete xfer
@@ -430,13 +432,15 @@ ReceivedMessage Client::processOneMessageV1() {
 
     uint8_t crc_start_val = len ^ id;
 
-    if (len == 0xFF) {
+    if(len == 0xFF) {
         len = extractChar();
         crc_start_val ^= len;
         uint8_t temp = extractChar();
         len += temp << 8;
         crc_start_val ^= temp;
-        if(log_level_ >= DEBUG) std::cout << "received jumbo message with length " << len << std::endl;
+        if(log_level_ >= DEBUG)
+            std::cout << "received jumbo message with length " << len
+                      << std::endl;
     }
 
     if(log_level_ >= WARNING && !ok_id) {
