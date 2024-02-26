@@ -164,7 +164,7 @@ public:
      * @brief Sets the callback used to send the request
      * @param send_callback the callback to be executed
      */
-    void setSendCallback(const CallbackM& send_callback) const {
+    void setSendCallback(const CallbackM& send_callback) {
         send_callback_ = send_callback;
     }
 
