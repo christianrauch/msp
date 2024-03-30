@@ -1,6 +1,7 @@
 #ifndef BYTE_VECTOR_HPP
 #define BYTE_VECTOR_HPP
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -91,12 +92,9 @@ public:
               typename std::enable_if<std::is_arithmetic<T2>::value,
                                       T2>::type* = nullptr>
     bool pack(const T1 val, const T2 scale, const T2 offset = 0) {
-        const T1 tmp = (val + offset) * scale;
-        if(tmp <= std::numeric_limits<encoding_T>::min())
-            return pack(std::numeric_limits<encoding_T>::min());
-        else if(tmp >= std::numeric_limits<encoding_T>::max())
-            return pack(std::numeric_limits<encoding_T>::max());
-        return pack(static_cast<encoding_T>(tmp));
+        return pack(std::clamp(static_cast<encoding_T>((val + offset) * scale),
+                               std::numeric_limits<encoding_T>::min(),
+                               std::numeric_limits<encoding_T>::max()));
     }
 
     /**
@@ -321,11 +319,14 @@ public:
               typename std::enable_if<std::is_arithmetic<T2>::value,
                                       T2>::type* = nullptr>
     bool unpack(T1& val, T2 scale, T2 offset = 0) const {
+        using cast_type = std::common_type_t<T1, T2>;
+
         bool rc        = true;
         encoding_T tmp = 0;
         rc &= unpack(tmp);
-        val = static_cast<T1>(tmp) / scale;
-        val -= offset;
+        val = static_cast<T1>(static_cast<cast_type>(tmp) /
+                                  static_cast<cast_type>(scale) -
+                              static_cast<cast_type>(offset));
         return rc;
     }
 

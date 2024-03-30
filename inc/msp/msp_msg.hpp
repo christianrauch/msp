@@ -4463,6 +4463,7 @@ struct SetWp : public Message {
             rc &= data->pack(p3);
         }
         rc &= data->pack(nav_flag);
+        if(!rc) data.reset();
         return data;
     }
 };
