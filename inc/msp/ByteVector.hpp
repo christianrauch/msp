@@ -272,7 +272,7 @@ public:
         if(count > unpacking_remaining()) return false;
         bool rc = true;
         val.clear();
-        int8_t tmp;
+        int8_t tmp = {};
         for(size_t i = 0; i < count; ++i) {
             rc &= unpack(tmp);
             val += tmp;
