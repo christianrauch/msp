@@ -3320,7 +3320,7 @@ struct ActiveBoxes : public Message {
                     if(box_conf() & (1 << (iaux * 3 + ip)))
                         aux_sp[iaux].insert(SwitchPosition(ip));
                 }  // each position (L,M,H)
-            }      // each aux switch
+            }  // each aux switch
             box_pattern.push_back(aux_sp);
         }  // each box
         return rc;

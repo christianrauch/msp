@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
@@ -17,14 +18,14 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { name: "Linux", os: ubuntu-latest, test: ON }
-          - { name: "Windows", os: windows-latest, test: OFF }
-          - { name: "macOS", os: macos-latest, test: OFF }
+          - { name: "Linux", os: ubuntu-24.04, test: ON }
+          - { name: "Windows", os: windows-2025, test: OFF }
+          - { name: "macOS", os: macos-15, test: OFF }
 
     steps:
     - name: install Linux dependencies
       if: runner.os == 'Linux'
-      run: sudo apt install -y --no-install-recommends ninja-build libasio-dev clang-format-12 libgtest-dev
+      run: sudo apt install -y --no-install-recommends ninja-build libasio-dev clang-format-18 libgtest-dev
 
     - name: install Microsoft Visual C++ (Windows)
       uses: ilammy/msvc-dev-cmd@v1
@@ -43,7 +44,7 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install ninja asio
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Clang-Format Style Check
       if: runner.os == 'Linux'
